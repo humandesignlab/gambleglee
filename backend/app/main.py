@@ -16,6 +16,7 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.v1.api import api_router
 from app.core.exceptions import GambleGleeException
+from app.middleware.geolocation import GeolocationMiddleware
 
 # Configure structured logging
 structlog.configure(
@@ -73,6 +74,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Geolocation middleware
+app.add_middleware(GeolocationMiddleware)
 
 # Global exception handler
 @app.exception_handler(GambleGleeException)
