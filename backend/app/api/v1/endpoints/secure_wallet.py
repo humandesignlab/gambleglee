@@ -14,9 +14,9 @@ from app.core.dependencies import get_user_location, get_payment_processor, get_
 from app.core.security_audit import SecurityAudit
 from app.models.user import User
 from app.schemas.wallet import (
-    WalletResponse, 
-    TransactionResponse, 
-    DepositRequest, 
+    WalletResponse,
+    TransactionResponse,
+    DepositRequest,
     WithdrawalRequest,
     PaymentIntentResponse,
     TransactionListResponse
@@ -34,20 +34,20 @@ def _check_rate_limit(user_id: int, endpoint: str, limit: int = 10, window: int 
     """Simple rate limiting (in production, use Redis with proper distributed rate limiting)"""
     current_time = time.time()
     key = f"{user_id}:{endpoint}"
-    
+
     if key not in _rate_limit_storage:
         _rate_limit_storage[key] = []
-    
+
     # Clean old entries
     _rate_limit_storage[key] = [
-        timestamp for timestamp in _rate_limit_storage[key] 
+        timestamp for timestamp in _rate_limit_storage[key]
         if current_time - timestamp < window
     ]
-    
+
     # Check if limit exceeded
     if len(_rate_limit_storage[key]) >= limit:
         return False
-    
+
     # Add current request
     _rate_limit_storage[key].append(current_time)
     return True
@@ -66,23 +66,23 @@ async def get_wallet(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded"
         )
-    
+
     # Security audit
     security_audit = SecurityAudit(db)
     alerts = await security_audit.detect_suspicious_activity(current_user.id)
-    
+
     if alerts:
         for alert in alerts:
             await security_audit.log_security_event(
-                alert["type"], 
-                current_user.id, 
-                alert, 
+                alert["type"],
+                current_user.id,
+                alert,
                 alert["severity"]
             )
-    
+
     wallet_service = SecureWalletService(db)
     wallet = await wallet_service.get_or_create_wallet(current_user.id, current_user.id)
-    
+
     return WalletResponse.from_orm(wallet)
 
 
@@ -101,7 +101,7 @@ async def get_transactions(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded"
         )
-    
+
     wallet_service = SecureWalletService(db)
     transactions, total = await wallet_service.get_transactions(
         user_id=current_user.id,
@@ -109,9 +109,9 @@ async def get_transactions(
         page=page,
         limit=limit
     )
-    
+
     pages = (total + limit - 1) // limit
-    
+
     return TransactionListResponse(
         items=[TransactionResponse.from_orm(t) for t in transactions],
         total=total,
@@ -138,10 +138,10 @@ async def create_deposit_intent(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Deposit rate limit exceeded. Please wait before trying again."
         )
-    
+
     # Security checks
     security_audit = SecurityAudit(db)
-    
+
     # Check for suspicious activity
     alerts = await security_audit.detect_suspicious_activity(current_user.id)
     if any(alert["severity"] == "critical" for alert in alerts):
@@ -149,14 +149,14 @@ async def create_deposit_intent(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account temporarily restricted due to suspicious activity"
         )
-    
+
     # Check compliance requirements
     if not location.get("compliance_status") == "allowed":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Deposits not allowed from this location"
         )
-    
+
     # Check deposit limits
     daily_limit = compliance_requirements.get("deposit_limits", {}).get("daily", 1000)
     if deposit_data.amount > daily_limit:
@@ -164,22 +164,22 @@ async def create_deposit_intent(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Deposit amount exceeds daily limit of ${daily_limit}"
         )
-    
+
     # Check velocity limits
     amount_decimal = Decimal(str(deposit_data.amount))
     from app.models.wallet import TransactionType
     velocity_ok = await security_audit.check_velocity_limits(
         current_user.id, amount_decimal, TransactionType.DEPOSIT
     )
-    
+
     if not velocity_ok:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Deposit velocity limit exceeded. Please wait before trying again."
         )
-    
+
     wallet_service = SecureWalletService(db)
-    
+
     try:
         # Route to appropriate payment processor based on location
         result = await wallet_service.create_deposit_intent(
@@ -187,7 +187,7 @@ async def create_deposit_intent(
             amount=deposit_data.amount,
             payment_processor=payment_processor
         )
-        
+
         # Log security event
         await security_audit.log_security_event(
             "deposit_intent_created",
@@ -200,10 +200,10 @@ async def create_deposit_intent(
             },
             "low"
         )
-        
+
         # Determine currency based on location
         currency = "USD" if location.get("country") == "US" else "MXN"
-        
+
         return PaymentIntentResponse(
             client_secret=result.get('client_secret'),
             payment_intent_id=result.get('payment_intent_id'),
@@ -214,7 +214,7 @@ async def create_deposit_intent(
             amount=deposit_data.amount,
             currency=currency
         )
-        
+
     except SecurityError as e:
         await security_audit.log_security_event(
             "deposit_security_error",
@@ -255,10 +255,10 @@ async def request_withdrawal(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Withdrawal rate limit exceeded. Please wait before trying again."
         )
-    
+
     # Security checks
     security_audit = SecurityAudit(db)
-    
+
     # Check for suspicious activity
     alerts = await security_audit.detect_suspicious_activity(current_user.id)
     if any(alert["severity"] in ["critical", "high"] for alert in alerts):
@@ -266,14 +266,14 @@ async def request_withdrawal(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account temporarily restricted due to suspicious activity"
         )
-    
+
     # Check compliance requirements
     if not location.get("compliance_status") == "allowed":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Withdrawals not allowed from this location"
         )
-    
+
     # Check withdrawal limits
     daily_limit = compliance_requirements.get("withdrawal_limits", {}).get("daily", 5000)
     if withdrawal_data.amount > daily_limit:
@@ -281,22 +281,22 @@ async def request_withdrawal(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Withdrawal amount exceeds daily limit of ${daily_limit}"
         )
-    
+
     # Check velocity limits
     amount_decimal = Decimal(str(withdrawal_data.amount))
     from app.models.wallet import TransactionType
     velocity_ok = await security_audit.check_velocity_limits(
         current_user.id, amount_decimal, TransactionType.WITHDRAWAL
     )
-    
+
     if not velocity_ok:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Withdrawal velocity limit exceeded. Please wait before trying again."
         )
-    
+
     wallet_service = SecureWalletService(db)
-    
+
     try:
         transaction = await wallet_service.request_withdrawal(
             user_id=current_user.id,
@@ -304,7 +304,7 @@ async def request_withdrawal(
             description="Withdrawal request",
             current_user_id=current_user.id
         )
-        
+
         # Log security event
         await security_audit.log_security_event(
             "withdrawal_requested",
@@ -315,9 +315,9 @@ async def request_withdrawal(
             },
             "medium"
         )
-        
+
         return TransactionResponse.from_orm(transaction)
-        
+
     except SecurityError as e:
         await security_audit.log_security_event(
             "withdrawal_security_error",
@@ -355,12 +355,12 @@ async def get_balance(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded"
         )
-    
+
     wallet_service = SecureWalletService(db)
     available, locked = await wallet_service.get_wallet_balance(
         current_user.id, current_user.id
     )
-    
+
     return {
         "available_balance": float(available),
         "locked_balance": float(locked),
@@ -381,8 +381,8 @@ async def audit_wallet(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded"
         )
-    
+
     security_audit = SecurityAudit(db)
     audit_result = await security_audit.audit_wallet_integrity(current_user.id)
-    
+
     return audit_result
