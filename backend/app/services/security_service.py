@@ -23,8 +23,8 @@ class SecurityService:
         }
 
     async def log_security_event(
-        self, 
-        event_type: str, 
+        self,
+        event_type: str,
         user_id: Optional[int] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
@@ -40,21 +40,21 @@ class SecurityService:
                 "user_agent": user_agent,
                 "details": details or {}
             }
-            
+
             # Log to structured logger
             logger.info("SECURITY_EVENT", **log_entry)
-            
+
             # In a real system, this would also:
             # 1. Store in a security events database
             # 2. Send to SIEM system
             # 3. Trigger alerts for critical events
             # 4. Update user risk score
-            
+
         except Exception as e:
             logger.error("Failed to log security event", error=str(e))
 
     async def calculate_risk_score(
-        self, 
+        self,
         user_id: Optional[int] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
@@ -63,7 +63,7 @@ class SecurityService:
         """Calculate risk score for a security event"""
         try:
             risk_score = 0
-            
+
             # Base risk by event type
             event_risk_scores = {
                 "login_success": 0,
@@ -77,36 +77,36 @@ class SecurityService:
                 "unusual_device": 25,
                 "admin_action": 50
             }
-            
+
             risk_score += event_risk_scores.get(event_type, 10)
-            
+
             # IP-based risk factors
             if ip_address:
                 # Check for known malicious IPs (simplified)
                 if self._is_suspicious_ip(ip_address):
                     risk_score += 30
-                
+
                 # Check for VPN/Proxy usage (simplified)
                 if self._is_vpn_or_proxy(ip_address):
                     risk_score += 20
-            
+
             # User agent risk factors
             if user_agent:
                 if self._is_suspicious_user_agent(user_agent):
                     risk_score += 25
-                
+
                 # Check for automated tools
                 if self._is_automated_tool(user_agent):
                     risk_score += 35
-            
+
             # Time-based risk factors
             current_hour = datetime.utcnow().hour
             if current_hour < 6 or current_hour > 22:  # Unusual hours
                 risk_score += 15
-            
+
             # Cap the risk score
             return min(risk_score, 100)
-            
+
         except Exception as e:
             logger.error("Failed to calculate risk score", error=str(e))
             return 50  # Default to medium risk
@@ -118,11 +118,11 @@ class SecurityService:
         # - Tor exit nodes
         # - VPN/Proxy services
         # - Geolocation anomalies
-        
+
         # For now, just check for localhost in production
         if settings.ENVIRONMENT == "production" and ip_address in ["127.0.0.1", "localhost"]:
             return True
-        
+
         return False
 
     def _is_vpn_or_proxy(self, ip_address: str) -> bool:
@@ -131,7 +131,7 @@ class SecurityService:
         # - VPN service IP ranges
         # - Proxy service databases
         # - ASN information
-        
+
         # For now, just return False
         return False
 
@@ -142,7 +142,7 @@ class SecurityService:
             "curl", "wget", "python-requests",
             "sqlmap", "nikto", "nmap"
         ]
-        
+
         user_agent_lower = user_agent.lower()
         return any(pattern in user_agent_lower for pattern in suspicious_patterns)
 
@@ -152,13 +152,13 @@ class SecurityService:
             "selenium", "phantomjs", "headless",
             "automated", "test", "script"
         ]
-        
+
         user_agent_lower = user_agent.lower()
         return any(pattern in user_agent_lower for pattern in automated_patterns)
 
     async def detect_brute_force_attempts(
-        self, 
-        email: str, 
+        self,
+        email: str,
         ip_address: Optional[str] = None
     ) -> bool:
         """Detect brute force login attempts"""
@@ -168,23 +168,23 @@ class SecurityService:
             # 2. Use rate limiting and exponential backoff
             # 3. Implement account lockout policies
             # 4. Send alerts for suspicious activity
-            
+
             # For now, just log the attempt
             await self.log_security_event(
                 event_type="login_attempt",
                 ip_address=ip_address,
                 details={"email": email, "type": "brute_force_check"}
             )
-            
+
             return False  # No brute force detected
-            
+
         except Exception as e:
             logger.error("Failed to detect brute force attempts", error=str(e))
             return False
 
     async def detect_account_takeover(
-        self, 
-        user_id: int, 
+        self,
+        user_id: int,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None
     ) -> bool:
@@ -195,7 +195,7 @@ class SecurityService:
             # 2. Verify device fingerprinting
             # 3. Check for multiple concurrent sessions
             # 4. Analyze behavioral patterns
-            
+
             # For now, just log the attempt
             await self.log_security_event(
                 event_type="account_takeover_check",
@@ -204,15 +204,15 @@ class SecurityService:
                 user_agent=user_agent,
                 details={"type": "takeover_detection"}
             )
-            
+
             return False  # No takeover detected
-            
+
         except Exception as e:
             logger.error("Failed to detect account takeover", error=str(e))
             return False
 
     async def generate_device_fingerprint(
-        self, 
+        self,
         user_agent: Optional[str] = None,
         ip_address: Optional[str] = None,
         screen_resolution: Optional[str] = None,
@@ -226,20 +226,20 @@ class SecurityService:
                 "screen_resolution": screen_resolution or "",
                 "timezone": timezone or ""
             }
-            
+
             # Create hash of fingerprint data
             fingerprint_string = "|".join(fingerprint_data.values())
             fingerprint_hash = hashlib.sha256(fingerprint_string.encode()).hexdigest()
-            
+
             return fingerprint_hash
-            
+
         except Exception as e:
             logger.error("Failed to generate device fingerprint", error=str(e))
             return ""
 
     async def validate_session_security(
-        self, 
-        session_id: str, 
+        self,
+        session_id: str,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None
     ) -> bool:
@@ -250,7 +250,7 @@ class SecurityService:
             # 2. Verify IP address hasn't changed significantly
             # 3. Check user agent consistency
             # 4. Validate device fingerprint
-            
+
             # For now, just log the validation
             await self.log_security_event(
                 event_type="session_validation",
@@ -258,18 +258,18 @@ class SecurityService:
                 user_agent=user_agent,
                 details={"session_id": session_id, "type": "security_check"}
             )
-            
+
             return True  # Session is valid
-            
+
         except Exception as e:
             logger.error("Failed to validate session security", error=str(e))
             return False
 
     async def check_rate_limits(
-        self, 
-        identifier: str, 
-        action: str, 
-        limit: int, 
+        self,
+        identifier: str,
+        action: str,
+        limit: int,
         window_seconds: int
     ) -> bool:
         """Check if action is within rate limits"""
@@ -279,7 +279,7 @@ class SecurityService:
             # 2. Implement sliding window or token bucket
             # 3. Different limits for different actions
             # 4. Progressive penalties for violations
-            
+
             # For now, just log the check
             await self.log_security_event(
                 event_type="rate_limit_check",
@@ -290,9 +290,9 @@ class SecurityService:
                     "window_seconds": window_seconds
                 }
             )
-            
+
             return True  # Within rate limits
-            
+
         except Exception as e:
             logger.error("Failed to check rate limits", error=str(e))
             return True  # Allow on error
@@ -322,7 +322,7 @@ class SecurityService:
                 "union select", "drop table", "delete from",
                 "../", "..\\", "cmd.exe", "powershell"
             ]
-            
+
             input_lower = input_data.lower()
             for pattern in dangerous_patterns:
                 if pattern in input_lower:
@@ -331,9 +331,9 @@ class SecurityService:
                         details={"pattern": pattern, "input": input_data[:100]}
                     )
                     return False
-            
+
             return True
-            
+
         except Exception as e:
             logger.error("Failed to validate input security", error=str(e))
             return False
@@ -342,14 +342,14 @@ class SecurityService:
         """Get security recommendations for a user"""
         try:
             recommendations = []
-            
+
             # In a real system, this would analyze:
             # - Password strength
             # - 2FA status
             # - Login patterns
             # - Device security
             # - Account activity
-            
+
             # For now, return basic recommendations
             recommendations.extend([
                 "Enable two-factor authentication",
@@ -358,9 +358,9 @@ class SecurityService:
                 "Keep your devices updated",
                 "Be cautious with public Wi-Fi"
             ])
-            
+
             return recommendations
-            
+
         except Exception as e:
             logger.error("Failed to get security recommendations", error=str(e))
             return []

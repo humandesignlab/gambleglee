@@ -28,7 +28,7 @@ class EmailService:
         try:
             subject = "Verify your GambleGlee account"
             verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
-            
+
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -56,26 +56,26 @@ class EmailService:
             </body>
             </html>
             """
-            
+
             text_content = f"""
             Welcome to GambleGlee!
-            
+
             Hi {name},
-            
+
             Thank you for signing up for GambleGlee! To complete your registration, please verify your email address by visiting this link:
-            
+
             {verification_url}
-            
+
             This verification link will expire in 24 hours.
-            
+
             If you didn't create an account with GambleGlee, please ignore this email.
-            
+
             Best regards,
             The GambleGlee Team
             """
-            
+
             return await self._send_email(email, subject, text_content, html_content)
-            
+
         except Exception as e:
             logger.error("Failed to send verification email", email=email, error=str(e))
             return False
@@ -85,7 +85,7 @@ class EmailService:
         try:
             subject = "Reset your GambleGlee password"
             reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
-            
+
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -113,26 +113,26 @@ class EmailService:
             </body>
             </html>
             """
-            
+
             text_content = f"""
             Password Reset Request
-            
+
             Hi {name},
-            
+
             We received a request to reset your GambleGlee password. Click the link below to reset your password:
-            
+
             {reset_url}
-            
+
             This reset link will expire in 1 hour.
-            
+
             If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
-            
+
             Best regards,
             The GambleGlee Team
             """
-            
+
             return await self._send_email(email, subject, text_content, html_content)
-            
+
         except Exception as e:
             logger.error("Failed to send password reset email", email=email, error=str(e))
             return False
@@ -141,7 +141,7 @@ class EmailService:
         """Send welcome email after successful verification"""
         try:
             subject = "Welcome to GambleGlee!"
-            
+
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -173,30 +173,30 @@ class EmailService:
             </body>
             </html>
             """
-            
+
             text_content = f"""
             Welcome to GambleGlee!
-            
+
             Hi {name},
-            
+
             Congratulations! Your GambleGlee account has been successfully verified and activated.
-            
+
             You can now:
             - Create and accept bets with friends
             - Stream live trick shots
             - Earn rewards for your activity
             - Connect with other users
-            
+
             Get started at: {settings.FRONTEND_URL}
-            
+
             If you have any questions, feel free to contact our support team.
-            
+
             Best regards,
             The GambleGlee Team
             """
-            
+
             return await self._send_email(email, subject, text_content, html_content)
-            
+
         except Exception as e:
             logger.error("Failed to send welcome email", email=email, error=str(e))
             return False
@@ -205,7 +205,7 @@ class EmailService:
         """Send security alert email"""
         try:
             subject = f"Security Alert: {alert_type}"
-            
+
             html_content = f"""
             <!DOCTYPE html>
             <html>
@@ -241,32 +241,32 @@ class EmailService:
             </body>
             </html>
             """
-            
+
             text_content = f"""
             Security Alert
-            
+
             Hi {name},
-            
+
             We detected unusual activity on your GambleGlee account:
-            
+
             Alert Type: {alert_type}
             Time: {details.get('timestamp', 'Unknown')}
             IP Address: {details.get('ip_address', 'Unknown')}
             Location: {details.get('location', 'Unknown')}
-            
+
             If this was you, you can ignore this email. If you don't recognize this activity, please:
             1. Change your password immediately
             2. Review your account activity
             3. Contact our support team
-            
+
             Review your security settings: {settings.FRONTEND_URL}/security
-            
+
             Best regards,
             The GambleGlee Team
             """
-            
+
             return await self._send_email(email, subject, text_content, html_content)
-            
+
         except Exception as e:
             logger.error("Failed to send security alert email", email=email, error=str(e))
             return False
@@ -279,14 +279,14 @@ class EmailService:
             msg['From'] = f"{self.from_name} <{self.from_email}>"
             msg['To'] = to_email
             msg['Subject'] = subject
-            
+
             # Add text and HTML parts
             text_part = MIMEText(text_content, 'plain')
             html_part = MIMEText(html_content, 'html')
-            
+
             msg.attach(text_part)
             msg.attach(html_part)
-            
+
             # Send email
             if settings.ENVIRONMENT == "development":
                 # In development, just log the email
@@ -300,10 +300,10 @@ class EmailService:
                     if self.smtp_username and self.smtp_password:
                         server.login(self.smtp_username, self.smtp_password)
                     server.send_message(msg)
-                
+
                 logger.info("Email sent", to=to_email, subject=subject)
                 return True
-                
+
         except Exception as e:
             logger.error("Failed to send email", to=to_email, subject=subject, error=str(e))
             return False

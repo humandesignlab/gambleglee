@@ -40,13 +40,13 @@ class UserRegisterRequest(BaseModel):
     last_name: Optional[str] = Field(None, max_length=100, description="Last name")
     display_name: Optional[str] = Field(None, max_length=100, description="Display name")
     marketing_emails: bool = Field(False, description="Subscribe to marketing emails")
-    
+
     @validator('username')
     def validate_username(cls, v):
         if not v.isalnum():
             raise ValueError('Username must contain only letters and numbers')
         return v.lower()
-    
+
     @validator('password')
     def validate_password(cls, v):
         if len(v) < 8:
@@ -75,7 +75,7 @@ class PasswordResetConfirmRequest(BaseModel):
     """Password reset confirmation request"""
     token: str = Field(..., description="Reset token")
     new_password: str = Field(..., min_length=8, max_length=100, description="New password")
-    
+
     @validator('new_password')
     def validate_password(cls, v):
         if len(v) < 8:
@@ -96,7 +96,7 @@ class ChangePasswordRequest(BaseModel):
     """Change password request"""
     current_password: str = Field(..., description="Current password")
     new_password: str = Field(..., min_length=8, max_length=100, description="New password")
-    
+
     @validator('new_password')
     def validate_password(cls, v):
         if len(v) < 8:
@@ -168,7 +168,7 @@ class UserResponse(BaseModel):
     verified_at: Optional[datetime]
     last_login_at: Optional[datetime]
     login_count: int
-    
+
     class Config:
         from_attributes = True
 
@@ -288,7 +288,7 @@ class SecurityEvent(BaseModel):
 class UsernameCheckRequest(BaseModel):
     """Username availability check request"""
     username: str = Field(..., min_length=3, max_length=50)
-    
+
     @validator('username')
     def validate_username(cls, v):
         if not v.isalnum():

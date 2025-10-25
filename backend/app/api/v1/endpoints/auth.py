@@ -37,10 +37,10 @@ async def register(
     try:
         auth_service = AuthService(db)
         user = await auth_service.register_user(
-            user_data, 
+            user_data,
             ip_address=request.client.host if request.client else None
         )
-        
+
         # Note: In a real implementation, you'd need to handle the token generation
         # For now, we'll return a basic response
         return AuthResponse(
@@ -70,7 +70,7 @@ async def login(
             ip_address=request.client.host if request.client else None,
             user_agent=request.headers.get("user-agent")
         )
-        
+
         return AuthResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -95,7 +95,7 @@ async def refresh_token(
     try:
         auth_service = AuthService(db)
         access_token, refresh_token = await auth_service.refresh_access_token(refresh_data.refresh_token)
-        
+
         return AuthResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -123,7 +123,7 @@ async def logout(
             logout_data.session_id,
             logout_data.logout_all
         )
-        
+
         return LogoutResponse(
             message="Logged out successfully",
             sessions_logged_out=sessions_logged_out
@@ -148,7 +148,7 @@ async def verify_email(
     try:
         auth_service = AuthService(db)
         user = await auth_service.verify_email(verification_data.token)
-        
+
         return EmailVerificationResponse(
             message="Email verified successfully",
             expires_in=0
@@ -168,7 +168,7 @@ async def resend_verification_email(
     try:
         auth_service = AuthService(db)
         await auth_service.resend_verification_email(email)
-        
+
         return EmailVerificationResponse(
             message="Verification email sent",
             expires_in=86400  # 24 hours
@@ -192,7 +192,7 @@ async def forgot_password(
             reset_data.email,
             ip_address=request.client.host if request.client else None
         )
-        
+
         return PasswordResetResponse(
             message="Password reset email sent",
             expires_in=3600  # 1 hour
@@ -210,7 +210,7 @@ async def reset_password(
     try:
         auth_service = AuthService(db)
         user = await auth_service.reset_password(reset_data.token, reset_data.new_password)
-        
+
         return PasswordResetResponse(
             message="Password reset successfully",
             expires_in=0
@@ -232,7 +232,7 @@ async def change_password(
         auth_service = AuthService(db)
         # This would be implemented in the auth service
         # await auth_service.change_password(current_user.id, password_data.current_password, password_data.new_password)
-        
+
         return PasswordResetResponse(
             message="Password changed successfully",
             expires_in=0
@@ -252,7 +252,7 @@ async def check_username_availability(
     try:
         auth_service = AuthService(db)
         available = await auth_service.check_username_availability(username_data.username)
-        
+
         return UsernameCheckResponse(
             available=available,
             message="Username is available" if available else "Username is already taken"
@@ -270,7 +270,7 @@ async def check_email_availability(
     try:
         auth_service = AuthService(db)
         available = await auth_service.check_email_availability(email_data.email)
-        
+
         return EmailCheckResponse(
             available=available,
             message="Email is available" if available else "Email is already registered"
