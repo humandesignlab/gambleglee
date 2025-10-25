@@ -65,7 +65,12 @@ class User(Base):
     # Relationships
     wallet = relationship("Wallet", back_populates="user", uselist=False)
     transactions = relationship("Transaction", back_populates="user")
-    created_bets = relationship("Bet", back_populates="creator", foreign_keys="Bet.creator_id")
-    bet_participants = relationship("BetParticipant", back_populates="user")
+    
+    # Betting relationships
+    created_bets = relationship("Bet", foreign_keys="Bet.created_by", back_populates="creator")
+    bet_participations = relationship("BetParticipant", back_populates="user")
+    bet_limits = relationship("BetLimit", back_populates="user", uselist=False)
+    
+    # Social relationships
     friendships = relationship("Friendship", back_populates="user", foreign_keys="Friendship.user_id")
     friend_of = relationship("Friendship", back_populates="friend", foreign_keys="Friendship.friend_id")
