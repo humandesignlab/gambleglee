@@ -37,13 +37,13 @@ check_docker() {
         echo "Visit: https://docs.docker.com/get-docker/"
         exit 1
     fi
-    
+
     if ! command -v docker-compose &> /dev/null; then
         print_error "Docker Compose is not installed. Please install Docker Compose first."
         echo "Visit: https://docs.docker.com/compose/install/"
         exit 1
     fi
-    
+
     print_success "Docker and Docker Compose are installed"
 }
 
@@ -60,7 +60,7 @@ check_node() {
         nvm install 18
         nvm use 18
     fi
-    
+
     print_success "Node.js is installed"
 }
 
@@ -71,14 +71,14 @@ check_python() {
         print_error "Python 3 is not installed. Please install Python 3.11+ first."
         exit 1
     fi
-    
+
     # Check Python version
     python_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
     if [[ $(echo "$python_version 3.11" | awk '{print ($1 >= $2)}') == 0 ]]; then
         print_error "Python 3.11+ is required. Current version: $python_version"
         exit 1
     fi
-    
+
     print_success "Python $python_version is installed"
 }
 
@@ -95,7 +95,7 @@ create_directories() {
 # Set up environment variables
 setup_env() {
     print_status "Setting up environment variables..."
-    
+
     # Backend environment
     if [ ! -f backend/.env ]; then
         cat > backend/.env << EOF
@@ -138,7 +138,7 @@ EOF
     else
         print_warning "Backend environment file already exists"
     fi
-    
+
     # Frontend environment
     if [ ! -f frontend/.env ]; then
         cat > frontend/.env << EOF
@@ -181,11 +181,11 @@ start_services() {
     print_status "Starting development services..."
     docker-compose up -d postgres redis mailhog minio prometheus grafana
     print_success "Development services started"
-    
+
     # Wait for services to be ready
     print_status "Waiting for services to be ready..."
     sleep 10
-    
+
     # Check if services are running
     if docker-compose ps | grep -q "Up"; then
         print_success "Services are running"
@@ -247,7 +247,7 @@ show_urls() {
 # Main execution
 main() {
     print_status "Starting GambleGlee development environment setup..."
-    
+
     check_docker
     check_node
     check_python
@@ -259,7 +259,7 @@ main() {
     run_migrations
     run_tests
     show_urls
-    
+
     print_success "🎉 Setup completed successfully!"
 }
 

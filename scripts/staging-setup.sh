@@ -37,13 +37,13 @@ check_aws_cli() {
         echo "Visit: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
         exit 1
     fi
-    
+
     # Check AWS credentials
     if ! aws sts get-caller-identity &> /dev/null; then
         print_error "AWS credentials not configured. Please run 'aws configure' first."
         exit 1
     fi
-    
+
     print_success "AWS CLI is installed and configured"
 }
 
@@ -55,7 +55,7 @@ check_terraform() {
         echo "Visit: https://learn.hashicorp.com/tutorials/terraform/install-cli"
         exit 1
     fi
-    
+
     print_success "Terraform is installed"
 }
 
@@ -74,7 +74,7 @@ check_ssh_key() {
 # Create Terraform variables file
 create_terraform_vars() {
     print_status "Creating Terraform variables file..."
-    
+
     if [ ! -f terraform/terraform.tfvars ]; then
         cat > terraform/terraform.tfvars << EOF
 # AWS Configuration
@@ -136,13 +136,13 @@ get_outputs() {
 # Create deployment summary
 create_summary() {
     print_status "Creating deployment summary..."
-    
+
     # Read outputs
     EC2_IP=$(jq -r '.ec2_public_ip.value' staging-outputs.json)
     RDS_ENDPOINT=$(jq -r '.rds_endpoint.value' staging-outputs.json)
     ELASTICACHE_ENDPOINT=$(jq -r '.elasticache_endpoint.value' staging-outputs.json)
     S3_BUCKET=$(jq -r '.s3_bucket_name.value' staging-outputs.json)
-    
+
     cat > staging-deployment-summary.md << EOF
 # GambleGlee Staging Environment Deployment Summary
 
@@ -284,14 +284,14 @@ EOF
 # Main execution
 main() {
     print_status "Starting GambleGlee AWS Free Tier staging environment setup..."
-    
+
     check_aws_cli
     check_terraform
     check_ssh_key
     create_terraform_vars
     init_terraform
     plan_terraform
-    
+
     print_warning "This will deploy infrastructure to AWS. Continue? (y/N)"
     read -r response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then

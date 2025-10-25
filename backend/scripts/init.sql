@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "btree_gin";
 -- Create custom types
 DO $$ BEGIN
     CREATE TYPE bet_status AS ENUM (
-        'pending', 'accepted', 'active', 'completed', 
+        'pending', 'accepted', 'active', 'completed',
         'resolved', 'cancelled', 'expired', 'disputed', 'refunded'
     );
 EXCEPTION
@@ -19,7 +19,7 @@ END $$;
 
 DO $$ BEGIN
     CREATE TYPE bet_type AS ENUM (
-        'friend_bet', 'trick_shot', 'live_event', 
+        'friend_bet', 'trick_shot', 'live_event',
         'prediction', 'challenge', 'tournament'
     );
 EXCEPTION
