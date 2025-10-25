@@ -21,6 +21,8 @@ This directory contains the complete business plan for GambleGlee, a social bett
 - **[Competitive Analysis](./competitive-analysis.md)** - Market positioning
 - **[Regulatory Compliance](./regulatory-compliance.md)** - Legal requirements
 - **[Security Strategy](./security-strategy.md)** - Security and compliance approach
+- **[Rewards System](./rewards-system.md)** - Comprehensive rewards and incentives
+- **[Rewards Financial Analysis](./rewards-financial-analysis.md)** - Financial impact of rewards
 
 ## 🎯 Executive Summary
 

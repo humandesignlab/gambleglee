@@ -138,7 +138,7 @@ async def create_trick_shooter_reward(
             completion_status=reward_data.completion_status,
             community_rating=reward_data.community_rating
         )
-        
+
         return TrickShooterRewardResponse(
             id=reward.id,
             user_id=reward.user_id,
@@ -182,7 +182,7 @@ async def create_friend_bet_reward(
             completion_status=reward_data.completion_status,
             social_interactions=reward_data.social_interactions
         )
-        
+
         return FriendBetRewardResponse(
             id=reward.id,
             user_id=reward.user_id,
@@ -223,7 +223,7 @@ async def redeem_points(
             points_used=redemption_data.points_used,
             value_received=redemption_data.value_received
         )
-        
+
         return {
             "redemption_id": redemption.id,
             "user_id": redemption.user_id,
@@ -258,7 +258,7 @@ async def enroll_creator_program(
             program_type=program_data.program_type,
             requirements_met=program_data.requirements_met
         )
-        
+
         return {
             "program_id": program.id,
             "user_id": program.user_id,
@@ -285,7 +285,7 @@ async def get_user_points(
     try:
         rewards_service = RewardsService(db)
         total_points = await rewards_service.get_user_points(current_user.id)
-        
+
         return {
             "user_id": current_user.id,
             "total_points": total_points
@@ -306,7 +306,7 @@ async def get_user_tier(
     try:
         rewards_service = RewardsService(db)
         tier_info = await rewards_service.get_user_tier(current_user.id)
-        
+
         return {
             "user_id": current_user.id,
             "current_tier": tier_info.current_tier.value,
@@ -337,7 +337,7 @@ async def check_achievements(
             achievement_type=achievement_type,
             progress=progress
         )
-        
+
         return {
             "user_id": current_user.id,
             "achievement_type": achievement_type,

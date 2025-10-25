@@ -44,7 +44,7 @@ class UserTier(PyEnum):
 class Reward(Base):
     """Reward earned by a user"""
     __tablename__ = "rewards"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     reward_type = Column(Enum(RewardType), nullable=False)
@@ -56,10 +56,10 @@ class Reward(Base):
     approved_at = Column(DateTime(timezone=True), nullable=True)
     redeemed_at = Column(DateTime(timezone=True), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="rewards")
-    
+
     # Additional metadata
     metadata_json = Column(Text, nullable=True)  # JSON string for additional data
     source_id = Column(Integer, nullable=True)  # ID of the source (event, bet, etc.)
@@ -68,7 +68,7 @@ class Reward(Base):
 class UserTierInfo(Base):
     """User tier information and progress"""
     __tablename__ = "user_tier_info"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
     current_tier = Column(Enum(UserTier), default=UserTier.BRONZE)
@@ -78,14 +78,14 @@ class UserTierInfo(Base):
     bonus_rate = Column(Float, default=0.0)  # Bonus rate for current tier
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="tier_info")
 
 class TrickShooterReward(Base):
     """Rewards specifically for trick shooters"""
     __tablename__ = "trick_shooter_rewards"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     event_id = Column(Integer, nullable=False)  # ID of the trick shot event
@@ -101,14 +101,14 @@ class TrickShooterReward(Base):
     completion_status = Column(Boolean, default=False)
     community_rating = Column(Float, default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="trick_shooter_rewards")
 
 class FriendBetReward(Base):
     """Rewards specifically for friend bet initiators"""
     __tablename__ = "friend_bet_rewards"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     bet_id = Column(Integer, nullable=False)  # ID of the friend bet
@@ -123,14 +123,14 @@ class FriendBetReward(Base):
     completion_status = Column(Boolean, default=False)
     social_interactions = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="friend_bet_rewards")
 
 class PointsTransaction(Base):
     """Points transaction history"""
     __tablename__ = "points_transactions"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     transaction_type = Column(String(50), nullable=False)  # 'earned', 'redeemed', 'expired'
@@ -139,14 +139,14 @@ class PointsTransaction(Base):
     source_id = Column(Integer, nullable=True)  # ID of the source
     source_type = Column(String(50), nullable=True)  # Type of source
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="points_transactions")
 
 class RewardRedemption(Base):
     """Reward redemption history"""
     __tablename__ = "reward_redemptions"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     reward_id = Column(Integer, ForeignKey("rewards.id"), nullable=False)
@@ -156,7 +156,7 @@ class RewardRedemption(Base):
     status = Column(String(50), default="pending")  # 'pending', 'approved', 'completed', 'cancelled'
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="reward_redemptions")
     reward = relationship("Reward")
@@ -164,7 +164,7 @@ class RewardRedemption(Base):
 class Achievement(Base):
     """Achievement definitions and user progress"""
     __tablename__ = "achievements"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
@@ -173,14 +173,14 @@ class Achievement(Base):
     requirements = Column(Text, nullable=True)  # JSON string for requirements
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     user_achievements = relationship("UserAchievement", back_populates="achievement")
 
 class UserAchievement(Base):
     """User achievement progress and completion"""
     __tablename__ = "user_achievements"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     achievement_id = Column(Integer, ForeignKey("achievements.id"), nullable=False)
@@ -188,7 +188,7 @@ class UserAchievement(Base):
     is_completed = Column(Boolean, default=False)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="user_achievements")
     achievement = relationship("Achievement", back_populates="user_achievements")
@@ -196,7 +196,7 @@ class UserAchievement(Base):
 class CreatorProgram(Base):
     """Creator program enrollment and benefits"""
     __tablename__ = "creator_program"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
     program_type = Column(String(50), nullable=False)  # 'trick_shooter', 'influencer'
@@ -206,14 +206,14 @@ class CreatorProgram(Base):
     requirements_met = Column(Text, nullable=True)  # JSON string for requirements
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="creator_program")
 
 class SeasonalReward(Base):
     """Seasonal and special rewards"""
     __tablename__ = "seasonal_rewards"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
@@ -224,14 +224,14 @@ class SeasonalReward(Base):
     end_date = Column(DateTime(timezone=True), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     user_seasonal_rewards = relationship("UserSeasonalReward", back_populates="seasonal_reward")
 
 class UserSeasonalReward(Base):
     """User participation in seasonal rewards"""
     __tablename__ = "user_seasonal_rewards"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     seasonal_reward_id = Column(Integer, ForeignKey("seasonal_rewards.id"), nullable=False)
@@ -239,7 +239,7 @@ class UserSeasonalReward(Base):
     cash_earned = Column(Float, default=0.0)
     participation_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Foreign key relationships
     user = relationship("User", back_populates="user_seasonal_rewards")
     seasonal_reward = relationship("SeasonalReward", back_populates="user_seasonal_rewards")
