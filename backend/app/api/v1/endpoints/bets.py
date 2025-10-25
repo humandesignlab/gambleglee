@@ -34,7 +34,7 @@ class BetCreateRequest(BaseModel):
     event_type: Optional[str] = Field(None, description="Type of associated event")
     expires_in_hours: int = Field(24, ge=1, le=168, description="Hours until bet expires (max 7 days)")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
-    
+
     @validator('amount')
     def validate_amount(cls, v):
         if v < 1.0:
@@ -110,10 +110,10 @@ async def create_bet(
     """Create a new bet with comprehensive validation"""
     try:
         betting_service = BettingService(db)
-        
+
         # Convert amount to Decimal for precision
         amount = Decimal(str(bet_data.amount))
-        
+
         bet = await betting_service.create_bet(
             creator_id=current_user.id,
             title=bet_data.title,
@@ -126,10 +126,10 @@ async def create_bet(
             expires_in_hours=bet_data.expires_in_hours,
             metadata=bet_data.metadata
         )
-        
+
         # Get bet with participants for response
         bet_with_participants = await betting_service.get_bet(bet.id)
-        
+
         return BetResponse(
             id=bet_with_participants.id,
             uuid=bet_with_participants.uuid,
@@ -161,7 +161,7 @@ async def create_bet(
             ],
             metadata=bet_with_participants.metadata
         )
-        
+
     except RateLimitException as e:
         logger.warning("Rate limit exceeded for bet creation", user_id=current_user.id)
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(e))
@@ -186,15 +186,15 @@ async def accept_bet(
     """Accept a bet with comprehensive validation"""
     try:
         betting_service = BettingService(db)
-        
+
         bet = await betting_service.accept_bet(
             bet_id=accept_data.bet_id,
             acceptor_id=current_user.id
         )
-        
+
         # Get bet with participants for response
         bet_with_participants = await betting_service.get_bet(bet.id)
-        
+
         return BetResponse(
             id=bet_with_participants.id,
             uuid=bet_with_participants.uuid,
@@ -226,7 +226,7 @@ async def accept_bet(
             ],
             metadata=bet_with_participants.metadata
         )
-        
+
     except RateLimitException as e:
         logger.warning("Rate limit exceeded for bet acceptance", user_id=current_user.id)
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(e))
@@ -251,7 +251,7 @@ async def resolve_bet(
     """Resolve a bet with comprehensive validation"""
     try:
         betting_service = BettingService(db)
-        
+
         bet = await betting_service.resolve_bet(
             bet_id=resolve_data.bet_id,
             outcome=resolve_data.outcome,
@@ -259,10 +259,10 @@ async def resolve_bet(
             resolution_data=resolve_data.resolution_data,
             resolution_method=resolve_data.resolution_method
         )
-        
+
         # Get bet with participants for response
         bet_with_participants = await betting_service.get_bet(bet.id)
-        
+
         return BetResponse(
             id=bet_with_participants.id,
             uuid=bet_with_participants.uuid,
@@ -294,7 +294,7 @@ async def resolve_bet(
             ],
             metadata=bet_with_participants.metadata
         )
-        
+
     except RateLimitException as e:
         logger.warning("Rate limit exceeded for bet resolution", user_id=current_user.id)
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(e))
@@ -317,16 +317,16 @@ async def cancel_bet(
     """Cancel a bet with comprehensive validation"""
     try:
         betting_service = BettingService(db)
-        
+
         bet = await betting_service.cancel_bet(
             bet_id=cancel_data.bet_id,
             user_id=current_user.id,
             reason=cancel_data.reason
         )
-        
+
         # Get bet with participants for response
         bet_with_participants = await betting_service.get_bet(bet.id)
-        
+
         return BetResponse(
             id=bet_with_participants.id,
             uuid=bet_with_participants.uuid,
@@ -358,7 +358,7 @@ async def cancel_bet(
             ],
             metadata=bet_with_participants.metadata
         )
-        
+
     except RateLimitException as e:
         logger.warning("Rate limit exceeded for bet cancellation", user_id=current_user.id)
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(e))
@@ -381,10 +381,10 @@ async def get_bet(
     try:
         betting_service = BettingService(db)
         bet = await betting_service.get_bet(bet_id)
-        
+
         if not bet:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bet not found")
-        
+
         return BetResponse(
             id=bet.id,
             uuid=bet.uuid,
@@ -416,7 +416,7 @@ async def get_bet(
             ],
             metadata=bet.metadata
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -437,7 +437,7 @@ async def get_user_bets(
     """Get user's bets with optional status filter"""
     try:
         betting_service = BettingService(db)
-        
+
         offset = (page - 1) * size
         bets = await betting_service.get_user_bets(
             user_id=current_user.id,
@@ -445,7 +445,7 @@ async def get_user_bets(
             limit=size,
             offset=offset
         )
-        
+
         # Get total count for pagination
         total_query = select(func.count(Bet.id)).where(
             or_(
@@ -455,10 +455,10 @@ async def get_user_bets(
         )
         if status:
             total_query = total_query.where(Bet.status == status)
-        
+
         total_result = await db.execute(total_query)
         total = total_result.scalar()
-        
+
         return BetListResponse(
             items=[
                 BetResponse(
@@ -498,7 +498,7 @@ async def get_user_bets(
             size=size,
             pages=(total + size - 1) // size
         )
-        
+
     except Exception as e:
         logger.error("Failed to get user bets", user_id=current_user.id, error=str(e))
         raise HTTPException(
@@ -515,10 +515,10 @@ async def get_active_bets(
     """Get active bets for public viewing"""
     try:
         betting_service = BettingService(db)
-        
+
         offset = (page - 1) * size
         bets = await betting_service.get_active_bets(limit=size, offset=offset)
-        
+
         # Get total count for pagination
         total_result = await db.execute(
             select(func.count(Bet.id)).where(
@@ -526,7 +526,7 @@ async def get_active_bets(
             )
         )
         total = total_result.scalar()
-        
+
         return BetListResponse(
             items=[
                 BetResponse(
@@ -566,7 +566,7 @@ async def get_active_bets(
             size=size,
             pages=(total + size - 1) // size
         )
-        
+
     except Exception as e:
         logger.error("Failed to get active bets", error=str(e))
         raise HTTPException(
@@ -583,9 +583,9 @@ async def get_bet_statistics(
     try:
         betting_service = BettingService(db)
         stats = await betting_service.get_bet_statistics(current_user.id)
-        
+
         return BetStatisticsResponse(**stats)
-        
+
     except Exception as e:
         logger.error("Failed to get bet statistics", user_id=current_user.id, error=str(e))
         raise HTTPException(
