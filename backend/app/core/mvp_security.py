@@ -52,22 +52,22 @@ class MVPSecurityScore:
     incident_response: float
     business_stage: str
     investment_level: str
-    
+
     @property
     def is_enterprise_grade(self) -> bool:
         """Check if security score is enterprise grade (8.5/10)"""
         return self.overall >= 0.85
-    
+
     @property
     def is_excellent(self) -> bool:
         """Check if security score is excellent (9.0/10)"""
         return self.overall >= 0.90
-    
+
     @property
     def is_outstanding(self) -> bool:
         """Check if security score is outstanding (9.5/10)"""
         return self.overall >= 0.95
-    
+
     @property
     def is_perfect(self) -> bool:
         """Check if security score is perfect (10/10)"""
@@ -76,18 +76,18 @@ class MVPSecurityScore:
 
 class MVPSecurityManager:
     """MVP Security Manager - Scales with business growth"""
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db
         self.current_stage = "mvp"  # mvp, growth, scale, enterprise
         self.security_investment = 2000  # $2,000/month for MVP
-    
+
     async def get_current_security_score(self, user_count: int, monthly_revenue: float) -> MVPSecurityScore:
         """Get current security score based on business metrics"""
-        
+
         # Determine business stage
         stage = self._determine_business_stage(user_count, monthly_revenue)
-        
+
         # Calculate security score based on stage
         if stage == "mvp":
             return self._get_mvp_security_score()
@@ -99,7 +99,7 @@ class MVPSecurityManager:
             return self._get_enterprise_security_score()
         else:
             return self._get_mvp_security_score()
-    
+
     def _determine_business_stage(self, user_count: int, monthly_revenue: float) -> str:
         """Determine business stage based on metrics"""
         if user_count < 1000 and monthly_revenue < 10000:
@@ -110,7 +110,7 @@ class MVPSecurityManager:
             return "scale"
         else:
             return "enterprise"
-    
+
     def _get_mvp_security_score(self) -> MVPSecurityScore:
         """Get MVP security score (8.5/10)"""
         return MVPSecurityScore(
@@ -126,7 +126,7 @@ class MVPSecurityManager:
             business_stage="mvp",
             investment_level="$2,000/month"
         )
-    
+
     def _get_growth_security_score(self) -> MVPSecurityScore:
         """Get growth security score (9.0/10)"""
         return MVPSecurityScore(
@@ -142,7 +142,7 @@ class MVPSecurityManager:
             business_stage="growth",
             investment_level="$5,000/month"
         )
-    
+
     def _get_scale_security_score(self) -> MVPSecurityScore:
         """Get scale security score (9.5/10)"""
         return MVPSecurityScore(
@@ -158,7 +158,7 @@ class MVPSecurityManager:
             business_stage="scale",
             investment_level="$15,000/month"
         )
-    
+
     def _get_enterprise_security_score(self) -> MVPSecurityScore:
         """Get enterprise security score (10/10)"""
         return MVPSecurityScore(
@@ -174,11 +174,11 @@ class MVPSecurityManager:
             business_stage="enterprise",
             investment_level="$50,000/month"
         )
-    
+
     async def get_security_recommendations(self, user_count: int, monthly_revenue: float) -> List[Dict[str, Any]]:
         """Get security recommendations based on business stage"""
         stage = self._determine_business_stage(user_count, monthly_revenue)
-        
+
         if stage == "mvp":
             return self._get_mvp_recommendations()
         elif stage == "growth":
@@ -189,7 +189,7 @@ class MVPSecurityManager:
             return self._get_enterprise_recommendations()
         else:
             return self._get_mvp_recommendations()
-    
+
     def _get_mvp_recommendations(self) -> List[Dict[str, Any]]:
         """Get MVP security recommendations"""
         return [
@@ -218,7 +218,7 @@ class MVPSecurityManager:
                 "benefit": "Prepared incident response"
             }
         ]
-    
+
     def _get_growth_recommendations(self) -> List[Dict[str, Any]]:
         """Get growth security recommendations"""
         return [
@@ -253,7 +253,7 @@ class MVPSecurityManager:
                 "benefit": "Regulatory compliance"
             }
         ]
-    
+
     def _get_scale_recommendations(self) -> List[Dict[str, Any]]:
         """Get scale security recommendations"""
         return [
@@ -288,7 +288,7 @@ class MVPSecurityManager:
                 "benefit": "Dedicated security expertise"
             }
         ]
-    
+
     def _get_enterprise_recommendations(self) -> List[Dict[str, Any]]:
         """Get enterprise security recommendations"""
         return [
@@ -323,12 +323,12 @@ class MVPSecurityManager:
                 "benefit": "Perfect incident response"
             }
         ]
-    
+
     async def get_security_metrics(self, user_count: int, monthly_revenue: float) -> Dict[str, Any]:
         """Get security metrics for dashboard"""
         security_score = await self.get_current_security_score(user_count, monthly_revenue)
         recommendations = await self.get_security_recommendations(user_count, monthly_revenue)
-        
+
         return {
             "security_score": security_score.overall,
             "business_stage": security_score.business_stage,
@@ -346,7 +346,7 @@ class MVPSecurityManager:
                 "incident_response": security_score.incident_response
             }
         }
-    
+
     def _get_next_milestone(self, user_count: int, monthly_revenue: float) -> Dict[str, Any]:
         """Get next security milestone"""
         if user_count < 1000 and monthly_revenue < 10000:
@@ -391,13 +391,13 @@ async def require_mvp_security(
 ) -> User:
     """Require MVP security for access"""
     security_manager = MVPSecurityManager(db)
-    
+
     # Get current security score (simplified for MVP)
     security_score = await security_manager.get_current_security_score(1000, 10000)  # Example metrics
-    
+
     if not security_score.is_enterprise_grade:
         logger.warning(f"Security score below enterprise grade: {security_score.overall}")
-    
+
     return user
 
 
@@ -409,10 +409,10 @@ async def get_security_status(
 ):
     """Get current security status"""
     security_manager = MVPSecurityManager(db)
-    
+
     # Get security metrics (using example data)
     metrics = await security_manager.get_security_metrics(1000, 10000)
-    
+
     return {
         "status": "excellent",
         "security_score": metrics["security_score"],
@@ -430,10 +430,10 @@ async def get_security_recommendations(
 ):
     """Get security recommendations"""
     security_manager = MVPSecurityManager(db)
-    
+
     # Get recommendations (using example data)
     recommendations = await security_manager.get_security_recommendations(1000, 10000)
-    
+
     return {
         "recommendations": recommendations,
         "total_cost": sum(rec.get("cost", 0) for rec in recommendations if isinstance(rec.get("cost"), (int, float))),
