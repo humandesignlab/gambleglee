@@ -4,9 +4,9 @@ Location detection endpoints
 
 from fastapi import APIRouter, Depends, Request
 from app.core.dependencies import (
-    get_user_location, 
-    get_payment_processor, 
-    get_payment_methods, 
+    get_user_location,
+    get_payment_processor,
+    get_payment_methods,
     get_compliance_requirements
 )
 

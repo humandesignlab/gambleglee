@@ -48,8 +48,9 @@ class User(Base):
     is_email_verified = Column(Boolean, default=False)
     is_phone_verified = Column(Boolean, default=False)
 
-    # Stripe integration
+    # Payment processor integrations
     stripe_customer_id = Column(String(255), nullable=True)
+    mercadopago_customer_id = Column(String(255), nullable=True)
 
     # Geolocation
     country = Column(String(2), nullable=True)  # ISO country code

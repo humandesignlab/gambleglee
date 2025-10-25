@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     STRIPE_PUBLISHABLE_KEY: str = ""
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
+    
+    # MercadoPago
+    MERCADOPAGO_ACCESS_TOKEN: str = ""
+    MERCADOPAGO_PUBLIC_KEY: str = ""
+    MERCADOPAGO_WEBHOOK_SECRET: str = ""
 
     # KYC Providers
     PERSONA_API_KEY: str = ""
@@ -73,10 +78,10 @@ class Settings(BaseSettings):
     MAX_DEPOSIT_DAILY: float = 1000.0
     MAX_DEPOSIT_WEEKLY: float = 5000.0
     MAX_DEPOSIT_MONTHLY: float = 20000.0
-
-    # Geolocation
-    ALLOWED_COUNTRIES: List[str] = ["US"]
-    ALLOWED_STATES: List[str] = []  # Empty means all states allowed
+    
+    # Geolocation - Mexico and US only
+    ALLOWED_COUNTRIES: List[str] = ["US", "MX"]
+    ALLOWED_STATES: List[str] = []  # Empty means all states allowed for now
 
     class Config:
         env_file = ".env"

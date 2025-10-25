@@ -44,7 +44,7 @@ class TransactionResponse(BaseModel):
 class DepositRequest(BaseModel):
     """Deposit request schema"""
     amount: float
-    
+
     @validator('amount')
     def validate_amount(cls, v):
         if v <= 0:
@@ -57,7 +57,7 @@ class DepositRequest(BaseModel):
 class WithdrawalRequest(BaseModel):
     """Withdrawal request schema"""
     amount: float
-    
+
     @validator('amount')
     def validate_amount(cls, v):
         if v <= 0:
@@ -67,10 +67,21 @@ class WithdrawalRequest(BaseModel):
         return v
 
 
-class StripePaymentIntentResponse(BaseModel):
-    """Stripe payment intent response"""
-    client_secret: str
-    payment_intent_id: str
+class PaymentIntentResponse(BaseModel):
+    """Payment intent response for both Stripe and MercadoPago"""
+    # Stripe fields
+    client_secret: Optional[str] = None
+    payment_intent_id: Optional[str] = None
+    
+    # MercadoPago fields
+    preference_id: Optional[str] = None
+    init_point: Optional[str] = None
+    sandbox_init_point: Optional[str] = None
+    
+    # Common fields
+    payment_processor: str
+    amount: float
+    currency: str
 
 
 class TransactionListResponse(BaseModel):

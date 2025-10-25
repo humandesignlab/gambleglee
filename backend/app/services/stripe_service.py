@@ -13,7 +13,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class StripeService:
     """Stripe payment processing service"""
-    
+
     @staticmethod
     async def create_customer(user_id: int, email: str, name: Optional[str] = None) -> str:
         """Create a Stripe customer"""
@@ -29,7 +29,7 @@ class StripeService:
             return customer.id
         except stripe.error.StripeError as e:
             raise GambleGleeException(f"Failed to create Stripe customer: {str(e)}")
-    
+
     @staticmethod
     async def create_payment_intent(
         amount: int,  # Amount in cents
@@ -50,7 +50,7 @@ class StripeService:
                 confirmation_method='manual',
                 confirm=True
             )
-            
+
             return {
                 'id': payment_intent.id,
                 'client_secret': payment_intent.client_secret,
@@ -58,7 +58,7 @@ class StripeService:
             }
         except stripe.error.StripeError as e:
             raise GambleGleeException(f"Failed to create payment intent: {str(e)}")
-    
+
     @staticmethod
     async def create_setup_intent(customer_id: str) -> Dict[str, Any]:
         """Create a setup intent for saving payment methods"""
@@ -68,7 +68,7 @@ class StripeService:
                 payment_method_types=['card'],
                 usage='off_session'
             )
-            
+
             return {
                 'id': setup_intent.id,
                 'client_secret': setup_intent.client_secret,
@@ -76,7 +76,7 @@ class StripeService:
             }
         except stripe.error.StripeError as e:
             raise GambleGleeException(f"Failed to create setup intent: {str(e)}")
-    
+
     @staticmethod
     async def create_transfer(
         amount: int,  # Amount in cents
@@ -92,7 +92,7 @@ class StripeService:
                 destination=destination_account,
                 metadata=metadata or {}
             )
-            
+
             return {
                 'id': transfer.id,
                 'status': transfer.status,
@@ -100,7 +100,7 @@ class StripeService:
             }
         except stripe.error.StripeError as e:
             raise GambleGleeException(f"Failed to create transfer: {str(e)}")
-    
+
     @staticmethod
     async def get_payment_intent(payment_intent_id: str) -> Dict[str, Any]:
         """Get payment intent details"""
@@ -115,7 +115,7 @@ class StripeService:
             }
         except stripe.error.StripeError as e:
             raise GambleGleeException(f"Failed to retrieve payment intent: {str(e)}")
-    
+
     @staticmethod
     async def handle_webhook(payload: str, signature: str) -> Dict[str, Any]:
         """Handle Stripe webhook events"""
@@ -123,7 +123,7 @@ class StripeService:
             event = stripe.Webhook.construct_event(
                 payload, signature, settings.STRIPE_WEBHOOK_SECRET
             )
-            
+
             return {
                 'type': event['type'],
                 'data': event['data']['object'],
@@ -133,7 +133,7 @@ class StripeService:
             raise GambleGleeException("Invalid webhook signature")
         except stripe.error.StripeError as e:
             raise GambleGleeException(f"Webhook processing failed: {str(e)}")
-    
+
     @staticmethod
     async def create_connect_account(user_id: int, email: str) -> str:
         """Create a Stripe Connect account for peer-to-peer transfers"""
@@ -154,7 +154,7 @@ class StripeService:
             return account.id
         except stripe.error.StripeError as e:
             raise GambleGleeException(f"Failed to create Connect account: {str(e)}")
-    
+
     @staticmethod
     async def create_account_link(account_id: str, refresh_url: str, return_url: str) -> str:
         """Create an account link for Connect onboarding"""

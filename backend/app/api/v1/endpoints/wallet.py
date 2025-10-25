@@ -15,7 +15,7 @@ from app.schemas.wallet import (
     TransactionResponse, 
     DepositRequest, 
     WithdrawalRequest,
-    StripePaymentIntentResponse,
+    PaymentIntentResponse,
     TransactionListResponse
 )
 from app.services.wallet_service import WalletService
@@ -48,9 +48,9 @@ async def get_transactions(
         page=page,
         limit=limit
     )
-    
+
     pages = (total + limit - 1) // limit
-    
+
     return TransactionListResponse(
         items=[TransactionResponse.from_orm(t) for t in transactions],
         total=total,
@@ -60,7 +60,7 @@ async def get_transactions(
     )
 
 
-@router.post("/deposit", response_model=StripePaymentIntentResponse)
+@router.post("/deposit", response_model=PaymentIntentResponse)
 async def create_deposit_intent(
     deposit_data: DepositRequest,
     current_user: User = Depends(get_current_active_user),
@@ -76,7 +76,7 @@ async def create_deposit_intent(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Deposits not allowed from this location"
         )
-    
+
     # Check deposit limits
     daily_limit = compliance_requirements.get("deposit_limits", {}).get("daily", 1000)
     if deposit_data.amount > daily_limit:
@@ -84,31 +84,29 @@ async def create_deposit_intent(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Deposit amount exceeds daily limit of ${daily_limit}"
         )
-    
+
     wallet_service = WalletService(db)
-    
+
     try:
         # Route to appropriate payment processor based on location
-        if payment_processor == "stripe":
-            result = await wallet_service.create_deposit_intent(
-                user_id=current_user.id,
-                amount=deposit_data.amount
-            )
-        elif payment_processor == "mercadopago":
-            # TODO: Implement MercadoPago integration
-            raise HTTPException(
-                status_code=status.HTTP_501_NOT_IMPLEMENTED,
-                detail="MercadoPago integration coming soon"
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Payment processor {payment_processor} not supported"
-            )
+        result = await wallet_service.create_deposit_intent(
+            user_id=current_user.id,
+            amount=deposit_data.amount,
+            payment_processor=payment_processor
+        )
+
+        # Determine currency based on location
+        currency = "USD" if location.get("country") == "US" else "MXN"
         
-        return StripePaymentIntentResponse(
-            client_secret=result['client_secret'],
-            payment_intent_id=result['payment_intent_id']
+        return PaymentIntentResponse(
+            client_secret=result.get('client_secret'),
+            payment_intent_id=result.get('payment_intent_id'),
+            preference_id=result.get('preference_id'),
+            init_point=result.get('init_point'),
+            sandbox_init_point=result.get('sandbox_init_point'),
+            payment_processor=payment_processor,
+            amount=deposit_data.amount,
+            currency=currency
         )
     except Exception as e:
         raise HTTPException(
@@ -125,7 +123,7 @@ async def confirm_deposit(
 ):
     """Confirm a completed deposit"""
     wallet_service = WalletService(db)
-    
+
     try:
         transaction = await wallet_service.confirm_deposit(payment_intent_id)
         return {
@@ -148,7 +146,7 @@ async def request_withdrawal(
 ):
     """Request a withdrawal"""
     wallet_service = WalletService(db)
-    
+
     try:
         transaction = await wallet_service.request_withdrawal(
             user_id=current_user.id,
@@ -170,7 +168,7 @@ async def get_balance(
     """Get user's available and locked balance"""
     wallet_service = WalletService(db)
     available, locked = await wallet_service.get_wallet_balance(current_user.id)
-    
+
     return {
         "available_balance": available,
         "locked_balance": locked,
