@@ -53,20 +53,20 @@ def redis_container():
 async def test_engine(postgres_container):
     """Create test database engine"""
     database_url = f"postgresql+asyncpg://{postgres_container.username}:{postgres_container.password}@{postgres_container.get_container_host_ip()}:{postgres_container.get_exposed_port(5432)}/{postgres_container.dbname}"
-    
+
     engine = create_async_engine(
         database_url,
         echo=False,
         pool_pre_ping=True,
         pool_recycle=300,
     )
-    
+
     # Create all tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     yield engine
-    
+
     # Cleanup
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -78,7 +78,7 @@ async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
     async_session = sessionmaker(
         test_engine, class_=AsyncSession, expire_on_commit=False
     )
-    
+
     async with async_session() as session:
         yield session
         await session.rollback()
@@ -88,12 +88,12 @@ def test_client(test_db_session):
     """Create test client with database dependency override"""
     def override_get_db():
         yield test_db_session
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     with TestClient(app) as client:
         yield client
-    
+
     app.dependency_overrides.clear()
 
 @pytest.fixture
@@ -101,12 +101,12 @@ async def async_test_client(test_db_session):
     """Create async test client"""
     def override_get_db():
         yield test_db_session
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client
-    
+
     app.dependency_overrides.clear()
 
 # === USER FIXTURES ===
@@ -189,7 +189,7 @@ async def test_wallet_2(test_db_session, test_user_2) -> Wallet:
 async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
     """Create test bet"""
     from decimal import Decimal
-    
+
     bet = Bet(
         title="Test Bet",
         description="Test bet description",
@@ -205,7 +205,7 @@ async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
     test_db_session.add(bet)
     await test_db_session.commit()
     await test_db_session.refresh(bet)
-    
+
     # Create participants
     creator_participant = BetParticipant(
         bet_id=bet.id,
@@ -215,7 +215,7 @@ async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
         potential_winnings=Decimal("100.00")
     )
     test_db_session.add(creator_participant)
-    
+
     acceptor_participant = BetParticipant(
         bet_id=bet.id,
         user_id=test_user_2.id,
@@ -224,7 +224,7 @@ async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
         potential_winnings=Decimal("100.00")
     )
     test_db_session.add(acceptor_participant)
-    
+
     await test_db_session.commit()
     return bet
 
@@ -232,7 +232,7 @@ async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
 async def test_bet_limit(test_db_session, test_user) -> BetLimit:
     """Create test bet limit for user"""
     from datetime import datetime, timedelta
-    
+
     bet_limit = BetLimit(
         user_id=test_user.id,
         daily_bet_limit=Decimal("1000.00"),
@@ -302,7 +302,7 @@ def sample_wallet_data():
 def mock_stripe_service():
     """Mock Stripe service"""
     from unittest.mock import AsyncMock
-    
+
     mock_service = AsyncMock()
     mock_service.create_payment_intent.return_value = {
         "client_secret": "pi_test_123",
@@ -317,7 +317,7 @@ def mock_stripe_service():
 def mock_mercadopago_service():
     """Mock MercadoPago service"""
     from unittest.mock import AsyncMock
-    
+
     mock_service = AsyncMock()
     mock_service.create_preference.return_value = {
         "id": "pref_test_123",
@@ -329,7 +329,7 @@ def mock_mercadopago_service():
 def mock_geolocation_service():
     """Mock geolocation service"""
     from unittest.mock import AsyncMock
-    
+
     mock_service = AsyncMock()
     mock_service.get_location_data.return_value = {
         "country": "US",
@@ -392,11 +392,11 @@ def pytest_collection_modifyitems(config, items):
         # Mark slow tests
         if "performance" in item.nodeid or "e2e" in item.nodeid:
             item.add_marker(pytest.mark.slow)
-        
+
         # Mark financial tests
         if "financial" in item.nodeid or "wallet" in item.nodeid or "betting" in item.nodeid:
             item.add_marker(pytest.mark.financial)
-        
+
         # Mark security tests
         if "security" in item.nodeid or "auth" in item.nodeid:
             item.add_marker(pytest.mark.security)

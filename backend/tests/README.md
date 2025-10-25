@@ -3,8 +3,9 @@
 ## 🎯 Testing Philosophy
 
 For a financial platform handling real money, we need **comprehensive testing at all levels** to ensure:
+
 - **No money is lost** due to technical issues
-- **All edge cases are covered** 
+- **All edge cases are covered**
 - **System is bulletproof** under all conditions
 - **Compliance and security** are maintained
 - **Performance** meets requirements
@@ -12,18 +13,21 @@ For a financial platform handling real money, we need **comprehensive testing at
 ## 📊 Testing Pyramid
 
 ### **1. Unit Tests (70% of tests)**
+
 - **Purpose**: Test individual functions and methods in isolation
 - **Coverage**: Business logic, calculations, validations
 - **Framework**: pytest + pytest-asyncio
 - **Focus**: Edge cases, error conditions, financial calculations
 
 ### **2. Integration Tests (20% of tests)**
+
 - **Purpose**: Test component interactions and database operations
 - **Coverage**: API endpoints, database transactions, external services
 - **Framework**: pytest + httpx + testcontainers
 - **Focus**: Data flow, transaction integrity, service integration
 
 ### **3. End-to-End Tests (10% of tests)**
+
 - **Purpose**: Test complete user workflows
 - **Coverage**: Full betting flow, payment processing, user journeys
 - **Framework**: pytest + playwright
@@ -32,6 +36,7 @@ For a financial platform handling real money, we need **comprehensive testing at
 ## 🧪 Testing Frameworks
 
 ### **Primary Framework: pytest**
+
 ```yaml
 pytest_advantages:
   - "Excellent async support with pytest-asyncio"
@@ -42,6 +47,7 @@ pytest_advantages:
 ```
 
 ### **Additional Frameworks**
+
 ```yaml
 testing_stack:
   pytest: "Core testing framework"
@@ -59,6 +65,7 @@ testing_stack:
 ## 🎯 Test Categories
 
 ### **1. Financial Tests (Critical)**
+
 ```yaml
 financial_tests:
   unit_tests:
@@ -67,14 +74,14 @@ financial_tests:
     - "Fund locking and unlocking"
     - "Bet amount validation"
     - "Currency conversion precision"
-  
+
   integration_tests:
     - "Wallet balance updates"
     - "Transaction atomicity"
     - "Fund escrow operations"
     - "Payment processor integration"
     - "Database transaction rollback"
-  
+
   e2e_tests:
     - "Complete betting workflow"
     - "Payment processing flow"
@@ -83,6 +90,7 @@ financial_tests:
 ```
 
 ### **2. Betting Engine Tests (Critical)**
+
 ```yaml
 betting_tests:
   unit_tests:
@@ -91,14 +99,14 @@ betting_tests:
     - "Bet resolution outcomes"
     - "Bet cancellation handling"
     - "Edge case scenarios"
-  
+
   integration_tests:
     - "Bet lifecycle management"
     - "Participant management"
     - "Audit logging"
     - "Rate limiting"
     - "Database constraints"
-  
+
   e2e_tests:
     - "Complete betting flow"
     - "Multi-participant betting"
@@ -107,6 +115,7 @@ betting_tests:
 ```
 
 ### **3. Security Tests (Critical)**
+
 ```yaml
 security_tests:
   unit_tests:
@@ -115,14 +124,14 @@ security_tests:
     - "Input sanitization"
     - "SQL injection prevention"
     - "XSS prevention"
-  
+
   integration_tests:
     - "JWT token validation"
     - "Rate limiting enforcement"
     - "CORS configuration"
     - "Security headers"
     - "Session management"
-  
+
   e2e_tests:
     - "Unauthorized access attempts"
     - "Malicious input handling"
@@ -131,6 +140,7 @@ security_tests:
 ```
 
 ### **4. Performance Tests**
+
 ```yaml
 performance_tests:
   unit_tests:
@@ -138,13 +148,13 @@ performance_tests:
     - "Memory usage patterns"
     - "CPU usage optimization"
     - "Algorithm efficiency"
-  
+
   integration_tests:
     - "API response times"
     - "Database connection pooling"
     - "Caching effectiveness"
     - "Concurrent request handling"
-  
+
   e2e_tests:
     - "Load testing scenarios"
     - "Stress testing"
@@ -155,6 +165,7 @@ performance_tests:
 ## 🛠️ Test Implementation Strategy
 
 ### **1. Unit Tests Structure**
+
 ```
 backend/tests/
 ├── unit/
@@ -177,6 +188,7 @@ backend/tests/
 ```
 
 ### **2. Integration Tests Structure**
+
 ```
 backend/tests/
 ├── integration/
@@ -195,6 +207,7 @@ backend/tests/
 ```
 
 ### **3. End-to-End Tests Structure**
+
 ```
 backend/tests/
 ├── e2e/
@@ -215,6 +228,7 @@ backend/tests/
 ## 🎯 Critical Test Scenarios
 
 ### **1. Financial Edge Cases**
+
 ```yaml
 financial_edge_cases:
   - "Concurrent bet acceptance with insufficient funds"
@@ -228,6 +242,7 @@ financial_edge_cases:
 ```
 
 ### **2. Betting Engine Edge Cases**
+
 ```yaml
 betting_edge_cases:
   - "Bet expiration during acceptance"
@@ -241,6 +256,7 @@ betting_edge_cases:
 ```
 
 ### **3. Security Edge Cases**
+
 ```yaml
 security_edge_cases:
   - "SQL injection attempts"
@@ -256,6 +272,7 @@ security_edge_cases:
 ## 📊 Test Coverage Requirements
 
 ### **Coverage Targets**
+
 ```yaml
 coverage_targets:
   unit_tests: "95% line coverage"
@@ -267,6 +284,7 @@ coverage_targets:
 ```
 
 ### **Critical Coverage Areas**
+
 ```yaml
 critical_coverage:
   financial_calculations: "100% coverage"
@@ -280,6 +298,7 @@ critical_coverage:
 ## 🚀 Test Execution Strategy
 
 ### **1. Development Testing**
+
 ```yaml
 development_testing:
   unit_tests: "Run on every code change"
@@ -290,6 +309,7 @@ development_testing:
 ```
 
 ### **2. CI/CD Pipeline**
+
 ```yaml
 cicd_pipeline:
   stage_1: "Unit tests (fast, < 2 minutes)"
@@ -300,6 +320,7 @@ cicd_pipeline:
 ```
 
 ### **3. Test Data Management**
+
 ```yaml
 test_data:
   fixtures: "Reusable test data fixtures"
@@ -312,6 +333,7 @@ test_data:
 ## 🎯 Testing Best Practices
 
 ### **1. Test Organization**
+
 - **Arrange-Act-Assert**: Clear test structure
 - **Descriptive Names**: Test names explain what they test
 - **Single Responsibility**: One test per scenario
@@ -319,6 +341,7 @@ test_data:
 - **Fast Execution**: Unit tests run in milliseconds
 
 ### **2. Test Data**
+
 - **Realistic Data**: Use realistic test data
 - **Edge Cases**: Test boundary conditions
 - **Error Scenarios**: Test error conditions
@@ -326,6 +349,7 @@ test_data:
 - **Isolation**: Tests don't affect each other
 
 ### **3. Assertions**
+
 - **Specific Assertions**: Test specific behavior
 - **Error Messages**: Clear error messages
 - **Coverage**: Assert all important outcomes
@@ -335,6 +359,7 @@ test_data:
 ## 🎯 Conclusion
 
 This comprehensive testing strategy ensures GambleGlee is **bulletproof** with:
+
 - **100% coverage** of financial operations
 - **Complete edge case** testing
 - **Security validation** at all levels
