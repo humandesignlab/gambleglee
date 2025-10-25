@@ -144,7 +144,7 @@ class GeolocationService:
     def get_payment_processor(self, location_data: Dict[str, Any]) -> str:
         """Determine which payment processor to use based on location"""
         country = location_data.get("country", "").upper()
-        
+
         if country == "US":
             return "stripe"
         elif country == "MX":
@@ -156,7 +156,7 @@ class GeolocationService:
     def get_payment_methods(self, location_data: Dict[str, Any]) -> list:
         """Get available payment methods for the user's location"""
         country = location_data.get("country", "").upper()
-        
+
         if country == "US":
             return ["card", "ach", "bank_transfer"]
         elif country == "MX":
@@ -168,7 +168,7 @@ class GeolocationService:
     def get_compliance_requirements(self, location_data: Dict[str, Any]) -> Dict[str, Any]:
         """Get compliance requirements for the user's location"""
         country = location_data.get("country", "").upper()
-        
+
         # Default requirements
         requirements = {
             "kyc_required": True,
@@ -178,7 +178,7 @@ class GeolocationService:
             "withdrawal_limits": {"daily": 5000, "weekly": 10000, "monthly": 50000},
             "currency": "USD"
         }
-        
+
         if country == "US":
             requirements.update({
                 "kyc_required": True,
@@ -197,7 +197,7 @@ class GeolocationService:
                 "withdrawal_limits": {"daily": 2500, "weekly": 5000, "monthly": 25000},
                 "currency": "MXN"
             })
-        
+
         return requirements
 
     async def verify_location_compliance(self, location_data: Dict[str, Any]) -> bool:

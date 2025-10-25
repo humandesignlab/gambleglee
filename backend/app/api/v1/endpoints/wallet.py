@@ -11,9 +11,9 @@ from app.core.security import get_current_active_user
 from app.core.dependencies import get_user_location, get_payment_processor, get_compliance_requirements
 from app.models.user import User
 from app.schemas.wallet import (
-    WalletResponse, 
-    TransactionResponse, 
-    DepositRequest, 
+    WalletResponse,
+    TransactionResponse,
+    DepositRequest,
     WithdrawalRequest,
     PaymentIntentResponse,
     TransactionListResponse
@@ -97,7 +97,7 @@ async def create_deposit_intent(
 
         # Determine currency based on location
         currency = "USD" if location.get("country") == "US" else "MXN"
-        
+
         return PaymentIntentResponse(
             client_secret=result.get('client_secret'),
             payment_intent_id=result.get('payment_intent_id'),

@@ -187,7 +187,7 @@ class WalletService:
         # Get user for payment processor customer
         result = await self.db.execute(select(User).where(User.id == user_id))
         user = result.scalar_one()
-        
+
         if payment_processor == "stripe":
             # Create or get Stripe customer
             if not user.stripe_customer_id:
@@ -200,7 +200,7 @@ class WalletService:
                 await self.db.commit()
             else:
                 customer_id = user.stripe_customer_id
-            
+
             # Create Stripe payment intent
             amount_cents = int(amount * 100)  # Convert to cents
             payment_intent = await self.stripe_service.create_payment_intent(
@@ -212,12 +212,12 @@ class WalletService:
                     'amount': str(amount)
                 }
             )
-            
+
             return {
                 'client_secret': payment_intent['client_secret'],
                 'payment_intent_id': payment_intent['id']
             }
-            
+
         elif payment_processor == "mercadopago":
             # Create or get MercadoPago customer
             if not user.mercadopago_customer_id:
@@ -230,7 +230,7 @@ class WalletService:
                 await self.db.commit()
             else:
                 customer_id = user.mercadopago_customer_id
-            
+
             # Create MercadoPago preference
             preference = await self.mercadopago_service.create_preference(
                 amount=amount,
@@ -242,13 +242,13 @@ class WalletService:
                     'amount': str(amount)
                 }
             )
-            
+
             return {
                 'preference_id': preference['id'],
                 'init_point': preference['init_point'],
                 'sandbox_init_point': preference.get('sandbox_init_point')
             }
-        
+
         else:
             raise ValidationError(f"Unsupported payment processor: {payment_processor}")
 

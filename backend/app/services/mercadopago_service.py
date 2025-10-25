@@ -10,7 +10,7 @@ from app.core.exceptions import GambleGleeException
 
 class MercadoPagoService:
     """MercadoPago payment processing service for Mexico"""
-    
+
     def __init__(self):
         self.access_token = settings.MERCADOPAGO_ACCESS_TOKEN
         self.base_url = "https://api.mercadopago.com"
@@ -18,7 +18,7 @@ class MercadoPagoService:
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
         }
-    
+
     async def create_customer(self, user_id: int, email: str, name: Optional[str] = None) -> str:
         """Create a MercadoPago customer"""
         try:
@@ -36,7 +36,7 @@ class MercadoPagoService:
                         }
                     }
                 )
-                
+
                 if response.status_code == 201:
                     data = response.json()
                     return data["id"]
@@ -44,10 +44,10 @@ class MercadoPagoService:
                     raise GambleGleeException(f"Failed to create MercadoPago customer: {response.text}")
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to create MercadoPago customer: {str(e)}")
-    
+
     async def create_payment_intent(
-        self, 
-        amount: float, 
+        self,
+        amount: float,
         customer_id: str,
         currency: str = "MXN",
         metadata: Optional[Dict[str, Any]] = None
@@ -68,7 +68,7 @@ class MercadoPagoService:
                         "metadata": metadata or {}
                     }
                 )
-                
+
                 if response.status_code == 201:
                     data = response.json()
                     return {
@@ -81,7 +81,7 @@ class MercadoPagoService:
                     raise GambleGleeException(f"Failed to create payment: {response.text}")
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to create payment: {str(e)}")
-    
+
     async def create_preference(
         self,
         amount: float,
@@ -121,7 +121,7 @@ class MercadoPagoService:
                         "metadata": metadata or {}
                     }
                 )
-                
+
                 if response.status_code == 201:
                     data = response.json()
                     return {
@@ -134,7 +134,7 @@ class MercadoPagoService:
                     raise GambleGleeException(f"Failed to create preference: {response.text}")
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to create preference: {str(e)}")
-    
+
     async def get_payment(self, payment_id: str) -> Dict[str, Any]:
         """Get payment details"""
         try:
@@ -143,14 +143,14 @@ class MercadoPagoService:
                     f"{self.base_url}/v1/payments/{payment_id}",
                     headers=self.headers
                 )
-                
+
                 if response.status_code == 200:
                     return response.json()
                 else:
                     raise GambleGleeException(f"Failed to get payment: {response.text}")
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to get payment: {str(e)}")
-    
+
     async def create_connect_account(self, user_id: int, email: str) -> str:
         """Create a MercadoPago Connect account for peer-to-peer transfers"""
         try:
@@ -158,7 +158,7 @@ class MercadoPagoService:
             return f"mp_connect_{user_id}"
         except Exception as e:
             raise GambleGleeException(f"Failed to create Connect account: {str(e)}")
-    
+
     async def create_transfer(
         self,
         amount: float,
@@ -179,7 +179,7 @@ class MercadoPagoService:
                         "metadata": metadata or {}
                     }
                 )
-                
+
                 if response.status_code == 201:
                     data = response.json()
                     return {
@@ -191,7 +191,7 @@ class MercadoPagoService:
                     raise GambleGleeException(f"Failed to create transfer: {response.text}")
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to create transfer: {str(e)}")
-    
+
     async def handle_webhook(self, payload: str, signature: str) -> Dict[str, Any]:
         """Handle MercadoPago webhook events"""
         try:

@@ -72,12 +72,12 @@ class PaymentIntentResponse(BaseModel):
     # Stripe fields
     client_secret: Optional[str] = None
     payment_intent_id: Optional[str] = None
-    
+
     # MercadoPago fields
     preference_id: Optional[str] = None
     init_point: Optional[str] = None
     sandbox_init_point: Optional[str] = None
-    
+
     # Common fields
     payment_processor: str
     amount: float

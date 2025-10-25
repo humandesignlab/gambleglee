@@ -52,7 +52,7 @@ const WalletPage: React.FC = () => {
       toast.success("Deposit intent created successfully");
       setShowDepositModal(false);
       setDepositAmount("");
-      
+
       // Handle different payment processors
       if (data.payment_processor === "stripe") {
         // In a real app, you'd integrate with Stripe Elements here
