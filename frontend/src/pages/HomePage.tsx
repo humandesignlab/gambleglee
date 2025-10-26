@@ -37,7 +37,7 @@ const HomePage: React.FC = () => {
                   >
                     Get Started
                   </Link>
-                </Link>
+                </>
               )}
             </div>
           </div>
