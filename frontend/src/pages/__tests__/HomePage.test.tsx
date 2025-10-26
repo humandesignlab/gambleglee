@@ -20,6 +20,8 @@ describe("HomePage", () => {
       </BrowserRouter>
     );
     // Check for actual text that exists in the component
-    expect(screen.getByText(/Challenge your friends, make predictions/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Challenge your friends, make predictions/)
+    ).toBeInTheDocument();
   });
 });
