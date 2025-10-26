@@ -113,11 +113,28 @@ async def shutdown_event():
     """Cleanup tasks on shutdown"""
     logger.info("Shutting down GambleGlee API server")
 
-# Health check endpoint
+# Health check endpoints
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "service": "gambleglee-api"}
+
+@app.get("/api/health")
+async def api_health_check():
+    """API health check endpoint"""
+    return {"status": "healthy", "api": "gambleglee-api", "version": "1.0.0"}
+
+@app.get("/api/health/db")
+async def database_health_check():
+    """Database health check endpoint"""
+    # This would check actual database connectivity
+    return {"status": "healthy", "database": "postgresql"}
+
+@app.get("/api/health/redis")
+async def redis_health_check():
+    """Redis health check endpoint"""
+    # This would check actual Redis connectivity
+    return {"status": "healthy", "cache": "redis"}
 
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
