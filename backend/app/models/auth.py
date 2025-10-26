@@ -16,11 +16,10 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-Base = declarative_base()
+from app.core.database import Base
 
 
 class AuthProvider(PyEnum):
@@ -134,6 +133,15 @@ class User(Base):
         nullable=False,
     )
     verified_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Payment processor integrations
+    stripe_customer_id = Column(String(255), nullable=True)
+    mercadopago_customer_id = Column(String(255), nullable=True)
+
+    # Geolocation
+    country = Column(String(2), nullable=True)  # ISO country code
+    state = Column(String(50), nullable=True)
+    ip_address = Column(String(45), nullable=True)  # IPv6 compatible
 
     # Relationships
     sessions = relationship(

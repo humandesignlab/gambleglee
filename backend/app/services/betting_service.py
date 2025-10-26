@@ -33,7 +33,7 @@ from app.models.betting import (
     BetTransaction,
     BetType,
 )
-from app.models.user import User
+from app.models.auth import User
 from app.models.wallet import Transaction, TransactionStatus, TransactionType
 from app.services.secure_wallet_service import WalletService as SecureWalletService
 

@@ -102,3 +102,75 @@ class ComplianceError(GambleGleeException):
             status_code=status.HTTP_400_BAD_REQUEST,
             error_code="COMPLIANCE_ERROR",
         )
+
+
+class SecurityError(GambleGleeException):
+    """Security related errors"""
+
+    def __init__(self, detail: str = "Security error"):
+        super().__init__(
+            detail=detail,
+            status_code=status.HTTP_403_FORBIDDEN,
+            error_code="SECURITY_ERROR",
+        )
+
+
+class AccountLockedError(GambleGleeException):
+    """Account locked errors"""
+
+    def __init__(self, detail: str = "Account is locked"):
+        super().__init__(
+            detail=detail,
+            status_code=status.HTTP_423_LOCKED,
+            error_code="ACCOUNT_LOCKED",
+        )
+
+
+class EmailNotVerifiedError(GambleGleeException):
+    """Email not verified errors"""
+
+    def __init__(self, detail: str = "Email not verified"):
+        super().__init__(
+            detail=detail,
+            status_code=status.HTTP_403_FORBIDDEN,
+            error_code="EMAIL_NOT_VERIFIED",
+        )
+
+
+class UserNotFoundError(NotFoundError):
+    """User not found errors"""
+
+    def __init__(self, detail: str = "User not found"):
+        super().__init__(detail=detail)
+
+
+class ActivityNotFoundError(NotFoundError):
+    """Activity not found errors"""
+
+    def __init__(self, detail: str = "Activity not found"):
+        super().__init__(detail=detail)
+
+
+class FriendshipNotFoundError(NotFoundError):
+    """Friendship not found errors"""
+
+    def __init__(self, detail: str = "Friendship not found"):
+        super().__init__(detail=detail)
+
+
+class NotificationNotFoundError(NotFoundError):
+    """Notification not found errors"""
+
+    def __init__(self, detail: str = "Notification not found"):
+        super().__init__(detail=detail)
+
+
+class BusinessLogicError(GambleGleeException):
+    """Business logic errors"""
+
+    def __init__(self, detail: str = "Business logic error"):
+        super().__init__(
+            detail=detail,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            error_code="BUSINESS_LOGIC_ERROR",
+        )

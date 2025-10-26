@@ -29,7 +29,7 @@ from app.models.rewards import (
     UserTier,
     UserTierInfo,
 )
-from app.models.user import User
+from app.models.auth import User
 
 logger = structlog.get_logger(__name__)
 
