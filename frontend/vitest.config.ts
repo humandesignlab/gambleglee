@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    globals: true,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -17,5 +18,8 @@ export default defineConfig({
         '**/coverage/**',
       ],
     },
+  },
+  define: {
+    global: 'globalThis',
   },
 });
