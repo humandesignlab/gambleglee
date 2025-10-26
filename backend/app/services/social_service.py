@@ -1,6 +1,7 @@
 """
 Social service for GambleGlee
 """
+
 from typing import Optional, List, Dict, Any, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, func, and_, or_, desc, asc
@@ -10,21 +11,42 @@ import structlog
 
 from app.models.auth import User
 from app.models.social import (
-    UserProfile, Friendship, UserActivity, ActivityLike, ActivityComment,
-    Notification, UserAchievement, Leaderboard, LeaderboardEntry, UserSearch,
-    FriendshipStatus, NotificationType, ActivityType, PrivacyLevel
+    UserProfile,
+    Friendship,
+    UserActivity,
+    ActivityLike,
+    ActivityComment,
+    Notification,
+    UserAchievement,
+    Leaderboard,
+    LeaderboardEntry,
+    UserSearch,
+    FriendshipStatus,
+    NotificationType,
+    ActivityType,
+    PrivacyLevel,
 )
 from app.schemas.social import (
-    FriendRequestData, ActivityData, NotificationData, AchievementData,
-    LeaderboardData, LeaderboardEntryData, UserSearchFilters, ActivityFilters,
-    NotificationFilters
+    FriendRequestData,
+    ActivityData,
+    NotificationData,
+    AchievementData,
+    LeaderboardData,
+    LeaderboardEntryData,
+    UserSearchFilters,
+    ActivityFilters,
+    NotificationFilters,
 )
 from app.core.exceptions import (
-    ValidationError, UserNotFoundError, FriendshipNotFoundError,
-    NotificationNotFoundError, ActivityNotFoundError
+    ValidationError,
+    UserNotFoundError,
+    FriendshipNotFoundError,
+    NotificationNotFoundError,
+    ActivityNotFoundError,
 )
 
 logger = structlog.get_logger(__name__)
+
 
 class SocialService:
     """Comprehensive social service for user interactions"""
@@ -34,7 +56,9 @@ class SocialService:
 
     # === FRIEND SYSTEM ===
 
-    async def send_friend_request(self, user_id: int, friend_id: int, message: Optional[str] = None) -> Friendship:
+    async def send_friend_request(
+        self, user_id: int, friend_id: int, message: Optional[str] = None
+    ) -> Friendship:
         """Send a friend request to another user"""
 
         # Check if users exist
@@ -57,7 +81,7 @@ class SocialService:
             friend_id=friend_id,
             status=FriendshipStatus.PENDING,
             initiated_by=user_id,
-            notes=message
+            notes=message,
         )
 
         self.db.add(friendship)
@@ -70,16 +94,20 @@ class SocialService:
             notification_type=NotificationType.FRIEND_REQUEST,
             title="New Friend Request",
             message=f"You have a new friend request from {user_id}",
-            metadata={"friendship_id": friendship.id, "requester_id": user_id}
+            metadata={"friendship_id": friendship.id, "requester_id": user_id},
         )
 
         logger.info("Friend request sent", user_id=user_id, friend_id=friend_id)
         return friendship
 
-    async def respond_to_friend_request(self, user_id: int, friend_id: int, action: str) -> Friendship:
+    async def respond_to_friend_request(
+        self, user_id: int, friend_id: int, action: str
+    ) -> Friendship:
         """Respond to a friend request"""
 
-        friendship = await self._get_friendship(friend_id, user_id)  # Note: reversed order
+        friendship = await self._get_friendship(
+            friend_id, user_id
+        )  # Note: reversed order
         if not friendship:
             raise FriendshipNotFoundError("Friend request not found")
 
@@ -99,7 +127,7 @@ class SocialService:
                 notification_type=NotificationType.FRIEND_ACCEPTED,
                 title="Friend Request Accepted",
                 message=f"Your friend request to {user_id} has been accepted",
-                metadata={"friendship_id": friendship.id, "accepter_id": user_id}
+                metadata={"friendship_id": friendship.id, "accepter_id": user_id},
             )
 
         elif action == "decline":
@@ -109,13 +137,20 @@ class SocialService:
             friendship.status = FriendshipStatus.BLOCKED
 
         else:
-            raise ValidationError("Invalid action. Must be 'accept', 'decline', or 'block'")
+            raise ValidationError(
+                "Invalid action. Must be 'accept', 'decline', or 'block'"
+            )
 
         friendship.updated_at = datetime.utcnow()
         await self.db.commit()
         await self.db.refresh(friendship)
 
-        logger.info("Friend request responded", user_id=user_id, friend_id=friend_id, action=action)
+        logger.info(
+            "Friend request responded",
+            user_id=user_id,
+            friend_id=friend_id,
+            action=action,
+        )
         return friendship
 
     async def remove_friend(self, user_id: int, friend_id: int) -> bool:
@@ -146,7 +181,7 @@ class SocialService:
                 user_id=user_id,
                 friend_id=friend_id,
                 status=FriendshipStatus.BLOCKED,
-                initiated_by=user_id
+                initiated_by=user_id,
             )
             self.db.add(friendship)
         else:
@@ -159,13 +194,15 @@ class SocialService:
         logger.info("User blocked", user_id=user_id, friend_id=friend_id)
         return friendship
 
-    async def get_friends(self, user_id: int, page: int = 1, size: int = 20) -> Tuple[List[Friendship], int]:
+    async def get_friends(
+        self, user_id: int, page: int = 1, size: int = 20
+    ) -> Tuple[List[Friendship], int]:
         """Get user's friends list"""
 
         query = select(Friendship).where(
             and_(
                 or_(Friendship.user_id == user_id, Friendship.friend_id == user_id),
-                Friendship.status == FriendshipStatus.ACCEPTED
+                Friendship.status == FriendshipStatus.ACCEPTED,
             )
         )
 
@@ -173,7 +210,7 @@ class SocialService:
         total_query = select(func.count(Friendship.id)).where(
             and_(
                 or_(Friendship.user_id == user_id, Friendship.friend_id == user_id),
-                Friendship.status == FriendshipStatus.ACCEPTED
+                Friendship.status == FriendshipStatus.ACCEPTED,
             )
         )
         total_result = await self.db.execute(total_query)
@@ -181,20 +218,24 @@ class SocialService:
 
         # Apply pagination
         query = query.offset((page - 1) * size).limit(size)
-        query = query.options(selectinload(Friendship.user), selectinload(Friendship.friend))
+        query = query.options(
+            selectinload(Friendship.user), selectinload(Friendship.friend)
+        )
 
         result = await self.db.execute(query)
         friendships = result.scalars().all()
 
         return friendships, total
 
-    async def get_friend_requests(self, user_id: int, page: int = 1, size: int = 20) -> Tuple[List[Friendship], int]:
+    async def get_friend_requests(
+        self, user_id: int, page: int = 1, size: int = 20
+    ) -> Tuple[List[Friendship], int]:
         """Get pending friend requests for user"""
 
         query = select(Friendship).where(
             and_(
                 Friendship.friend_id == user_id,
-                Friendship.status == FriendshipStatus.PENDING
+                Friendship.status == FriendshipStatus.PENDING,
             )
         )
 
@@ -202,7 +243,7 @@ class SocialService:
         total_query = select(func.count(Friendship.id)).where(
             and_(
                 Friendship.friend_id == user_id,
-                Friendship.status == FriendshipStatus.PENDING
+                Friendship.status == FriendshipStatus.PENDING,
             )
         )
         total_result = await self.db.execute(total_query)
@@ -225,7 +266,7 @@ class SocialService:
         user_id: Optional[int] = None,
         filters: Optional[UserSearchFilters] = None,
         page: int = 1,
-        size: int = 20
+        size: int = 20,
     ) -> Tuple[List[User], int]:
         """Search for users"""
 
@@ -238,27 +279,39 @@ class SocialService:
                 User.username.ilike(f"%{query}%"),
                 User.display_name.ilike(f"%{query}%"),
                 User.first_name.ilike(f"%{query}%"),
-                User.last_name.ilike(f"%{query}%")
+                User.last_name.ilike(f"%{query}%"),
             )
         ]
 
         # Apply filters
         if filters:
             if filters.location:
-                search_conditions.append(UserProfile.location.ilike(f"%{filters.location}%"))
+                search_conditions.append(
+                    UserProfile.location.ilike(f"%{filters.location}%")
+                )
             if filters.min_friends is not None:
-                search_conditions.append(UserProfile.friends_count >= filters.min_friends)
+                search_conditions.append(
+                    UserProfile.friends_count >= filters.min_friends
+                )
             if filters.max_friends is not None:
-                search_conditions.append(UserProfile.friends_count <= filters.max_friends)
+                search_conditions.append(
+                    UserProfile.friends_count <= filters.max_friends
+                )
             if filters.min_win_rate is not None:
                 search_conditions.append(UserProfile.win_rate >= filters.min_win_rate)
             if filters.max_win_rate is not None:
                 search_conditions.append(UserProfile.win_rate <= filters.max_win_rate)
             if filters.is_online is not None:
                 if filters.is_online:
-                    search_conditions.append(UserProfile.last_active > datetime.utcnow() - timedelta(minutes=5))
+                    search_conditions.append(
+                        UserProfile.last_active
+                        > datetime.utcnow() - timedelta(minutes=5)
+                    )
                 else:
-                    search_conditions.append(UserProfile.last_active <= datetime.utcnow() - timedelta(minutes=5))
+                    search_conditions.append(
+                        UserProfile.last_active
+                        <= datetime.utcnow() - timedelta(minutes=5)
+                    )
             if filters.has_avatar is not None:
                 if filters.has_avatar:
                     search_conditions.append(User.avatar_url.isnot(None))
@@ -269,7 +322,11 @@ class SocialService:
         search_query = search_query.where(and_(*search_conditions))
 
         # Count total
-        total_query = select(func.count(User.id)).join(UserProfile, User.id == UserProfile.user_id).where(and_(*search_conditions))
+        total_query = (
+            select(func.count(User.id))
+            .join(UserProfile, User.id == UserProfile.user_id)
+            .where(and_(*search_conditions))
+        )
         total_result = await self.db.execute(total_query)
         total = total_result.scalar_one()
 
@@ -298,14 +355,18 @@ class SocialService:
             description=activity_data.description,
             metadata=activity_data.metadata,
             is_public=activity_data.is_public,
-            is_featured=activity_data.is_featured
+            is_featured=activity_data.is_featured,
         )
 
         self.db.add(activity)
         await self.db.commit()
         await self.db.refresh(activity)
 
-        logger.info("Activity created", user_id=activity_data.user_id, activity_type=activity_data.activity_type)
+        logger.info(
+            "Activity created",
+            user_id=activity_data.user_id,
+            activity_type=activity_data.activity_type,
+        )
         return activity
 
     async def get_user_activities(
@@ -313,7 +374,7 @@ class SocialService:
         user_id: int,
         page: int = 1,
         size: int = 20,
-        filters: Optional[ActivityFilters] = None
+        filters: Optional[ActivityFilters] = None,
     ) -> Tuple[List[UserActivity], int]:
         """Get user's activities"""
 
@@ -333,18 +394,30 @@ class SocialService:
                 query = query.where(UserActivity.created_at <= filters.date_to)
 
         # Count total
-        total_query = select(func.count(UserActivity.id)).where(UserActivity.user_id == user_id)
+        total_query = select(func.count(UserActivity.id)).where(
+            UserActivity.user_id == user_id
+        )
         if filters:
             if filters.activity_type:
-                total_query = total_query.where(UserActivity.activity_type == filters.activity_type)
+                total_query = total_query.where(
+                    UserActivity.activity_type == filters.activity_type
+                )
             if filters.is_public is not None:
-                total_query = total_query.where(UserActivity.is_public == filters.is_public)
+                total_query = total_query.where(
+                    UserActivity.is_public == filters.is_public
+                )
             if filters.is_featured is not None:
-                total_query = total_query.where(UserActivity.is_featured == filters.is_featured)
+                total_query = total_query.where(
+                    UserActivity.is_featured == filters.is_featured
+                )
             if filters.date_from:
-                total_query = total_query.where(UserActivity.created_at >= filters.date_from)
+                total_query = total_query.where(
+                    UserActivity.created_at >= filters.date_from
+                )
             if filters.date_to:
-                total_query = total_query.where(UserActivity.created_at <= filters.date_to)
+                total_query = total_query.where(
+                    UserActivity.created_at <= filters.date_to
+                )
 
         total_result = await self.db.execute(total_query)
         total = total_result.scalar_one()
@@ -359,10 +432,7 @@ class SocialService:
         return activities, total
 
     async def get_friends_activities(
-        self,
-        user_id: int,
-        page: int = 1,
-        size: int = 20
+        self, user_id: int, page: int = 1, size: int = 20
     ) -> Tuple[List[UserActivity], int]:
         """Get friends' activities"""
 
@@ -370,7 +440,7 @@ class SocialService:
         friends_query = select(Friendship).where(
             and_(
                 or_(Friendship.user_id == user_id, Friendship.friend_id == user_id),
-                Friendship.status == FriendshipStatus.ACCEPTED
+                Friendship.status == FriendshipStatus.ACCEPTED,
             )
         )
         friends_result = await self.db.execute(friends_query)
@@ -389,18 +459,12 @@ class SocialService:
 
         # Get friends' activities
         query = select(UserActivity).where(
-            and_(
-                UserActivity.user_id.in_(friend_ids),
-                UserActivity.is_public == True
-            )
+            and_(UserActivity.user_id.in_(friend_ids), UserActivity.is_public == True)
         )
 
         # Count total
         total_query = select(func.count(UserActivity.id)).where(
-            and_(
-                UserActivity.user_id.in_(friend_ids),
-                UserActivity.is_public == True
-            )
+            and_(UserActivity.user_id.in_(friend_ids), UserActivity.is_public == True)
         )
         total_result = await self.db.execute(total_query)
         total = total_result.scalar_one()
@@ -416,7 +480,9 @@ class SocialService:
 
     # === NOTIFICATIONS ===
 
-    async def create_notification(self, notification_data: NotificationData) -> Notification:
+    async def create_notification(
+        self, notification_data: NotificationData
+    ) -> Notification:
         """Create a new notification"""
 
         notification = Notification(
@@ -427,14 +493,18 @@ class SocialService:
             action_url=notification_data.action_url,
             metadata=notification_data.metadata,
             is_important=notification_data.is_important,
-            expires_at=notification_data.expires_at
+            expires_at=notification_data.expires_at,
         )
 
         self.db.add(notification)
         await self.db.commit()
         await self.db.refresh(notification)
 
-        logger.info("Notification created", user_id=notification_data.user_id, notification_type=notification_data.notification_type)
+        logger.info(
+            "Notification created",
+            user_id=notification_data.user_id,
+            notification_type=notification_data.notification_type,
+        )
         return notification
 
     async def get_user_notifications(
@@ -442,7 +512,7 @@ class SocialService:
         user_id: int,
         page: int = 1,
         size: int = 20,
-        filters: Optional[NotificationFilters] = None
+        filters: Optional[NotificationFilters] = None,
     ) -> Tuple[List[Notification], int, int]:
         """Get user's notifications"""
 
@@ -451,7 +521,9 @@ class SocialService:
         # Apply filters
         if filters:
             if filters.notification_type:
-                query = query.where(Notification.notification_type == filters.notification_type)
+                query = query.where(
+                    Notification.notification_type == filters.notification_type
+                )
             if filters.is_read is not None:
                 query = query.where(Notification.is_read == filters.is_read)
             if filters.is_important is not None:
@@ -462,18 +534,28 @@ class SocialService:
                 query = query.where(Notification.created_at <= filters.date_to)
 
         # Count total
-        total_query = select(func.count(Notification.id)).where(Notification.user_id == user_id)
+        total_query = select(func.count(Notification.id)).where(
+            Notification.user_id == user_id
+        )
         if filters:
             if filters.notification_type:
-                total_query = total_query.where(Notification.notification_type == filters.notification_type)
+                total_query = total_query.where(
+                    Notification.notification_type == filters.notification_type
+                )
             if filters.is_read is not None:
                 total_query = total_query.where(Notification.is_read == filters.is_read)
             if filters.is_important is not None:
-                total_query = total_query.where(Notification.is_important == filters.is_important)
+                total_query = total_query.where(
+                    Notification.is_important == filters.is_important
+                )
             if filters.date_from:
-                total_query = total_query.where(Notification.created_at >= filters.date_from)
+                total_query = total_query.where(
+                    Notification.created_at >= filters.date_from
+                )
             if filters.date_to:
-                total_query = total_query.where(Notification.created_at <= filters.date_to)
+                total_query = total_query.where(
+                    Notification.created_at <= filters.date_to
+                )
 
         total_result = await self.db.execute(total_query)
         total = total_result.scalar_one()
@@ -505,7 +587,11 @@ class SocialService:
         notification.read_at = datetime.utcnow()
         await self.db.commit()
 
-        logger.info("Notification marked as read", notification_id=notification_id, user_id=user_id)
+        logger.info(
+            "Notification marked as read",
+            notification_id=notification_id,
+            user_id=user_id,
+        )
         return True
 
     async def mark_all_notifications_read(self, user_id: int) -> int:
@@ -519,12 +605,16 @@ class SocialService:
 
         await self.db.commit()
 
-        logger.info("All notifications marked as read", user_id=user_id, count=result.rowcount)
+        logger.info(
+            "All notifications marked as read", user_id=user_id, count=result.rowcount
+        )
         return result.rowcount
 
     # === ACHIEVEMENTS ===
 
-    async def unlock_achievement(self, achievement_data: AchievementData) -> UserAchievement:
+    async def unlock_achievement(
+        self, achievement_data: AchievementData
+    ) -> UserAchievement:
         """Unlock an achievement for a user"""
 
         # Check if achievement already exists
@@ -532,7 +622,8 @@ class SocialService:
             select(UserAchievement).where(
                 and_(
                     UserAchievement.user_id == achievement_data.user_id,
-                    UserAchievement.achievement_type == achievement_data.achievement_type
+                    UserAchievement.achievement_type
+                    == achievement_data.achievement_type,
                 )
             )
         )
@@ -548,7 +639,7 @@ class SocialService:
             icon_url=achievement_data.icon_url,
             points=achievement_data.points,
             rarity=achievement_data.rarity,
-            category=achievement_data.category
+            category=achievement_data.category,
         )
 
         self.db.add(achievement)
@@ -561,10 +652,17 @@ class SocialService:
             notification_type=NotificationType.ACHIEVEMENT_UNLOCKED,
             title="Achievement Unlocked!",
             message=f"You've unlocked the achievement: {achievement_data.title}",
-            metadata={"achievement_id": achievement.id, "points": achievement_data.points}
+            metadata={
+                "achievement_id": achievement.id,
+                "points": achievement_data.points,
+            },
         )
 
-        logger.info("Achievement unlocked", user_id=achievement_data.user_id, achievement_type=achievement_data.achievement_type)
+        logger.info(
+            "Achievement unlocked",
+            user_id=achievement_data.user_id,
+            achievement_type=achievement_data.achievement_type,
+        )
         return achievement
 
     # === LEADERBOARDS ===
@@ -574,7 +672,7 @@ class SocialService:
         category: str,
         time_period: str = "all_time",
         page: int = 1,
-        size: int = 20
+        size: int = 20,
     ) -> Tuple[List[LeaderboardEntry], int]:
         """Get leaderboard entries"""
 
@@ -583,7 +681,7 @@ class SocialService:
             and_(
                 Leaderboard.category == category,
                 Leaderboard.time_period == time_period,
-                Leaderboard.is_active == True
+                Leaderboard.is_active == True,
             )
         )
         leaderboard_result = await self.db.execute(leaderboard_query)
@@ -593,10 +691,14 @@ class SocialService:
             return [], 0
 
         # Get entries
-        query = select(LeaderboardEntry).where(LeaderboardEntry.leaderboard_id == leaderboard.id)
+        query = select(LeaderboardEntry).where(
+            LeaderboardEntry.leaderboard_id == leaderboard.id
+        )
 
         # Count total
-        total_query = select(func.count(LeaderboardEntry.id)).where(LeaderboardEntry.leaderboard_id == leaderboard.id)
+        total_query = select(func.count(LeaderboardEntry.id)).where(
+            LeaderboardEntry.leaderboard_id == leaderboard.id
+        )
         total_result = await self.db.execute(total_query)
         total = total_result.scalar_one()
 
@@ -612,21 +714,31 @@ class SocialService:
 
     # === UTILITY METHODS ===
 
-    async def _get_friendship(self, user_id: int, friend_id: int) -> Optional[Friendship]:
+    async def _get_friendship(
+        self, user_id: int, friend_id: int
+    ) -> Optional[Friendship]:
         """Get friendship between two users"""
         result = await self.db.execute(
             select(Friendship).where(
                 and_(
                     or_(
-                        and_(Friendship.user_id == user_id, Friendship.friend_id == friend_id),
-                        and_(Friendship.user_id == friend_id, Friendship.friend_id == user_id)
+                        and_(
+                            Friendship.user_id == user_id,
+                            Friendship.friend_id == friend_id,
+                        ),
+                        and_(
+                            Friendship.user_id == friend_id,
+                            Friendship.friend_id == user_id,
+                        ),
                     )
                 )
             )
         )
         return result.scalar_one_or_none()
 
-    async def _update_friend_counts(self, user_id: int, friend_id: int, increment: bool):
+    async def _update_friend_counts(
+        self, user_id: int, friend_id: int, increment: bool
+    ):
         """Update friend counts for both users"""
         # This would be implemented to update friend counts
         pass
@@ -637,7 +749,7 @@ class SocialService:
         notification_type: NotificationType,
         title: str,
         message: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Create a notification for a user"""
         notification = Notification(
@@ -645,18 +757,20 @@ class SocialService:
             notification_type=notification_type,
             title=title,
             message=message,
-            metadata=metadata
+            metadata=metadata,
         )
         self.db.add(notification)
         await self.db.commit()
 
-    async def _log_search(self, user_id: int, query: str, search_type: str, results_count: int):
+    async def _log_search(
+        self, user_id: int, query: str, search_type: str, results_count: int
+    ):
         """Log user search for analytics"""
         search_log = UserSearch(
             user_id=user_id,
             query=query,
             search_type=search_type,
-            results_count=results_count
+            results_count=results_count,
         )
         self.db.add(search_log)
         await self.db.commit()

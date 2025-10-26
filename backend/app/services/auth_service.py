@@ -1,6 +1,7 @@
 """
 Authentication service for GambleGlee
 """
+
 import secrets
 import pyotp
 import qrcode
@@ -16,26 +17,51 @@ from jose import JWTError, jwt
 import structlog
 
 from app.models.auth import (
-    User, UserSession, LoginHistory, UserDevice, EmailVerification,
-    PasswordReset, TwoFactorBackup, AuthProvider, UserRole, UserStatus
+    User,
+    UserSession,
+    LoginHistory,
+    UserDevice,
+    EmailVerification,
+    PasswordReset,
+    TwoFactorBackup,
+    AuthProvider,
+    UserRole,
+    UserStatus,
 )
 from app.schemas.auth import (
-    TokenData, SessionData, LoginAttempt, SecurityEvent,
-    UserRegisterRequest, UserLoginRequest, PasswordResetRequest,
-    PasswordResetConfirmRequest, EmailVerificationRequest,
-    ChangePasswordRequest, TwoFactorSetupRequest, TwoFactorVerifyRequest,
-    TwoFactorDisableRequest, OAuthLoginRequest, RefreshTokenRequest,
-    LogoutRequest, UsernameCheckRequest, EmailCheckRequest
+    TokenData,
+    SessionData,
+    LoginAttempt,
+    SecurityEvent,
+    UserRegisterRequest,
+    UserLoginRequest,
+    PasswordResetRequest,
+    PasswordResetConfirmRequest,
+    EmailVerificationRequest,
+    ChangePasswordRequest,
+    TwoFactorSetupRequest,
+    TwoFactorVerifyRequest,
+    TwoFactorDisableRequest,
+    OAuthLoginRequest,
+    RefreshTokenRequest,
+    LogoutRequest,
+    UsernameCheckRequest,
+    EmailCheckRequest,
 )
 from app.core.config import settings
 from app.core.exceptions import (
-    AuthenticationError, ValidationError, SecurityError,
-    UserNotFoundError, AccountLockedError, EmailNotVerifiedError
+    AuthenticationError,
+    ValidationError,
+    SecurityError,
+    UserNotFoundError,
+    AccountLockedError,
+    EmailNotVerifiedError,
 )
 from app.services.email_service import EmailService
 from app.services.security_service import SecurityService
 
 logger = structlog.get_logger(__name__)
+
 
 class AuthService:
     """Comprehensive authentication service"""
@@ -58,7 +84,9 @@ class AuthService:
 
     # === USER REGISTRATION ===
 
-    async def register_user(self, user_data: UserRegisterRequest, ip_address: Optional[str] = None) -> User:
+    async def register_user(
+        self, user_data: UserRegisterRequest, ip_address: Optional[str] = None
+    ) -> User:
         """Register a new user"""
 
         # Check if email already exists
@@ -85,7 +113,7 @@ class AuthService:
             email_verification_token=email_verification_token,
             email_verification_expires=datetime.utcnow() + timedelta(hours=24),
             marketing_emails=user_data.marketing_emails,
-            auth_provider=AuthProvider.EMAIL
+            auth_provider=AuthProvider.EMAIL,
         )
 
         self.db.add(user)
@@ -102,7 +130,7 @@ class AuthService:
             event_type="user_registration",
             user_id=user.id,
             ip_address=ip_address,
-            details={"email": user.email, "username": user.username}
+            details={"email": user.email, "username": user.username},
         )
 
         logger.info("User registered", user_id=user.id, email=user.email)
@@ -114,7 +142,7 @@ class AuthService:
         self,
         login_data: UserLoginRequest,
         ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
     ) -> Tuple[User, str, str]:
         """Authenticate user and create session"""
 
@@ -183,7 +211,7 @@ class AuthService:
         ip_address: Optional[str],
         user_agent: Optional[str],
         device_name: Optional[str],
-        device_type: Optional[str]
+        device_type: Optional[str],
     ) -> UserSession:
         """Create a new user session"""
 
@@ -198,7 +226,7 @@ class AuthService:
             user_agent=user_agent,
             device_name=device_name,
             device_type=device_type,
-            expires_at=datetime.utcnow() + timedelta(days=30)  # 30 days
+            expires_at=datetime.utcnow() + timedelta(days=30),  # 30 days
         )
 
         self.db.add(session)
@@ -215,7 +243,7 @@ class AuthService:
             payload = jwt.decode(
                 refresh_token,
                 settings.JWT_SECRET_KEY,
-                algorithms=[settings.JWT_ALGORITHM]
+                algorithms=[settings.JWT_ALGORITHM],
             )
             user_id = payload.get("sub")
             session_id = payload.get("session_id")
@@ -249,7 +277,9 @@ class AuthService:
 
         return new_access_token, new_refresh_token
 
-    async def logout_user(self, user_id: int, session_id: Optional[str] = None, logout_all: bool = False) -> int:
+    async def logout_user(
+        self, user_id: int, session_id: Optional[str] = None, logout_all: bool = False
+    ) -> int:
         """Logout user from session(s)"""
 
         if logout_all:
@@ -268,7 +298,12 @@ class AuthService:
             if session_id:
                 await self.db.execute(
                     update(UserSession)
-                    .where(and_(UserSession.user_id == user_id, UserSession.session_id == session_id))
+                    .where(
+                        and_(
+                            UserSession.user_id == user_id,
+                            UserSession.session_id == session_id,
+                        )
+                    )
                     .values(status="logged_out", revoked_at=datetime.utcnow())
                 )
                 count = 1
@@ -293,10 +328,12 @@ class AuthService:
             "role": user.role.value,
             "session_id": session_id,
             "exp": expire,
-            "type": "access"
+            "type": "access",
         }
 
-        return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        return jwt.encode(
+            to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+        )
 
     async def _create_refresh_token(self, user: User, session_id: str) -> str:
         """Create refresh token"""
@@ -307,10 +344,12 @@ class AuthService:
             "sub": str(user.id),
             "session_id": session_id,
             "exp": expire,
-            "type": "refresh"
+            "type": "refresh",
         }
 
-        return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        return jwt.encode(
+            to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+        )
 
     # === EMAIL VERIFICATION ===
 
@@ -319,12 +358,13 @@ class AuthService:
 
         # Get verification record
         verification = await self.db.execute(
-            select(EmailVerification)
-            .where(and_(
-                EmailVerification.token == token,
-                EmailVerification.is_used == False,
-                EmailVerification.expires_at > datetime.utcnow()
-            ))
+            select(EmailVerification).where(
+                and_(
+                    EmailVerification.token == token,
+                    EmailVerification.is_used == False,
+                    EmailVerification.expires_at > datetime.utcnow(),
+                )
+            )
         )
         verification = verification.scalar_one_or_none()
 
@@ -379,7 +419,9 @@ class AuthService:
 
     # === PASSWORD RESET ===
 
-    async def request_password_reset(self, email: str, ip_address: Optional[str] = None) -> bool:
+    async def request_password_reset(
+        self, email: str, ip_address: Optional[str] = None
+    ) -> bool:
         """Request password reset"""
 
         user = await self.get_user_by_email(email)
@@ -395,7 +437,7 @@ class AuthService:
             user_id=user.id,
             token=token,
             ip_address=ip_address,
-            expires_at=datetime.utcnow() + timedelta(hours=1)  # 1 hour expiry
+            expires_at=datetime.utcnow() + timedelta(hours=1),  # 1 hour expiry
         )
 
         self.db.add(password_reset)
@@ -411,7 +453,7 @@ class AuthService:
             event_type="password_reset_requested",
             user_id=user.id,
             ip_address=ip_address,
-            details={"email": user.email}
+            details={"email": user.email},
         )
 
         return True
@@ -421,12 +463,13 @@ class AuthService:
 
         # Get reset record
         reset_record = await self.db.execute(
-            select(PasswordReset)
-            .where(and_(
-                PasswordReset.token == token,
-                PasswordReset.is_used == False,
-                PasswordReset.expires_at > datetime.utcnow()
-            ))
+            select(PasswordReset).where(
+                and_(
+                    PasswordReset.token == token,
+                    PasswordReset.is_used == False,
+                    PasswordReset.expires_at > datetime.utcnow(),
+                )
+            )
         )
         reset_record = reset_record.scalar_one_or_none()
 
@@ -477,8 +520,7 @@ class AuthService:
 
         # Generate QR code
         totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-            name=user.email,
-            issuer_name="GambleGlee"
+            name=user.email, issuer_name="GambleGlee"
         )
 
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -487,7 +529,7 @@ class AuthService:
 
         img = qr.make_image(fill_color="black", back_color="white")
         buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
         qr_code = base64.b64encode(buffer.getvalue()).decode()
 
         # Generate backup codes
@@ -502,7 +544,7 @@ class AuthService:
         return {
             "secret": secret,
             "qr_code": f"data:image/png;base64,{qr_code}",
-            "backup_codes": backup_codes
+            "backup_codes": backup_codes,
         }
 
     async def verify_two_factor_setup(self, user_id: int, code: str) -> bool:
@@ -523,7 +565,9 @@ class AuthService:
 
         return True
 
-    async def verify_two_factor(self, user_id: int, code: str, backup_code: Optional[str] = None) -> bool:
+    async def verify_two_factor(
+        self, user_id: int, code: str, backup_code: Optional[str] = None
+    ) -> bool:
         """Verify two-factor authentication code"""
 
         user = await self.get_user_by_id(user_id)
@@ -552,23 +596,17 @@ class AuthService:
 
     async def get_user_by_id(self, user_id: int) -> Optional[User]:
         """Get user by ID"""
-        result = await self.db.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await self.db.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         """Get user by email"""
-        result = await self.db.execute(
-            select(User).where(User.email == email)
-        )
+        result = await self.db.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
     async def get_user_by_username(self, username: str) -> Optional[User]:
         """Get user by username"""
-        result = await self.db.execute(
-            select(User).where(User.username == username)
-        )
+        result = await self.db.execute(select(User).where(User.username == username))
         return result.scalar_one_or_none()
 
     async def get_session_by_id(self, session_id: str) -> Optional[UserSession]:
@@ -580,7 +618,9 @@ class AuthService:
 
     # === UTILITY METHODS ===
 
-    async def _log_failed_login(self, email: str, ip_address: Optional[str], reason: str):
+    async def _log_failed_login(
+        self, email: str, ip_address: Optional[str], reason: str
+    ):
         """Log failed login attempt"""
         # This would be implemented to log failed login attempts
         pass
@@ -595,7 +635,13 @@ class AuthService:
 
         await self.db.commit()
 
-    async def _log_successful_login(self, user: User, ip_address: Optional[str], user_agent: Optional[str], login_type: str):
+    async def _log_successful_login(
+        self,
+        user: User,
+        ip_address: Optional[str],
+        user_agent: Optional[str],
+        login_type: str,
+    ):
         """Log successful login"""
         # This would be implemented to log successful logins
         pass

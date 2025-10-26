@@ -54,17 +54,10 @@ const WalletPage: React.FC = () => {
       setDepositAmount("");
 
       // Handle different payment processors
-      if (data.payment_processor === "stripe") {
+      if (data.client_secret) {
         // In a real app, you'd integrate with Stripe Elements here
         console.log("Stripe client secret:", data.client_secret);
         toast("Redirecting to Stripe payment...");
-      } else if (data.payment_processor === "mercadopago") {
-        // Redirect to MercadoPago payment page
-        console.log("MercadoPago init point:", data.init_point);
-        if (data.init_point) {
-          window.open(data.init_point, "_blank");
-        }
-        toast("Redirecting to MercadoPago payment...");
       }
     },
     onError: (error: any) => {

@@ -8,7 +8,11 @@ from typing import List
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
-from app.core.dependencies import get_user_location, get_payment_processor, get_compliance_requirements
+from app.core.dependencies import (
+    get_user_location,
+    get_payment_processor,
+    get_compliance_requirements,
+)
 from app.models.user import User
 from app.schemas.wallet import (
     WalletResponse,
@@ -16,7 +20,7 @@ from app.schemas.wallet import (
     DepositRequest,
     WithdrawalRequest,
     PaymentIntentResponse,
-    TransactionListResponse
+    TransactionListResponse,
 )
 from app.services.wallet_service import WalletService
 
@@ -26,7 +30,7 @@ router = APIRouter()
 @router.get("/", response_model=WalletResponse)
 async def get_wallet(
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get user wallet information"""
     wallet_service = WalletService(db)
@@ -39,14 +43,12 @@ async def get_transactions(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get user transaction history"""
     wallet_service = WalletService(db)
     transactions, total = await wallet_service.get_transactions(
-        user_id=current_user.id,
-        page=page,
-        limit=limit
+        user_id=current_user.id, page=page, limit=limit
     )
 
     pages = (total + limit - 1) // limit
@@ -56,7 +58,7 @@ async def get_transactions(
         total=total,
         page=page,
         size=limit,
-        pages=pages
+        pages=pages,
     )
 
 
@@ -67,14 +69,14 @@ async def create_deposit_intent(
     db: AsyncSession = Depends(get_db),
     location: dict = Depends(get_user_location),
     payment_processor: str = Depends(get_payment_processor),
-    compliance_requirements: dict = Depends(get_compliance_requirements)
+    compliance_requirements: dict = Depends(get_compliance_requirements),
 ):
     """Create a deposit payment intent"""
     # Check compliance requirements
     if not location.get("compliance_status") == "allowed":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Deposits not allowed from this location"
+            detail="Deposits not allowed from this location",
         )
 
     # Check deposit limits
@@ -82,7 +84,7 @@ async def create_deposit_intent(
     if deposit_data.amount > daily_limit:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Deposit amount exceeds daily limit of ${daily_limit}"
+            detail=f"Deposit amount exceeds daily limit of ${daily_limit}",
         )
 
     wallet_service = WalletService(db)
@@ -92,26 +94,26 @@ async def create_deposit_intent(
         result = await wallet_service.create_deposit_intent(
             user_id=current_user.id,
             amount=deposit_data.amount,
-            payment_processor=payment_processor
+            payment_processor=payment_processor,
         )
 
         # Determine currency based on location
         currency = "USD" if location.get("country") == "US" else "MXN"
 
         return PaymentIntentResponse(
-            client_secret=result.get('client_secret'),
-            payment_intent_id=result.get('payment_intent_id'),
-            preference_id=result.get('preference_id'),
-            init_point=result.get('init_point'),
-            sandbox_init_point=result.get('sandbox_init_point'),
+            client_secret=result.get("client_secret"),
+            payment_intent_id=result.get("payment_intent_id"),
+            preference_id=result.get("preference_id"),
+            init_point=result.get("init_point"),
+            sandbox_init_point=result.get("sandbox_init_point"),
             payment_processor=payment_processor,
             amount=deposit_data.amount,
-            currency=currency
+            currency=currency,
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to create deposit intent: {str(e)}"
+            detail=f"Failed to create deposit intent: {str(e)}",
         )
 
 
@@ -119,7 +121,7 @@ async def create_deposit_intent(
 async def confirm_deposit(
     payment_intent_id: str,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Confirm a completed deposit"""
     wallet_service = WalletService(db)
@@ -129,12 +131,12 @@ async def confirm_deposit(
         return {
             "message": "Deposit confirmed successfully",
             "transaction_id": transaction.id,
-            "amount": transaction.amount
+            "amount": transaction.amount,
         }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to confirm deposit: {str(e)}"
+            detail=f"Failed to confirm deposit: {str(e)}",
         )
 
 
@@ -142,28 +144,27 @@ async def confirm_deposit(
 async def request_withdrawal(
     withdrawal_data: WithdrawalRequest,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Request a withdrawal"""
     wallet_service = WalletService(db)
 
     try:
         transaction = await wallet_service.request_withdrawal(
-            user_id=current_user.id,
-            amount=withdrawal_data.amount
+            user_id=current_user.id, amount=withdrawal_data.amount
         )
         return TransactionResponse.from_orm(transaction)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to process withdrawal request: {str(e)}"
+            detail=f"Failed to process withdrawal request: {str(e)}",
         )
 
 
 @router.get("/balance")
 async def get_balance(
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get user's available and locked balance"""
     wallet_service = WalletService(db)
@@ -172,5 +173,5 @@ async def get_balance(
     return {
         "available_balance": available,
         "locked_balance": locked,
-        "total_balance": available + locked
+        "total_balance": available + locked,
     }

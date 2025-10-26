@@ -1,6 +1,7 @@
 """
 Authentication tests for GambleGlee
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,11 +12,13 @@ from app.schemas.auth import UserRegisterRequest, UserLoginRequest
 
 client = TestClient(app)
 
+
 @pytest.fixture
 async def db_session():
     """Get database session for testing"""
     # This would be implemented with a test database
     pass
+
 
 @pytest.fixture
 def test_user_data():
@@ -26,8 +29,9 @@ def test_user_data():
         "password": "TestPassword123",
         "first_name": "Test",
         "last_name": "User",
-        "display_name": "Test User"
+        "display_name": "Test User",
     }
+
 
 class TestUserRegistration:
     """Test user registration functionality"""
@@ -78,7 +82,9 @@ class TestUserRegistration:
         response = client.post("/api/v1/auth/register", json=test_user_data)
 
         assert response.status_code == 400
-        assert "Password must be at least 8 characters long" in response.json()["detail"]
+        assert (
+            "Password must be at least 8 characters long" in response.json()["detail"]
+        )
 
     async def test_register_user_invalid_email(self, db_session, test_user_data):
         """Test registration with invalid email"""
@@ -87,6 +93,7 @@ class TestUserRegistration:
 
         assert response.status_code == 400
         assert "email" in response.json()["detail"]
+
 
 class TestUserLogin:
     """Test user login functionality"""
@@ -99,7 +106,7 @@ class TestUserLogin:
         # Login
         login_data = {
             "email": test_user_data["email"],
-            "password": test_user_data["password"]
+            "password": test_user_data["password"],
         }
         response = client.post("/api/v1/auth/login", json=login_data)
 
@@ -112,10 +119,7 @@ class TestUserLogin:
 
     async def test_login_invalid_credentials(self, db_session, test_user_data):
         """Test login with invalid credentials"""
-        login_data = {
-            "email": test_user_data["email"],
-            "password": "wrongpassword"
-        }
+        login_data = {"email": test_user_data["email"], "password": "wrongpassword"}
         response = client.post("/api/v1/auth/login", json=login_data)
 
         assert response.status_code == 401
@@ -123,14 +127,12 @@ class TestUserLogin:
 
     async def test_login_nonexistent_user(self, db_session):
         """Test login with nonexistent user"""
-        login_data = {
-            "email": "nonexistent@example.com",
-            "password": "password123"
-        }
+        login_data = {"email": "nonexistent@example.com", "password": "password123"}
         response = client.post("/api/v1/auth/login", json=login_data)
 
         assert response.status_code == 401
         assert "Invalid credentials" in response.json()["detail"]
+
 
 class TestEmailVerification:
     """Test email verification functionality"""
@@ -157,6 +159,7 @@ class TestEmailVerification:
         assert response.status_code == 400
         assert "Invalid or expired verification token" in response.json()["detail"]
 
+
 class TestPasswordReset:
     """Test password reset functionality"""
 
@@ -175,10 +178,7 @@ class TestPasswordReset:
     async def test_reset_password_success(self, db_session, test_user_data):
         """Test successful password reset"""
         # In a real test, you'd get the reset token from the database
-        reset_data = {
-            "token": "test-reset-token",
-            "new_password": "NewPassword123"
-        }
+        reset_data = {"token": "test-reset-token", "new_password": "NewPassword123"}
         response = client.post("/api/v1/auth/reset-password", json=reset_data)
 
         # This would succeed in a real implementation
@@ -186,14 +186,12 @@ class TestPasswordReset:
 
     async def test_reset_password_invalid_token(self, db_session):
         """Test password reset with invalid token"""
-        reset_data = {
-            "token": "invalid-token",
-            "new_password": "NewPassword123"
-        }
+        reset_data = {"token": "invalid-token", "new_password": "NewPassword123"}
         response = client.post("/api/v1/auth/reset-password", json=reset_data)
 
         assert response.status_code == 400
         assert "Invalid or expired reset token" in response.json()["detail"]
+
 
 class TestUsernameEmailCheck:
     """Test username and email availability checks"""
@@ -242,6 +240,7 @@ class TestUsernameEmailCheck:
         assert response.json()["available"] is False
         assert "Email is already registered" in response.json()["message"]
 
+
 class TestTokenRefresh:
     """Test token refresh functionality"""
 
@@ -249,10 +248,13 @@ class TestTokenRefresh:
         """Test successful token refresh"""
         # Register and login user
         client.post("/api/v1/auth/register", json=test_user_data)
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
 
         refresh_token = login_response.json()["refresh_token"]
         refresh_data = {"refresh_token": refresh_token}
@@ -270,6 +272,7 @@ class TestTokenRefresh:
         assert response.status_code == 401
         assert "Invalid refresh token" in response.json()["detail"]
 
+
 class TestUserProfile:
     """Test user profile functionality"""
 
@@ -277,10 +280,13 @@ class TestUserProfile:
         """Test getting current user information"""
         # Register and login user
         client.post("/api/v1/auth/register", json=test_user_data)
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
 
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
@@ -298,6 +304,7 @@ class TestUserProfile:
         assert response.status_code == 401
         assert "Not authenticated" in response.json()["detail"]
 
+
 class TestLogout:
     """Test logout functionality"""
 
@@ -305,10 +312,13 @@ class TestLogout:
         """Test successful logout"""
         # Register and login user
         client.post("/api/v1/auth/register", json=test_user_data)
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
 
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}

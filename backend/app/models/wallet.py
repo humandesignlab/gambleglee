@@ -2,7 +2,17 @@
 Wallet and transaction models
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, Text, Enum, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    Float,
+    Boolean,
+    Text,
+    Enum,
+    ForeignKey,
+)
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -11,6 +21,7 @@ import enum
 
 class TransactionType(str, enum.Enum):
     """Transaction types"""
+
     DEPOSIT = "deposit"
     WITHDRAWAL = "withdrawal"
     BET_PLACED = "bet_placed"
@@ -22,6 +33,7 @@ class TransactionType(str, enum.Enum):
 
 class TransactionStatus(str, enum.Enum):
     """Transaction status"""
+
     PENDING = "pending"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -30,6 +42,7 @@ class TransactionStatus(str, enum.Enum):
 
 class Wallet(Base):
     """User wallet model"""
+
     __tablename__ = "wallets"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -52,6 +65,7 @@ class Wallet(Base):
 
 class Transaction(Base):
     """Transaction model"""
+
     __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True, index=True)

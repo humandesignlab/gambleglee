@@ -25,9 +25,7 @@ class WalletService:
 
     async def get_or_create_wallet(self, user_id: int) -> Wallet:
         """Get or create user wallet"""
-        result = await self.db.execute(
-            select(Wallet).where(Wallet.user_id == user_id)
-        )
+        result = await self.db.execute(select(Wallet).where(Wallet.user_id == user_id))
         wallet = result.scalar_one_or_none()
 
         if not wallet:
@@ -43,8 +41,14 @@ class WalletService:
         wallet = await self.get_or_create_wallet(user_id)
         return float(wallet.balance), float(wallet.locked_balance)
 
-    async def add_funds(self, user_id: int, amount: float, transaction_type: TransactionType,
-                       description: Optional[str] = None, metadata: Optional[dict] = None) -> Transaction:
+    async def add_funds(
+        self,
+        user_id: int,
+        amount: float,
+        transaction_type: TransactionType,
+        description: Optional[str] = None,
+        metadata: Optional[dict] = None,
+    ) -> Transaction:
         """Add funds to user wallet"""
         wallet = await self.get_or_create_wallet(user_id)
 
@@ -56,7 +60,7 @@ class WalletService:
             amount=amount,
             status=TransactionStatus.PENDING,
             description=description,
-            metadata=str(metadata) if metadata else None
+            metadata=str(metadata) if metadata else None,
         )
 
         self.db.add(transaction)
@@ -72,7 +76,9 @@ class WalletService:
 
         return transaction
 
-    async def lock_funds(self, user_id: int, amount: float, description: str) -> Transaction:
+    async def lock_funds(
+        self, user_id: int, amount: float, description: str
+    ) -> Transaction:
         """Lock funds for betting (escrow)"""
         wallet = await self.get_or_create_wallet(user_id)
 
@@ -86,7 +92,7 @@ class WalletService:
             type=TransactionType.BET_PLACED,
             amount=amount,
             status=TransactionStatus.PENDING,
-            description=description
+            description=description,
         )
 
         self.db.add(transaction)
@@ -102,7 +108,9 @@ class WalletService:
 
         return transaction
 
-    async def unlock_funds(self, user_id: int, amount: float, description: str) -> Transaction:
+    async def unlock_funds(
+        self, user_id: int, amount: float, description: str
+    ) -> Transaction:
         """Unlock funds back to available balance"""
         wallet = await self.get_or_create_wallet(user_id)
 
@@ -116,7 +124,7 @@ class WalletService:
             type=TransactionType.REFUND,
             amount=amount,
             status=TransactionStatus.PENDING,
-            description=description
+            description=description,
         )
 
         self.db.add(transaction)
@@ -131,7 +139,9 @@ class WalletService:
 
         return transaction
 
-    async def process_win(self, user_id: int, amount: float, description: str) -> Transaction:
+    async def process_win(
+        self, user_id: int, amount: float, description: str
+    ) -> Transaction:
         """Process winning bet payout"""
         wallet = await self.get_or_create_wallet(user_id)
 
@@ -142,7 +152,7 @@ class WalletService:
             type=TransactionType.BET_WON,
             amount=amount,
             status=TransactionStatus.PENDING,
-            description=description
+            description=description,
         )
 
         self.db.add(transaction)
@@ -157,7 +167,9 @@ class WalletService:
 
         return transaction
 
-    async def process_loss(self, user_id: int, amount: float, description: str) -> Transaction:
+    async def process_loss(
+        self, user_id: int, amount: float, description: str
+    ) -> Transaction:
         """Process losing bet (funds already locked)"""
         wallet = await self.get_or_create_wallet(user_id)
 
@@ -168,7 +180,7 @@ class WalletService:
             type=TransactionType.BET_LOST,
             amount=amount,
             status=TransactionStatus.PENDING,
-            description=description
+            description=description,
         )
 
         self.db.add(transaction)
@@ -182,7 +194,9 @@ class WalletService:
 
         return transaction
 
-    async def create_deposit_intent(self, user_id: int, amount: float, payment_processor: str = "stripe") -> dict:
+    async def create_deposit_intent(
+        self, user_id: int, amount: float, payment_processor: str = "stripe"
+    ) -> dict:
         """Create payment intent for deposit"""
         # Get user for payment processor customer
         result = await self.db.execute(select(User).where(User.id == user_id))
@@ -194,7 +208,11 @@ class WalletService:
                 customer_id = await self.stripe_service.create_customer(
                     user_id=user_id,
                     email=user.email,
-                    name=f"{user.first_name} {user.last_name}".strip() if user.first_name else None
+                    name=(
+                        f"{user.first_name} {user.last_name}".strip()
+                        if user.first_name
+                        else None
+                    ),
                 )
                 user.stripe_customer_id = customer_id
                 await self.db.commit()
@@ -207,15 +225,15 @@ class WalletService:
                 amount=amount_cents,
                 customer_id=customer_id,
                 metadata={
-                    'user_id': str(user_id),
-                    'type': 'deposit',
-                    'amount': str(amount)
-                }
+                    "user_id": str(user_id),
+                    "type": "deposit",
+                    "amount": str(amount),
+                },
             )
 
             return {
-                'client_secret': payment_intent['client_secret'],
-                'payment_intent_id': payment_intent['id']
+                "client_secret": payment_intent["client_secret"],
+                "payment_intent_id": payment_intent["id"],
             }
 
         elif payment_processor == "mercadopago":
@@ -224,7 +242,11 @@ class WalletService:
                 customer_id = await self.mercadopago_service.create_customer(
                     user_id=user_id,
                     email=user.email,
-                    name=f"{user.first_name} {user.last_name}".strip() if user.first_name else None
+                    name=(
+                        f"{user.first_name} {user.last_name}".strip()
+                        if user.first_name
+                        else None
+                    ),
                 )
                 user.mercadopago_customer_id = customer_id
                 await self.db.commit()
@@ -237,16 +259,16 @@ class WalletService:
                 customer_id=customer_id,
                 currency="MXN",
                 metadata={
-                    'user_id': str(user_id),
-                    'type': 'deposit',
-                    'amount': str(amount)
-                }
+                    "user_id": str(user_id),
+                    "type": "deposit",
+                    "amount": str(amount),
+                },
             )
 
             return {
-                'preference_id': preference['id'],
-                'init_point': preference['init_point'],
-                'sandbox_init_point': preference.get('sandbox_init_point')
+                "preference_id": preference["id"],
+                "init_point": preference["init_point"],
+                "sandbox_init_point": preference.get("sandbox_init_point"),
             }
 
         else:
@@ -257,15 +279,15 @@ class WalletService:
         # Get payment intent from Stripe
         payment_intent = await self.stripe_service.get_payment_intent(payment_intent_id)
 
-        if payment_intent['status'] != 'succeeded':
+        if payment_intent["status"] != "succeeded":
             raise ValidationError("Payment not completed")
 
         # Extract user_id from metadata
-        user_id = int(payment_intent.get('metadata', {}).get('user_id', 0))
+        user_id = int(payment_intent.get("metadata", {}).get("user_id", 0))
         if not user_id:
             raise ValidationError("Invalid payment intent")
 
-        amount = payment_intent['amount'] / 100  # Convert from cents
+        amount = payment_intent["amount"] / 100  # Convert from cents
 
         # Create deposit transaction
         transaction = await self.add_funds(
@@ -273,7 +295,7 @@ class WalletService:
             amount=amount,
             transaction_type=TransactionType.DEPOSIT,
             description=f"Deposit via Stripe - {payment_intent_id}",
-            metadata={'stripe_payment_intent_id': payment_intent_id}
+            metadata={"stripe_payment_intent_id": payment_intent_id},
         )
 
         # Mark transaction as completed
@@ -297,7 +319,7 @@ class WalletService:
             type=TransactionType.WITHDRAWAL,
             amount=amount,
             status=TransactionStatus.PENDING,
-            description="Withdrawal request"
+            description="Withdrawal request",
         )
 
         self.db.add(transaction)
@@ -306,7 +328,9 @@ class WalletService:
 
         return transaction
 
-    async def get_transactions(self, user_id: int, page: int = 1, limit: int = 20) -> Tuple[List[Transaction], int]:
+    async def get_transactions(
+        self, user_id: int, page: int = 1, limit: int = 20
+    ) -> Tuple[List[Transaction], int]:
         """Get user transactions with pagination"""
         # Get total count
         count_result = await self.db.execute(

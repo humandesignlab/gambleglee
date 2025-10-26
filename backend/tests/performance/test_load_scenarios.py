@@ -1,6 +1,7 @@
 """
 Performance and load testing for GambleGlee betting system
 """
+
 import pytest
 import asyncio
 import time
@@ -10,13 +11,16 @@ from httpx import AsyncClient
 
 from app.models.betting import BetStatus, BetType, BetOutcome
 
+
 @pytest.mark.performance
 @pytest.mark.slow
 class TestLoadScenarios:
     """Performance tests for betting system under load"""
 
     @pytest.mark.asyncio
-    async def test_concurrent_bet_creation(self, async_test_client, test_user_token, performance_test_data):
+    async def test_concurrent_bet_creation(
+        self, async_test_client, test_user_token, performance_test_data
+    ):
         """Test concurrent bet creation performance"""
 
         async def create_bet(bet_id: int):
@@ -25,14 +29,14 @@ class TestLoadScenarios:
                 "description": f"Performance test bet {bet_id}",
                 "bet_type": "friend_bet",
                 "amount": 50.0 + (bet_id * 10.0),
-                "expires_in_hours": 24
+                "expires_in_hours": 24,
             }
 
             start_time = time.time()
             response = await async_test_client.post(
                 "/api/v1/bets/",
                 json=bet_data,
-                headers={"Authorization": f"Bearer {test_user_token}"}
+                headers={"Authorization": f"Bearer {test_user_token}"},
             )
             end_time = time.time()
 
@@ -40,7 +44,7 @@ class TestLoadScenarios:
                 "bet_id": bet_id,
                 "status_code": response.status_code,
                 "response_time": end_time - start_time,
-                "success": response.status_code == 200
+                "success": response.status_code == 200,
             }
 
         # Create concurrent bet creation tasks
@@ -52,8 +56,12 @@ class TestLoadScenarios:
         end_time = time.time()
 
         total_time = end_time - start_time
-        successful_bets = [r for r in results if not isinstance(r, Exception) and r["success"]]
-        failed_bets = [r for r in results if not isinstance(r, Exception) and not r["success"]]
+        successful_bets = [
+            r for r in results if not isinstance(r, Exception) and r["success"]
+        ]
+        failed_bets = [
+            r for r in results if not isinstance(r, Exception) and not r["success"]
+        ]
 
         # Performance assertions
         assert len(successful_bets) >= num_bets * 0.9  # 90% success rate
@@ -61,7 +69,9 @@ class TestLoadScenarios:
         assert len(failed_bets) < num_bets * 0.1  # Less than 10% failures
 
         # Calculate performance metrics
-        avg_response_time = sum(r["response_time"] for r in successful_bets) / len(successful_bets)
+        avg_response_time = sum(r["response_time"] for r in successful_bets) / len(
+            successful_bets
+        )
         assert avg_response_time < 2.0  # Average response time under 2 seconds
 
         print(f"Performance Results:")
@@ -73,7 +83,9 @@ class TestLoadScenarios:
         print(f"  Bets per second: {num_bets / total_time:.2f}")
 
     @pytest.mark.asyncio
-    async def test_concurrent_bet_acceptance(self, async_test_client, test_user_token, test_user_2_token):
+    async def test_concurrent_bet_acceptance(
+        self, async_test_client, test_user_token, test_user_2_token
+    ):
         """Test concurrent bet acceptance performance"""
 
         # Create multiple bets first
@@ -84,13 +96,13 @@ class TestLoadScenarios:
                 "description": f"Test concurrent acceptance {i}",
                 "bet_type": "friend_bet",
                 "amount": 100.0,
-                "expires_in_hours": 24
+                "expires_in_hours": 24,
             }
 
             response = await async_test_client.post(
                 "/api/v1/bets/",
                 json=bet_data,
-                headers={"Authorization": f"Bearer {test_user_token}"}
+                headers={"Authorization": f"Bearer {test_user_token}"},
             )
             if response.status_code == 200:
                 bet_ids.append(response.json()["id"])
@@ -100,7 +112,7 @@ class TestLoadScenarios:
             response = await async_test_client.post(
                 "/api/v1/bets/accept",
                 json={"bet_id": bet_id},
-                headers={"Authorization": f"Bearer {test_user_2_token}"}
+                headers={"Authorization": f"Bearer {test_user_2_token}"},
             )
             end_time = time.time()
 
@@ -108,7 +120,7 @@ class TestLoadScenarios:
                 "bet_id": bet_id,
                 "status_code": response.status_code,
                 "response_time": end_time - start_time,
-                "success": response.status_code == 200
+                "success": response.status_code == 200,
             }
 
         # Accept bets concurrently
@@ -119,7 +131,9 @@ class TestLoadScenarios:
         end_time = time.time()
 
         total_time = end_time - start_time
-        successful_acceptances = [r for r in results if not isinstance(r, Exception) and r["success"]]
+        successful_acceptances = [
+            r for r in results if not isinstance(r, Exception) and r["success"]
+        ]
 
         # Performance assertions
         assert len(successful_acceptances) >= len(bet_ids) * 0.8  # 80% success rate
@@ -129,10 +143,14 @@ class TestLoadScenarios:
         print(f"  Total bets: {len(bet_ids)}")
         print(f"  Successful acceptances: {len(successful_acceptances)}")
         print(f"  Total time: {total_time:.2f}s")
-        print(f"  Acceptances per second: {len(successful_acceptances) / total_time:.2f}")
+        print(
+            f"  Acceptances per second: {len(successful_acceptances) / total_time:.2f}"
+        )
 
     @pytest.mark.asyncio
-    async def test_database_connection_pooling(self, async_test_client, test_user_token):
+    async def test_database_connection_pooling(
+        self, async_test_client, test_user_token
+    ):
         """Test database connection pooling under load"""
 
         async def database_operation(operation_id: int):
@@ -140,8 +158,7 @@ class TestLoadScenarios:
 
             # Perform database-intensive operation
             response = await async_test_client.get(
-                "/api/v1/bets/",
-                headers={"Authorization": f"Bearer {test_user_token}"}
+                "/api/v1/bets/", headers={"Authorization": f"Bearer {test_user_token}"}
             )
 
             end_time = time.time()
@@ -150,7 +167,7 @@ class TestLoadScenarios:
                 "operation_id": operation_id,
                 "status_code": response.status_code,
                 "response_time": end_time - start_time,
-                "success": response.status_code == 200
+                "success": response.status_code == 200,
             }
 
         # Run many concurrent database operations
@@ -162,13 +179,17 @@ class TestLoadScenarios:
         end_time = time.time()
 
         total_time = end_time - start_time
-        successful_operations = [r for r in results if not isinstance(r, Exception) and r["success"]]
+        successful_operations = [
+            r for r in results if not isinstance(r, Exception) and r["success"]
+        ]
 
         # Performance assertions
         assert len(successful_operations) >= num_operations * 0.95  # 95% success rate
         assert total_time < 20.0  # Complete within 20 seconds
 
-        avg_response_time = sum(r["response_time"] for r in successful_operations) / len(successful_operations)
+        avg_response_time = sum(
+            r["response_time"] for r in successful_operations
+        ) / len(successful_operations)
         assert avg_response_time < 1.0  # Average response time under 1 second
 
         print(f"Database Performance Results:")
@@ -195,13 +216,13 @@ class TestLoadScenarios:
                 "bet_type": "friend_bet",
                 "amount": 100.0,
                 "expires_in_hours": 24,
-                "metadata": {"large_data": "x" * 10000}  # Large metadata
+                "metadata": {"large_data": "x" * 10000},  # Large metadata
             }
 
             response = await async_test_client.post(
                 "/api/v1/bets/",
                 json=bet_data,
-                headers={"Authorization": f"Bearer {test_user_token}"}
+                headers={"Authorization": f"Bearer {test_user_token}"},
             )
 
             return response.status_code == 200
@@ -219,7 +240,9 @@ class TestLoadScenarios:
         assert memory_increase < 100  # Memory increase under 100MB
         assert final_memory < 500  # Total memory under 500MB
 
-        successful_operations = [r for r in results if not isinstance(r, Exception) and r]
+        successful_operations = [
+            r for r in results if not isinstance(r, Exception) and r
+        ]
         assert len(successful_operations) >= num_operations * 0.9  # 90% success rate
 
         print(f"Memory Performance Results:")
@@ -238,18 +261,18 @@ class TestLoadScenarios:
                 "description": "Test rate limiting",
                 "bet_type": "friend_bet",
                 "amount": 100.0,
-                "expires_in_hours": 24
+                "expires_in_hours": 24,
             }
 
             response = await async_test_client.post(
                 "/api/v1/bets/",
                 json=bet_data,
-                headers={"Authorization": f"Bearer {test_user_token}"}
+                headers={"Authorization": f"Bearer {test_user_token}"},
             )
 
             return {
                 "status_code": response.status_code,
-                "rate_limited": response.status_code == 429
+                "rate_limited": response.status_code == 429,
             }
 
         # Make many requests quickly to trigger rate limiting
@@ -258,12 +281,20 @@ class TestLoadScenarios:
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        successful_requests = [r for r in results if not isinstance(r, Exception) and r["status_code"] == 200]
-        rate_limited_requests = [r for r in results if not isinstance(r, Exception) and r["rate_limited"]]
+        successful_requests = [
+            r
+            for r in results
+            if not isinstance(r, Exception) and r["status_code"] == 200
+        ]
+        rate_limited_requests = [
+            r for r in results if not isinstance(r, Exception) and r["rate_limited"]
+        ]
 
         # Rate limiting assertions
         assert len(rate_limited_requests) > 0  # Some requests should be rate limited
-        assert len(successful_requests) < num_requests  # Not all requests should succeed
+        assert (
+            len(successful_requests) < num_requests
+        )  # Not all requests should succeed
 
         print(f"Rate Limiting Results:")
         print(f"  Total requests: {num_requests}")
@@ -271,7 +302,9 @@ class TestLoadScenarios:
         print(f"  Rate limited: {len(rate_limited_requests)}")
 
     @pytest.mark.asyncio
-    async def test_concurrent_bet_resolution(self, async_test_client, test_user_token, test_user_2_token):
+    async def test_concurrent_bet_resolution(
+        self, async_test_client, test_user_token, test_user_2_token
+    ):
         """Test concurrent bet resolution performance"""
 
         # Create and accept multiple bets
@@ -283,13 +316,13 @@ class TestLoadScenarios:
                 "description": f"Test concurrent resolution {i}",
                 "bet_type": "friend_bet",
                 "amount": 100.0,
-                "expires_in_hours": 24
+                "expires_in_hours": 24,
             }
 
             create_response = await async_test_client.post(
                 "/api/v1/bets/",
                 json=bet_data,
-                headers={"Authorization": f"Bearer {test_user_token}"}
+                headers={"Authorization": f"Bearer {test_user_token}"},
             )
 
             if create_response.status_code == 200:
@@ -299,7 +332,7 @@ class TestLoadScenarios:
                 accept_response = await async_test_client.post(
                     "/api/v1/bets/accept",
                     json={"bet_id": bet_id},
-                    headers={"Authorization": f"Bearer {test_user_2_token}"}
+                    headers={"Authorization": f"Bearer {test_user_2_token}"},
                 )
 
                 if accept_response.status_code == 200:
@@ -312,13 +345,13 @@ class TestLoadScenarios:
                 "bet_id": bet_id,
                 "outcome": outcome,
                 "resolution_data": {"reason": f"Concurrent resolution test"},
-                "resolution_method": "manual"
+                "resolution_method": "manual",
             }
 
             response = await async_test_client.post(
                 "/api/v1/bets/resolve",
                 json=resolve_data,
-                headers={"Authorization": f"Bearer {test_user_token}"}
+                headers={"Authorization": f"Bearer {test_user_token}"},
             )
 
             end_time = time.time()
@@ -327,7 +360,7 @@ class TestLoadScenarios:
                 "bet_id": bet_id,
                 "status_code": response.status_code,
                 "response_time": end_time - start_time,
-                "success": response.status_code == 200
+                "success": response.status_code == 200,
             }
 
         # Resolve bets concurrently
@@ -339,13 +372,17 @@ class TestLoadScenarios:
         end_time = time.time()
 
         total_time = end_time - start_time
-        successful_resolutions = [r for r in results if not isinstance(r, Exception) and r["success"]]
+        successful_resolutions = [
+            r for r in results if not isinstance(r, Exception) and r["success"]
+        ]
 
         # Performance assertions
         assert len(successful_resolutions) >= len(bet_ids) * 0.8  # 80% success rate
         assert total_time < 10.0  # Complete within 10 seconds
 
-        avg_response_time = sum(r["response_time"] for r in successful_resolutions) / len(successful_resolutions)
+        avg_response_time = sum(
+            r["response_time"] for r in successful_resolutions
+        ) / len(successful_resolutions)
         assert avg_response_time < 1.0  # Average response time under 1 second
 
         print(f"Resolution Performance Results:")
@@ -353,10 +390,14 @@ class TestLoadScenarios:
         print(f"  Successful resolutions: {len(successful_resolutions)}")
         print(f"  Total time: {total_time:.2f}s")
         print(f"  Avg response time: {avg_response_time:.2f}s")
-        print(f"  Resolutions per second: {len(successful_resolutions) / total_time:.2f}")
+        print(
+            f"  Resolutions per second: {len(successful_resolutions) / total_time:.2f}"
+        )
 
     @pytest.mark.asyncio
-    async def test_stress_testing(self, async_test_client, test_user_token, test_user_2_token):
+    async def test_stress_testing(
+        self, async_test_client, test_user_token, test_user_2_token
+    ):
         """Test system under stress conditions"""
 
         async def stress_operation(operation_id: int):
@@ -367,13 +408,13 @@ class TestLoadScenarios:
                     "description": f"Stress test operation {operation_id}",
                     "bet_type": "friend_bet",
                     "amount": 50.0 + (operation_id % 10) * 10.0,
-                    "expires_in_hours": 24
+                    "expires_in_hours": 24,
                 }
 
                 create_response = await async_test_client.post(
                     "/api/v1/bets/",
                     json=bet_data,
-                    headers={"Authorization": f"Bearer {test_user_token}"}
+                    headers={"Authorization": f"Bearer {test_user_token}"},
                 )
 
                 if create_response.status_code == 200:
@@ -383,22 +424,26 @@ class TestLoadScenarios:
                     accept_response = await async_test_client.post(
                         "/api/v1/bets/accept",
                         json={"bet_id": bet_id},
-                        headers={"Authorization": f"Bearer {test_user_2_token}"}
+                        headers={"Authorization": f"Bearer {test_user_2_token}"},
                     )
 
                     if accept_response.status_code == 200:
                         # Resolve bet
                         resolve_data = {
                             "bet_id": bet_id,
-                            "outcome": ["winner_a", "winner_b", "tie"][operation_id % 3],
-                            "resolution_data": {"reason": f"Stress test resolution {operation_id}"},
-                            "resolution_method": "manual"
+                            "outcome": ["winner_a", "winner_b", "tie"][
+                                operation_id % 3
+                            ],
+                            "resolution_data": {
+                                "reason": f"Stress test resolution {operation_id}"
+                            },
+                            "resolution_method": "manual",
                         }
 
                         resolve_response = await async_test_client.post(
                             "/api/v1/bets/resolve",
                             json=resolve_data,
-                            headers={"Authorization": f"Bearer {test_user_token}"}
+                            headers={"Authorization": f"Bearer {test_user_token}"},
                         )
 
                         return resolve_response.status_code == 200
@@ -416,10 +461,14 @@ class TestLoadScenarios:
         end_time = time.time()
 
         total_time = end_time - start_time
-        successful_operations = [r for r in results if not isinstance(r, Exception) and r]
+        successful_operations = [
+            r for r in results if not isinstance(r, Exception) and r
+        ]
 
         # Stress test assertions
-        assert len(successful_operations) >= num_operations * 0.7  # 70% success rate under stress
+        assert (
+            len(successful_operations) >= num_operations * 0.7
+        )  # 70% success rate under stress
         assert total_time < 60.0  # Complete within 60 seconds
 
         print(f"Stress Test Results:")
@@ -427,4 +476,6 @@ class TestLoadScenarios:
         print(f"  Successful: {len(successful_operations)}")
         print(f"  Total time: {total_time:.2f}s")
         print(f"  Operations per second: {num_operations / total_time:.2f}")
-        print(f"  Success rate: {len(successful_operations) / num_operations * 100:.1f}%")
+        print(
+            f"  Success rate: {len(successful_operations) / num_operations * 100:.1f}%"
+        )

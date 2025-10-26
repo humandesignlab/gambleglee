@@ -42,6 +42,7 @@ redis_client = redis.from_url(settings.REDIS_URL)
 
 class BudgetSecurityLevel(Enum):
     """Budget security level enumeration"""
+
     EXCELLENT = "excellent"  # 9.2/10
     GOOD = "good"  # 8.5/10
     BASIC = "basic"  # 7.0/10
@@ -50,6 +51,7 @@ class BudgetSecurityLevel(Enum):
 @dataclass
 class BudgetSecurityScore:
     """Budget security score representation"""
+
     overall: float
     authentication: float
     authorization: float
@@ -84,8 +86,7 @@ class BudgetMFAService:
     def generate_mfa_qr_code(self, user_id: int, secret: str) -> str:
         """Generate QR code for MFA setup (free)"""
         totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-            name=f"user_{user_id}",
-            issuer_name=self.totp_issuer
+            name=f"user_{user_id}", issuer_name=self.totp_issuer
         )
 
         # Generate QR code
@@ -97,7 +98,7 @@ class BudgetMFAService:
 
         # Convert to base64 for web display
         buffer = BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
         img_str = base64.b64encode(buffer.getvalue()).decode()
 
         return f"data:image/png;base64,{img_str}"
@@ -148,11 +149,7 @@ class BudgetRateLimiter:
         current_count = await self.redis_client.zcard(key)
         ttl = await self.redis_client.ttl(key)
 
-        return {
-            "current_count": current_count,
-            "ttl": ttl,
-            "key": key
-        }
+        return {"current_count": current_count, "ttl": ttl, "key": key}
 
 
 class BudgetSecurityHeaders:
@@ -175,7 +172,7 @@ class BudgetSecurityHeaders:
                 "form-action 'self'"
             ),
             "Referrer-Policy": "strict-origin-when-cross-origin",
-            "Permissions-Policy": "geolocation=(), microphone=(), camera=()"
+            "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
         }
 
     async def add_security_headers(self, response):
@@ -191,14 +188,16 @@ class BudgetMonitoringService:
     def __init__(self):
         self.redis_client = redis_client
 
-    async def log_security_event(self, event_type: str, user_id: int, details: Dict[str, Any]):
+    async def log_security_event(
+        self, event_type: str, user_id: int, details: Dict[str, Any]
+    ):
         """Log security event using free Redis"""
         event = {
             "event_type": event_type,
             "user_id": user_id,
             "details": details,
             "timestamp": datetime.utcnow().isoformat(),
-            "severity": self._get_severity(event_type)
+            "severity": self._get_severity(event_type),
         }
 
         # Store in Redis list
@@ -221,20 +220,24 @@ class BudgetMonitoringService:
         # Check for rapid requests
         rapid_requests = await self._check_rapid_requests(user_id)
         if rapid_requests:
-            alerts.append({
-                "type": "rapid_requests",
-                "severity": "medium",
-                "message": f"User {user_id} has {rapid_requests} requests in the last minute"
-            })
+            alerts.append(
+                {
+                    "type": "rapid_requests",
+                    "severity": "medium",
+                    "message": f"User {user_id} has {rapid_requests} requests in the last minute",
+                }
+            )
 
         # Check for unusual hours
         unusual_hours = await self._check_unusual_hours(user_id)
         if unusual_hours:
-            alerts.append({
-                "type": "unusual_hours",
-                "severity": "low",
-                "message": f"User {user_id} accessing during unusual hours"
-            })
+            alerts.append(
+                {
+                    "type": "unusual_hours",
+                    "severity": "low",
+                    "message": f"User {user_id} accessing during unusual hours",
+                }
+            )
 
         return alerts
 
@@ -282,20 +285,20 @@ class BudgetComplianceService:
                 "encryption": True,
                 "access_control": True,
                 "monitoring": True,
-                "vulnerability_management": True
+                "vulnerability_management": True,
             },
             "gdpr": {
                 "data_protection": True,
                 "consent_management": True,
                 "data_portability": True,
-                "right_to_be_forgotten": True
+                "right_to_be_forgotten": True,
             },
             "basic_audit": {
                 "logging": True,
                 "access_control": True,
                 "data_encryption": True,
-                "incident_response": True
-            }
+                "incident_response": True,
+            },
         }
 
     async def check_compliance(self, operation: str, user_id: int) -> Dict[str, Any]:
@@ -303,7 +306,7 @@ class BudgetComplianceService:
         compliance_status = {
             "pci_dss": await self._check_pci_compliance(operation),
             "gdpr": await self._check_gdpr_compliance(operation, user_id),
-            "basic_audit": await self._check_basic_audit(operation)
+            "basic_audit": await self._check_basic_audit(operation),
         }
 
         overall_compliance = all(compliance_status.values())
@@ -311,7 +314,7 @@ class BudgetComplianceService:
         return {
             "overall_compliance": overall_compliance,
             "compliance_status": compliance_status,
-            "score": 0.95 if overall_compliance else 0.75
+            "score": 0.95 if overall_compliance else 0.75,
         }
 
     async def _check_pci_compliance(self, operation: str) -> bool:
@@ -319,10 +322,10 @@ class BudgetComplianceService:
         # Basic PCI compliance checks
         pci_requirements = [
             "encryption_in_transit",  # HTTPS
-            "encryption_at_rest",     # Database encryption
-            "access_control",         # Authentication
-            "monitoring",            # Logging
-            "vulnerability_management"  # Security updates
+            "encryption_at_rest",  # Database encryption
+            "access_control",  # Authentication
+            "monitoring",  # Logging
+            "vulnerability_management",  # Security updates
         ]
 
         # In production, implement actual checks
@@ -332,10 +335,10 @@ class BudgetComplianceService:
         """Check GDPR compliance"""
         # Basic GDPR compliance checks
         gdpr_requirements = [
-            "data_protection",       # Encryption
-            "consent_management",    # User consent
-            "data_portability",     # Data export
-            "right_to_be_forgotten"  # Data deletion
+            "data_protection",  # Encryption
+            "consent_management",  # User consent
+            "data_portability",  # Data export
+            "right_to_be_forgotten",  # Data deletion
         ]
 
         # In production, implement actual checks
@@ -345,10 +348,10 @@ class BudgetComplianceService:
         """Check basic audit requirements"""
         # Basic audit requirements
         audit_requirements = [
-            "logging",              # Event logging
-            "access_control",       # Authentication
-            "data_encryption",     # Data protection
-            "incident_response"    # Incident handling
+            "logging",  # Event logging
+            "access_control",  # Authentication
+            "data_encryption",  # Data protection
+            "incident_response",  # Incident handling
         ]
 
         # In production, implement actual checks
@@ -365,7 +368,9 @@ class BudgetSecurityEnforcer:
         self.monitoring = BudgetMonitoringService()
         self.compliance = BudgetComplianceService()
 
-    async def enforce_budget_security(self, request: Request, user: User) -> BudgetSecurityScore:
+    async def enforce_budget_security(
+        self, request: Request, user: User
+    ) -> BudgetSecurityScore:
         """Enforce budget security measures"""
         try:
             # Rate limiting
@@ -376,11 +381,13 @@ class BudgetSecurityEnforcer:
                 )
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Rate limit exceeded"
+                    detail="Rate limit exceeded",
                 )
 
             # Suspicious activity detection
-            suspicious_activities = await self.monitoring.detect_suspicious_activity(user.id)
+            suspicious_activities = await self.monitoring.detect_suspicious_activity(
+                user.id
+            )
             if suspicious_activities:
                 for activity in suspicious_activities:
                     await self.monitoring.log_security_event(
@@ -402,15 +409,14 @@ class BudgetSecurityEnforcer:
                 monitoring=0.90,  # Log analysis + alerting
                 compliance=compliance_result["score"],
                 infrastructure=0.85,  # Docker + Kubernetes
-                incident_response=0.80  # Automated alerts + runbooks
+                incident_response=0.80,  # Automated alerts + runbooks
             )
 
             # Log security event
             await self.monitoring.log_security_event(
-                "security_check", user.id, {
-                    "score": security_score.overall,
-                    "path": request.url.path
-                }
+                "security_check",
+                user.id,
+                {"score": security_score.overall, "path": request.url.path},
             )
 
             return security_score
@@ -427,7 +433,7 @@ class BudgetSecurityEnforcer:
                 monitoring=0.70,
                 compliance=0.70,
                 infrastructure=0.70,
-                incident_response=0.70
+                incident_response=0.70,
             )
 
 
@@ -435,7 +441,7 @@ class BudgetSecurityEnforcer:
 async def require_budget_security(
     request: Request,
     user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """Require budget security for access"""
     enforcer = BudgetSecurityEnforcer(db)
@@ -452,7 +458,7 @@ async def require_budget_security(
 @router.post("/mfa/setup")
 async def setup_mfa(
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Setup MFA for user"""
     mfa_service = BudgetMFAService()
@@ -466,7 +472,11 @@ async def setup_mfa(
     return {
         "secret": secret,
         "qr_code": qr_code,
-        "backup_codes": ["123456", "234567", "345678"]  # In production, generate real codes
+        "backup_codes": [
+            "123456",
+            "234567",
+            "345678",
+        ],  # In production, generate real codes
     }
 
 
@@ -474,7 +484,7 @@ async def setup_mfa(
 async def verify_mfa(
     code: str,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Verify MFA code"""
     mfa_service = BudgetMFAService()
@@ -483,8 +493,7 @@ async def verify_mfa(
     secret = await redis_client.get(f"mfa_secret:{current_user.id}")
     if not secret:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="MFA not set up"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="MFA not set up"
         )
 
     # Verify code
@@ -492,6 +501,5 @@ async def verify_mfa(
         return {"verified": True}
     else:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid MFA code"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid MFA code"
         )

@@ -1,6 +1,7 @@
 """
 Security service for GambleGlee
 """
+
 import hashlib
 import secrets
 from datetime import datetime, timedelta
@@ -11,16 +12,12 @@ from app.core.config import settings
 
 logger = structlog.get_logger(__name__)
 
+
 class SecurityService:
     """Security service for handling security-related operations"""
 
     def __init__(self):
-        self.risk_thresholds = {
-            "low": 0,
-            "medium": 30,
-            "high": 60,
-            "critical": 80
-        }
+        self.risk_thresholds = {"low": 0, "medium": 30, "high": 60, "critical": 80}
 
     async def log_security_event(
         self,
@@ -28,7 +25,7 @@ class SecurityService:
         user_id: Optional[int] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Log a security event"""
         try:
@@ -38,7 +35,7 @@ class SecurityService:
                 "user_id": user_id,
                 "ip_address": ip_address,
                 "user_agent": user_agent,
-                "details": details or {}
+                "details": details or {},
             }
 
             # Log to structured logger
@@ -58,7 +55,7 @@ class SecurityService:
         user_id: Optional[int] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
-        event_type: str = "unknown"
+        event_type: str = "unknown",
     ) -> int:
         """Calculate risk score for a security event"""
         try:
@@ -75,7 +72,7 @@ class SecurityService:
                 "multiple_failed_logins": 60,
                 "unusual_location": 30,
                 "unusual_device": 25,
-                "admin_action": 50
+                "admin_action": 50,
             }
 
             risk_score += event_risk_scores.get(event_type, 10)
@@ -120,7 +117,10 @@ class SecurityService:
         # - Geolocation anomalies
 
         # For now, just check for localhost in production
-        if settings.ENVIRONMENT == "production" and ip_address in ["127.0.0.1", "localhost"]:
+        if settings.ENVIRONMENT == "production" and ip_address in [
+            "127.0.0.1",
+            "localhost",
+        ]:
             return True
 
         return False
@@ -138,9 +138,16 @@ class SecurityService:
     def _is_suspicious_user_agent(self, user_agent: str) -> bool:
         """Check if user agent is suspicious"""
         suspicious_patterns = [
-            "bot", "crawler", "spider", "scraper",
-            "curl", "wget", "python-requests",
-            "sqlmap", "nikto", "nmap"
+            "bot",
+            "crawler",
+            "spider",
+            "scraper",
+            "curl",
+            "wget",
+            "python-requests",
+            "sqlmap",
+            "nikto",
+            "nmap",
         ]
 
         user_agent_lower = user_agent.lower()
@@ -149,17 +156,19 @@ class SecurityService:
     def _is_automated_tool(self, user_agent: str) -> bool:
         """Check if user agent is from automated tool"""
         automated_patterns = [
-            "selenium", "phantomjs", "headless",
-            "automated", "test", "script"
+            "selenium",
+            "phantomjs",
+            "headless",
+            "automated",
+            "test",
+            "script",
         ]
 
         user_agent_lower = user_agent.lower()
         return any(pattern in user_agent_lower for pattern in automated_patterns)
 
     async def detect_brute_force_attempts(
-        self,
-        email: str,
-        ip_address: Optional[str] = None
+        self, email: str, ip_address: Optional[str] = None
     ) -> bool:
         """Detect brute force login attempts"""
         try:
@@ -173,7 +182,7 @@ class SecurityService:
             await self.log_security_event(
                 event_type="login_attempt",
                 ip_address=ip_address,
-                details={"email": email, "type": "brute_force_check"}
+                details={"email": email, "type": "brute_force_check"},
             )
 
             return False  # No brute force detected
@@ -186,7 +195,7 @@ class SecurityService:
         self,
         user_id: int,
         ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
     ) -> bool:
         """Detect potential account takeover attempts"""
         try:
@@ -202,7 +211,7 @@ class SecurityService:
                 user_id=user_id,
                 ip_address=ip_address,
                 user_agent=user_agent,
-                details={"type": "takeover_detection"}
+                details={"type": "takeover_detection"},
             )
 
             return False  # No takeover detected
@@ -216,7 +225,7 @@ class SecurityService:
         user_agent: Optional[str] = None,
         ip_address: Optional[str] = None,
         screen_resolution: Optional[str] = None,
-        timezone: Optional[str] = None
+        timezone: Optional[str] = None,
     ) -> str:
         """Generate device fingerprint for security tracking"""
         try:
@@ -224,7 +233,7 @@ class SecurityService:
                 "user_agent": user_agent or "",
                 "ip_address": ip_address or "",
                 "screen_resolution": screen_resolution or "",
-                "timezone": timezone or ""
+                "timezone": timezone or "",
             }
 
             # Create hash of fingerprint data
@@ -241,7 +250,7 @@ class SecurityService:
         self,
         session_id: str,
         ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None
+        user_agent: Optional[str] = None,
     ) -> bool:
         """Validate session security"""
         try:
@@ -256,7 +265,7 @@ class SecurityService:
                 event_type="session_validation",
                 ip_address=ip_address,
                 user_agent=user_agent,
-                details={"session_id": session_id, "type": "security_check"}
+                details={"session_id": session_id, "type": "security_check"},
             )
 
             return True  # Session is valid
@@ -266,11 +275,7 @@ class SecurityService:
             return False
 
     async def check_rate_limits(
-        self,
-        identifier: str,
-        action: str,
-        limit: int,
-        window_seconds: int
+        self, identifier: str, action: str, limit: int, window_seconds: int
     ) -> bool:
         """Check if action is within rate limits"""
         try:
@@ -287,8 +292,8 @@ class SecurityService:
                     "identifier": identifier,
                     "action": action,
                     "limit": limit,
-                    "window_seconds": window_seconds
-                }
+                    "window_seconds": window_seconds,
+                },
             )
 
             return True  # Within rate limits
@@ -318,9 +323,17 @@ class SecurityService:
         try:
             # Check for common injection patterns
             dangerous_patterns = [
-                "<script", "javascript:", "onload=", "onerror=",
-                "union select", "drop table", "delete from",
-                "../", "..\\", "cmd.exe", "powershell"
+                "<script",
+                "javascript:",
+                "onload=",
+                "onerror=",
+                "union select",
+                "drop table",
+                "delete from",
+                "../",
+                "..\\",
+                "cmd.exe",
+                "powershell",
             ]
 
             input_lower = input_data.lower()
@@ -328,7 +341,7 @@ class SecurityService:
                 if pattern in input_lower:
                     await self.log_security_event(
                         event_type="suspicious_input",
-                        details={"pattern": pattern, "input": input_data[:100]}
+                        details={"pattern": pattern, "input": input_data[:100]},
                     )
                     return False
 
@@ -351,13 +364,15 @@ class SecurityService:
             # - Account activity
 
             # For now, return basic recommendations
-            recommendations.extend([
-                "Enable two-factor authentication",
-                "Use a strong, unique password",
-                "Review your login history regularly",
-                "Keep your devices updated",
-                "Be cautious with public Wi-Fi"
-            ])
+            recommendations.extend(
+                [
+                    "Enable two-factor authentication",
+                    "Use a strong, unique password",
+                    "Review your login history regularly",
+                    "Keep your devices updated",
+                    "Be cautious with public Wi-Fi",
+                ]
+            )
 
             return recommendations
 

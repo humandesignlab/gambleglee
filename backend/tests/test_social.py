@@ -1,6 +1,7 @@
 """
 Social features tests for GambleGlee
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,15 +9,21 @@ from app.main import app
 from app.core.database import get_db
 from app.models.auth import User
 from app.models.social import Friendship, UserActivity, Notification
-from app.schemas.social import FriendRequestRequest, UserSearchRequest, ActivityCreateRequest
+from app.schemas.social import (
+    FriendRequestRequest,
+    UserSearchRequest,
+    ActivityCreateRequest,
+)
 
 client = TestClient(app)
+
 
 @pytest.fixture
 async def db_session():
     """Get database session for testing"""
     # This would be implemented with a test database
     pass
+
 
 @pytest.fixture
 def test_user_data():
@@ -27,8 +34,9 @@ def test_user_data():
         "password": "TestPassword123",
         "first_name": "Test",
         "last_name": "User",
-        "display_name": "Test User"
+        "display_name": "Test User",
     }
+
 
 @pytest.fixture
 def test_friend_data():
@@ -39,32 +47,40 @@ def test_friend_data():
         "password": "FriendPassword123",
         "first_name": "Friend",
         "last_name": "User",
-        "display_name": "Friend User"
+        "display_name": "Friend User",
     }
+
 
 class TestFriendSystem:
     """Test friend system functionality"""
 
-    async def test_send_friend_request_success(self, db_session, test_user_data, test_friend_data):
+    async def test_send_friend_request_success(
+        self, db_session, test_user_data, test_friend_data
+    ):
         """Test successful friend request"""
         # Register both users
         client.post("/api/v1/auth/register", json=test_user_data)
         client.post("/api/v1/auth/register", json=test_friend_data)
 
         # Login as first user
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
         # Send friend request
         friend_request = {
             "friend_id": 2,  # Assuming friend has ID 2
-            "message": "Let's be friends!"
+            "message": "Let's be friends!",
         }
-        response = client.post("/api/v1/social/friends/request", json=friend_request, headers=headers)
+        response = client.post(
+            "/api/v1/social/friends/request", json=friend_request, headers=headers
+        )
 
         assert response.status_code == 201
         data = response.json()
@@ -79,24 +95,31 @@ class TestFriendSystem:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
         # Send friend request to self
         friend_request = {
             "friend_id": 1,  # Same user ID
-            "message": "Let's be friends!"
+            "message": "Let's be friends!",
         }
-        response = client.post("/api/v1/social/friends/request", json=friend_request, headers=headers)
+        response = client.post(
+            "/api/v1/social/friends/request", json=friend_request, headers=headers
+        )
 
         assert response.status_code == 400
         assert "Cannot send friend request to yourself" in response.json()["detail"]
 
-    async def test_accept_friend_request_success(self, db_session, test_user_data, test_friend_data):
+    async def test_accept_friend_request_success(
+        self, db_session, test_user_data, test_friend_data
+    ):
         """Test successful friend request acceptance"""
         # Register both users
         client.post("/api/v1/auth/register", json=test_user_data)
@@ -106,26 +129,30 @@ class TestFriendSystem:
         # ... (friend request setup)
 
         # Login as friend
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_friend_data["email"],
-            "password": test_friend_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_friend_data["email"],
+                "password": test_friend_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
         # Accept friend request
-        friend_response = {
-            "friend_id": 1,
-            "action": "accept"
-        }
-        response = client.post("/api/v1/social/friends/respond", json=friend_response, headers=headers)
+        friend_response = {"friend_id": 1, "action": "accept"}
+        response = client.post(
+            "/api/v1/social/friends/respond", json=friend_response, headers=headers
+        )
 
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "accepted"
         assert data["accepted_at"] is not None
 
-    async def test_decline_friend_request(self, db_session, test_user_data, test_friend_data):
+    async def test_decline_friend_request(
+        self, db_session, test_user_data, test_friend_data
+    ):
         """Test declining friend request"""
         # Register both users
         client.post("/api/v1/auth/register", json=test_user_data)
@@ -135,19 +162,21 @@ class TestFriendSystem:
         # ... (friend request setup)
 
         # Login as friend
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_friend_data["email"],
-            "password": test_friend_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_friend_data["email"],
+                "password": test_friend_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
         # Decline friend request
-        friend_response = {
-            "friend_id": 1,
-            "action": "decline"
-        }
-        response = client.post("/api/v1/social/friends/respond", json=friend_response, headers=headers)
+        friend_response = {"friend_id": 1, "action": "decline"}
+        response = client.post(
+            "/api/v1/social/friends/respond", json=friend_response, headers=headers
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -160,10 +189,13 @@ class TestFriendSystem:
         client.post("/api/v1/auth/register", json=test_friend_data)
 
         # Login as first user
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -186,10 +218,13 @@ class TestFriendSystem:
         # ... (friendship setup)
 
         # Login as first user
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -209,10 +244,13 @@ class TestFriendSystem:
         # ... (friendship setup)
 
         # Login as first user
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -227,7 +265,9 @@ class TestFriendSystem:
         assert "size" in data
         assert "pages" in data
 
-    async def test_get_friend_requests(self, db_session, test_user_data, test_friend_data):
+    async def test_get_friend_requests(
+        self, db_session, test_user_data, test_friend_data
+    ):
         """Test getting friend requests"""
         # Register both users
         client.post("/api/v1/auth/register", json=test_user_data)
@@ -237,10 +277,13 @@ class TestFriendSystem:
         # ... (friend request setup)
 
         # Login as friend
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_friend_data["email"],
-            "password": test_friend_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_friend_data["email"],
+                "password": test_friend_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -253,6 +296,7 @@ class TestFriendSystem:
         assert "total" in data
         assert len(data["items"]) > 0
 
+
 class TestUserSearch:
     """Test user search functionality"""
 
@@ -262,21 +306,21 @@ class TestUserSearch:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
         # Search for users
-        search_request = {
-            "query": "test",
-            "search_type": "user",
-            "page": 1,
-            "size": 10
-        }
-        response = client.post("/api/v1/social/search/users", json=search_request, headers=headers)
+        search_request = {"query": "test", "search_type": "user", "page": 1, "size": 10}
+        response = client.post(
+            "/api/v1/social/search/users", json=search_request, headers=headers
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -292,10 +336,13 @@ class TestUserSearch:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -307,17 +354,20 @@ class TestUserSearch:
                 "location": "New York",
                 "min_friends": 0,
                 "max_friends": 100,
-                "is_online": True
+                "is_online": True,
             },
             "page": 1,
-            "size": 10
+            "size": 10,
         }
-        response = client.post("/api/v1/social/search/users", json=search_request, headers=headers)
+        response = client.post(
+            "/api/v1/social/search/users", json=search_request, headers=headers
+        )
 
         assert response.status_code == 200
         data = response.json()
         assert "items" in data
         assert "total" in data
+
 
 class TestActivityFeed:
     """Test activity feed functionality"""
@@ -328,10 +378,13 @@ class TestActivityFeed:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -340,9 +393,11 @@ class TestActivityFeed:
             "activity_type": "bet_created",
             "title": "Created a new bet",
             "description": "I created a bet on the game",
-            "is_public": True
+            "is_public": True,
         }
-        response = client.post("/api/v1/social/activities", json=activity_request, headers=headers)
+        response = client.post(
+            "/api/v1/social/activities", json=activity_request, headers=headers
+        )
 
         assert response.status_code == 201
         data = response.json()
@@ -357,10 +412,13 @@ class TestActivityFeed:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -378,7 +436,9 @@ class TestActivityFeed:
         assert "size" in data
         assert "pages" in data
 
-    async def test_get_friends_activities(self, db_session, test_user_data, test_friend_data):
+    async def test_get_friends_activities(
+        self, db_session, test_user_data, test_friend_data
+    ):
         """Test getting friends' activities"""
         # Register both users
         client.post("/api/v1/auth/register", json=test_user_data)
@@ -391,10 +451,13 @@ class TestActivityFeed:
         # ... (activity creation)
 
         # Login as first user
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -406,6 +469,7 @@ class TestActivityFeed:
         assert "items" in data
         assert "total" in data
 
+
 class TestNotifications:
     """Test notification functionality"""
 
@@ -415,10 +479,13 @@ class TestNotifications:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -440,10 +507,13 @@ class TestNotifications:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -462,10 +532,13 @@ class TestNotifications:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -476,6 +549,7 @@ class TestNotifications:
         assert "Marked" in response.json()["message"]
         assert "notifications as read" in response.json()["message"]
 
+
 class TestLeaderboards:
     """Test leaderboard functionality"""
 
@@ -485,10 +559,13 @@ class TestLeaderboards:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -509,20 +586,26 @@ class TestLeaderboards:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
         # Get leaderboard with time period
-        response = client.get("/api/v1/social/leaderboards/betting?time_period=weekly", headers=headers)
+        response = client.get(
+            "/api/v1/social/leaderboards/betting?time_period=weekly", headers=headers
+        )
 
         assert response.status_code == 200
         data = response.json()
         assert "items" in data
         assert "total" in data
+
 
 class TestSocialDashboard:
     """Test social dashboard functionality"""
@@ -533,10 +616,13 @@ class TestSocialDashboard:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -552,6 +638,7 @@ class TestSocialDashboard:
         assert "achievements" in data
         assert "leaderboard_position" in data
         assert "stats" in data
+
 
 class TestErrorHandling:
     """Test error handling in social features"""
@@ -569,19 +656,24 @@ class TestErrorHandling:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
         # Try to send friend request to non-existent user
         friend_request = {
             "friend_id": 999,  # Non-existent user
-            "message": "Let's be friends!"
+            "message": "Let's be friends!",
         }
-        response = client.post("/api/v1/social/friends/request", json=friend_request, headers=headers)
+        response = client.post(
+            "/api/v1/social/friends/request", json=friend_request, headers=headers
+        )
 
         assert response.status_code == 404
         assert "User not found" in response.json()["detail"]
@@ -592,10 +684,13 @@ class TestErrorHandling:
         client.post("/api/v1/auth/register", json=test_user_data)
 
         # Login
-        login_response = client.post("/api/v1/auth/login", json={
-            "email": test_user_data["email"],
-            "password": test_user_data["password"]
-        })
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": test_user_data["email"],
+                "password": test_user_data["password"],
+            },
+        )
         access_token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {access_token}"}
 
@@ -603,9 +698,11 @@ class TestErrorHandling:
         activity_request = {
             "activity_type": "invalid_type",
             "title": "Invalid activity",
-            "is_public": True
+            "is_public": True,
         }
-        response = client.post("/api/v1/social/activities", json=activity_request, headers=headers)
+        response = client.post(
+            "/api/v1/social/activities", json=activity_request, headers=headers
+        )
 
         assert response.status_code == 400
         assert "validation error" in response.json()["detail"].lower()

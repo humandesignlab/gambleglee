@@ -41,6 +41,7 @@ redis_client = redis.from_url(settings.REDIS_URL)
 
 class SecurityLevel(Enum):
     """Security level enumeration"""
+
     PERFECT = "perfect"  # 10/10
     EXCELLENT = "excellent"  # 9/10
     GOOD = "good"  # 8/10
@@ -51,6 +52,7 @@ class SecurityLevel(Enum):
 @dataclass
 class SecurityScore:
     """Perfect security score representation"""
+
     overall: float
     authentication: float
     authorization: float
@@ -64,17 +66,19 @@ class SecurityScore:
     @property
     def is_perfect(self) -> bool:
         """Check if security score is perfect (10/10)"""
-        return all([
-            self.overall >= 0.95,
-            self.authentication >= 0.95,
-            self.authorization >= 0.95,
-            self.data_protection >= 0.95,
-            self.network_security >= 0.95,
-            self.monitoring >= 0.95,
-            self.compliance >= 0.95,
-            self.infrastructure >= 0.95,
-            self.incident_response >= 0.95
-        ])
+        return all(
+            [
+                self.overall >= 0.95,
+                self.authentication >= 0.95,
+                self.authorization >= 0.95,
+                self.data_protection >= 0.95,
+                self.network_security >= 0.95,
+                self.monitoring >= 0.95,
+                self.compliance >= 0.95,
+                self.infrastructure >= 0.95,
+                self.incident_response >= 0.95,
+            ]
+        )
 
 
 class PerfectZeroTrust:
@@ -91,36 +95,36 @@ class PerfectZeroTrust:
 
         # Device trust verification (20% weight)
         device_score = await self._verify_device_trust(user.id, request)
-        scores['device'] = device_score
+        scores["device"] = device_score
 
         # Location trust verification (20% weight)
         location_score = await self._verify_location_trust(user.id, request)
-        scores['location'] = location_score
+        scores["location"] = location_score
 
         # Behavior pattern analysis (25% weight)
         behavior_score = await self._analyze_behavior_patterns(user.id, request)
-        scores['behavior'] = behavior_score
+        scores["behavior"] = behavior_score
 
         # Network trust verification (15% weight)
         network_score = await self._verify_network_trust(request)
-        scores['network'] = network_score
+        scores["network"] = network_score
 
         # Time-based access control (10% weight)
         time_score = await self._verify_time_access(user.id, request)
-        scores['time'] = time_score
+        scores["time"] = time_score
 
         # Risk-based authentication (10% weight)
         risk_score = await self._calculate_risk_score(user.id, request)
-        scores['risk'] = risk_score
+        scores["risk"] = risk_score
 
         # Calculate weighted overall score
         weights = {
-            'device': 0.20,
-            'location': 0.20,
-            'behavior': 0.25,
-            'network': 0.15,
-            'time': 0.10,
-            'risk': 0.10
+            "device": 0.20,
+            "location": 0.20,
+            "behavior": 0.25,
+            "network": 0.15,
+            "time": 0.10,
+            "risk": 0.10,
         }
 
         overall_score = sum(scores[key] * weights[key] for key in scores.keys())
@@ -134,7 +138,7 @@ class PerfectZeroTrust:
             monitoring=0.99,  # Perfect monitoring
             compliance=0.97,  # Perfect compliance
             infrastructure=0.96,  # Perfect infrastructure
-            incident_response=0.95  # Perfect incident response
+            incident_response=0.95,  # Perfect incident response
         )
 
     async def _verify_device_trust(self, user_id: int, request: Request) -> float:
@@ -148,7 +152,9 @@ class PerfectZeroTrust:
             if stored_devices:
                 devices = json.loads(stored_devices)
                 for device in devices:
-                    similarity = self._calculate_device_similarity(device_fingerprint, device)
+                    similarity = self._calculate_device_similarity(
+                        device_fingerprint, device
+                    )
                     if similarity > 0.95:  # 95% similarity required
                         return 1.0
 
@@ -194,7 +200,9 @@ class PerfectZeroTrust:
                 model_data = json.loads(behavior_model)
 
                 # Calculate behavior similarity
-                similarity = self._calculate_behavior_similarity(behavior_features, model_data)
+                similarity = self._calculate_behavior_similarity(
+                    behavior_features, model_data
+                )
                 return similarity
 
             # No behavior model - create one
@@ -254,8 +262,8 @@ class PerfectZeroTrust:
             risk_factors = []
 
             # Transaction amount risk
-            if hasattr(request, 'json') and request.json:
-                amount = request.json.get('amount', 0)
+            if hasattr(request, "json") and request.json:
+                amount = request.json.get("amount", 0)
                 if amount > 10000:  # High amount
                     risk_factors.append(0.3)
                 elif amount > 1000:  # Medium amount
@@ -288,30 +296,29 @@ class PerfectZeroTrust:
         """Create perfect device fingerprint"""
         fingerprint = {
             # Hardware characteristics
-            'screen_resolution': request.headers.get('screen-resolution'),
-            'color_depth': request.headers.get('color-depth'),
-            'timezone': request.headers.get('timezone'),
-            'language': request.headers.get('accept-language'),
-
+            "screen_resolution": request.headers.get("screen-resolution"),
+            "color_depth": request.headers.get("color-depth"),
+            "timezone": request.headers.get("timezone"),
+            "language": request.headers.get("accept-language"),
             # Browser characteristics
-            'user_agent': request.headers.get('user-agent'),
-            'accept_encoding': request.headers.get('accept-encoding'),
-            'accept_language': request.headers.get('accept-language'),
-
+            "user_agent": request.headers.get("user-agent"),
+            "accept_encoding": request.headers.get("accept-encoding"),
+            "accept_language": request.headers.get("accept-language"),
             # Network characteristics
-            'ip_address': request.client.host if request.client else "unknown",
-            'forwarded_for': request.headers.get('x-forwarded-for'),
-            'real_ip': request.headers.get('x-real-ip'),
-
+            "ip_address": request.client.host if request.client else "unknown",
+            "forwarded_for": request.headers.get("x-forwarded-for"),
+            "real_ip": request.headers.get("x-real-ip"),
             # Security characteristics
-            'cookies_enabled': request.headers.get('cookie') is not None,
-            'javascript_enabled': request.headers.get('x-javascript-enabled'),
-            'flash_enabled': request.headers.get('x-flash-enabled'),
+            "cookies_enabled": request.headers.get("cookie") is not None,
+            "javascript_enabled": request.headers.get("x-javascript-enabled"),
+            "flash_enabled": request.headers.get("x-flash-enabled"),
         }
 
         return fingerprint
 
-    def _calculate_device_similarity(self, fingerprint1: Dict, fingerprint2: Dict) -> float:
+    def _calculate_device_similarity(
+        self, fingerprint1: Dict, fingerprint2: Dict
+    ) -> float:
         """Calculate device fingerprint similarity"""
         similarities = []
 
@@ -327,17 +334,17 @@ class PerfectZeroTrust:
     def _is_location_trusted(self, location1: Dict, location2: Dict) -> bool:
         """Check if location is trusted"""
         # Simple location comparison (in production, use proper geolocation)
-        return location1.get('country') == location2.get('country')
+        return location1.get("country") == location2.get("country")
 
     async def _extract_behavior_features(self, request: Request) -> Dict[str, Any]:
         """Extract behavior features from request"""
         features = {
-            'request_time': datetime.utcnow().timestamp(),
-            'request_method': request.method,
-            'request_path': request.url.path,
-            'user_agent': request.headers.get('user-agent', ''),
-            'referer': request.headers.get('referer', ''),
-            'content_length': request.headers.get('content-length', 0),
+            "request_time": datetime.utcnow().timestamp(),
+            "request_method": request.method,
+            "request_path": request.url.path,
+            "user_agent": request.headers.get("user-agent", ""),
+            "referer": request.headers.get("referer", ""),
+            "content_length": request.headers.get("content-length", 0),
         }
 
         return features
@@ -378,13 +385,17 @@ class PerfectZeroTrust:
         # In production, integrate with Tor detection services
         return False
 
-    def _is_normal_access_time(self, current_time: datetime, user_timezone: str) -> bool:
+    def _is_normal_access_time(
+        self, current_time: datetime, user_timezone: str
+    ) -> bool:
         """Check if access is during normal hours"""
         # Simple time check (in production, use proper timezone handling)
         hour = current_time.hour
         return 6 <= hour <= 22  # Normal hours: 6 AM to 10 PM
 
-    def _is_suspicious_access_time(self, current_time: datetime, user_timezone: str) -> bool:
+    def _is_suspicious_access_time(
+        self, current_time: datetime, user_timezone: str
+    ) -> bool:
         """Check if access is during suspicious hours"""
         hour = current_time.hour
         return hour < 2 or hour > 23  # Suspicious hours: 11 PM to 2 AM
@@ -402,17 +413,15 @@ class PerfectZeroTrust:
     async def _get_location_data(self, request: Request) -> Dict[str, Any]:
         """Get location data from request"""
         return {
-            'country': request.headers.get('x-country', 'unknown'),
-            'region': request.headers.get('x-region', 'unknown'),
-            'city': request.headers.get('x-city', 'unknown'),
+            "country": request.headers.get("x-country", "unknown"),
+            "region": request.headers.get("x-region", "unknown"),
+            "city": request.headers.get("x-city", "unknown"),
         }
 
     async def _create_behavior_model(self, user_id: int, features: Dict[str, Any]):
         """Create behavior model for user"""
         await redis_client.setex(
-            f"behavior_model:{user_id}",
-            86400 * 30,  # 30 days
-            json.dumps(features)
+            f"behavior_model:{user_id}", 86400 * 30, json.dumps(features)  # 30 days
         )
 
 
@@ -443,7 +452,9 @@ class PerfectSecurityEnforcer:
             logger.error(f"Perfect security enforcement failed: {e}")
             return False
 
-    async def _handle_security_violation(self, security_score: SecurityScore, user: User, request: Request):
+    async def _handle_security_violation(
+        self, security_score: SecurityScore, user: User, request: Request
+    ):
         """Handle security violations"""
         # Log security violation
         await self._log_security_violation(user.id, security_score, request)
@@ -455,33 +466,39 @@ class PerfectSecurityEnforcer:
         if security_score.overall < 0.7:
             raise SecurityError("Security score too low - request blocked")
 
-    async def _log_perfect_security_event(self, user_id: int, security_score: SecurityScore):
+    async def _log_perfect_security_event(
+        self, user_id: int, security_score: SecurityScore
+    ):
         """Log perfect security event"""
         event = {
-            'user_id': user_id,
-            'event_type': 'perfect_security',
-            'security_score': security_score.overall,
-            'timestamp': datetime.utcnow().isoformat()
+            "user_id": user_id,
+            "event_type": "perfect_security",
+            "security_score": security_score.overall,
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
-        await redis_client.lpush('security_events', json.dumps(event))
+        await redis_client.lpush("security_events", json.dumps(event))
         logger.info(f"Perfect security event logged for user {user_id}")
 
-    async def _log_security_violation(self, user_id: int, security_score: SecurityScore, request: Request):
+    async def _log_security_violation(
+        self, user_id: int, security_score: SecurityScore, request: Request
+    ):
         """Log security violation"""
         violation = {
-            'user_id': user_id,
-            'event_type': 'security_violation',
-            'security_score': security_score.overall,
-            'ip_address': request.client.host if request.client else "unknown",
-            'user_agent': request.headers.get('user-agent', ''),
-            'timestamp': datetime.utcnow().isoformat()
+            "user_id": user_id,
+            "event_type": "security_violation",
+            "security_score": security_score.overall,
+            "ip_address": request.client.host if request.client else "unknown",
+            "user_agent": request.headers.get("user-agent", ""),
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
-        await redis_client.lpush('security_violations', json.dumps(violation))
+        await redis_client.lpush("security_violations", json.dumps(violation))
         logger.warning(f"Security violation logged for user {user_id}")
 
-    async def _trigger_additional_verification(self, user_id: int, security_score: SecurityScore):
+    async def _trigger_additional_verification(
+        self, user_id: int, security_score: SecurityScore
+    ):
         """Trigger additional verification"""
         # In production, implement additional verification steps
         logger.info(f"Additional verification triggered for user {user_id}")
@@ -491,7 +508,7 @@ class PerfectSecurityEnforcer:
 async def require_perfect_security(
     request: Request,
     user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """Require perfect security for access"""
     enforcer = PerfectSecurityEnforcer(db)
@@ -499,7 +516,7 @@ async def require_perfect_security(
     if not await enforcer.enforce_perfect_security(request, user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Perfect security verification failed"
+            detail="Perfect security verification failed",
         )
 
     return user

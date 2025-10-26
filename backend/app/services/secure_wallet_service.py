@@ -45,14 +45,16 @@ class SecureWalletService:
             raise ValidationError("Amount exceeds maximum limit")
 
         # Convert to Decimal for precise arithmetic
-        return Decimal(str(amount)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        return Decimal(str(amount)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     async def _validate_user_ownership(self, user_id: int, current_user_id: int):
         """Validate that the user can only access their own wallet"""
         if user_id != current_user_id:
             raise SecurityError("Access denied: Cannot access other user's wallet")
 
-    async def _check_daily_limits(self, user_id: int, amount: Decimal, transaction_type: TransactionType):
+    async def _check_daily_limits(
+        self, user_id: int, amount: Decimal, transaction_type: TransactionType
+    ):
         """Check daily transaction limits"""
         today = datetime.utcnow().date()
 
@@ -65,26 +67,33 @@ class SecureWalletService:
             .where(Transaction.status == TransactionStatus.COMPLETED)
         )
 
-        daily_total = result.scalar() or Decimal('0')
+        daily_total = result.scalar() or Decimal("0")
 
         # Check limits based on transaction type
         if transaction_type == TransactionType.DEPOSIT:
-            daily_limit = Decimal('1000.00')  # $1000 daily deposit limit
+            daily_limit = Decimal("1000.00")  # $1000 daily deposit limit
         elif transaction_type == TransactionType.WITHDRAWAL:
-            daily_limit = Decimal('5000.00')  # $5000 daily withdrawal limit
+            daily_limit = Decimal("5000.00")  # $5000 daily withdrawal limit
         else:
-            daily_limit = Decimal('10000.00')  # Default limit
+            daily_limit = Decimal("10000.00")  # Default limit
 
         if daily_total + amount > daily_limit:
-            raise ValidationError(f"Daily limit exceeded. Current: ${daily_total}, Limit: ${daily_limit}")
+            raise ValidationError(
+                f"Daily limit exceeded. Current: ${daily_total}, Limit: ${daily_limit}"
+            )
 
-    async def _atomic_balance_update(self, wallet_id: int, amount_change: Decimal,
-                                   locked_change: Decimal = Decimal('0')) -> bool:
+    async def _atomic_balance_update(
+        self,
+        wallet_id: int,
+        amount_change: Decimal,
+        locked_change: Decimal = Decimal("0"),
+    ) -> bool:
         """Atomically update wallet balance with row-level locking"""
         try:
             # Use database-level locking and atomic update
             result = await self.db.execute(
-                text("""
+                text(
+                    """
                     UPDATE wallets
                     SET balance = balance + :amount_change,
                         locked_balance = locked_balance + :locked_change,
@@ -93,12 +102,13 @@ class SecureWalletService:
                     AND balance + :amount_change >= 0
                     AND locked_balance + :locked_change >= 0
                     RETURNING id
-                """),
+                """
+                ),
                 {
                     "wallet_id": wallet_id,
                     "amount_change": float(amount_change),
-                    "locked_change": float(locked_change)
-                }
+                    "locked_change": float(locked_change),
+                },
             )
 
             if result.rowcount == 0:
@@ -130,16 +140,24 @@ class SecureWalletService:
 
             return wallet
 
-    async def get_wallet_balance(self, user_id: int, current_user_id: int) -> Tuple[Decimal, Decimal]:
+    async def get_wallet_balance(
+        self, user_id: int, current_user_id: int
+    ) -> Tuple[Decimal, Decimal]:
         """Get user's available and locked balance with ownership validation"""
         await self._validate_user_ownership(user_id, current_user_id)
 
         wallet = await self.get_or_create_wallet(user_id, current_user_id)
         return Decimal(str(wallet.balance)), Decimal(str(wallet.locked_balance))
 
-    async def add_funds(self, user_id: int, amount: float, transaction_type: TransactionType,
-                       description: Optional[str] = None, metadata: Optional[dict] = None,
-                       current_user_id: int = None) -> Transaction:
+    async def add_funds(
+        self,
+        user_id: int,
+        amount: float,
+        transaction_type: TransactionType,
+        description: Optional[str] = None,
+        metadata: Optional[dict] = None,
+        current_user_id: int = None,
+    ) -> Transaction:
         """Add funds to user wallet with comprehensive security checks"""
         if current_user_id is None:
             current_user_id = user_id
@@ -161,7 +179,7 @@ class SecureWalletService:
                 amount=float(amount_decimal),
                 status=TransactionStatus.PENDING,
                 description=description,
-                metadata=json.dumps(metadata) if metadata else None
+                metadata=json.dumps(metadata) if metadata else None,
             )
 
             self.db.add(transaction)
@@ -169,9 +187,7 @@ class SecureWalletService:
 
             # Atomic balance update
             success = await self._atomic_balance_update(
-                wallet.id,
-                amount_decimal,
-                Decimal('0')
+                wallet.id, amount_decimal, Decimal("0")
             )
 
             if not success:
@@ -183,18 +199,23 @@ class SecureWalletService:
                 await self.db.execute(
                     update(Wallet)
                     .where(Wallet.id == wallet.id)
-                    .values(total_deposited=Wallet.total_deposited + float(amount_decimal))
+                    .values(
+                        total_deposited=Wallet.total_deposited + float(amount_decimal)
+                    )
                 )
 
             await self.db.commit()
             await self.db.refresh(transaction)
 
-            logger.info(f"Funds added: User {user_id}, Amount: {amount_decimal}, Type: {transaction_type}")
+            logger.info(
+                f"Funds added: User {user_id}, Amount: {amount_decimal}, Type: {transaction_type}"
+            )
 
             return transaction
 
-    async def lock_funds(self, user_id: int, amount: float, description: str,
-                        current_user_id: int = None) -> Transaction:
+    async def lock_funds(
+        self, user_id: int, amount: float, description: str, current_user_id: int = None
+    ) -> Transaction:
         """Lock funds for betting with atomic operations"""
         if current_user_id is None:
             current_user_id = user_id
@@ -207,7 +228,9 @@ class SecureWalletService:
 
             # Check sufficient balance
             if Decimal(str(wallet.balance)) < amount_decimal:
-                raise InsufficientFundsError("Insufficient balance for this transaction")
+                raise InsufficientFundsError(
+                    "Insufficient balance for this transaction"
+                )
 
             # Create transaction record
             transaction = Transaction(
@@ -216,7 +239,7 @@ class SecureWalletService:
                 type=TransactionType.BET_PLACED,
                 amount=float(amount_decimal),
                 status=TransactionStatus.PENDING,
-                description=description
+                description=description,
             )
 
             self.db.add(transaction)
@@ -226,7 +249,7 @@ class SecureWalletService:
             success = await self._atomic_balance_update(
                 wallet.id,
                 -amount_decimal,  # Remove from balance
-                amount_decimal     # Add to locked
+                amount_decimal,  # Add to locked
             )
 
             if not success:
@@ -247,8 +270,9 @@ class SecureWalletService:
 
             return transaction
 
-    async def unlock_funds(self, user_id: int, amount: float, description: str,
-                          current_user_id: int = None) -> Transaction:
+    async def unlock_funds(
+        self, user_id: int, amount: float, description: str, current_user_id: int = None
+    ) -> Transaction:
         """Unlock funds back to available balance"""
         if current_user_id is None:
             current_user_id = user_id
@@ -269,7 +293,7 @@ class SecureWalletService:
                 type=TransactionType.REFUND,
                 amount=float(amount_decimal),
                 status=TransactionStatus.PENDING,
-                description=description
+                description=description,
             )
 
             self.db.add(transaction)
@@ -278,8 +302,8 @@ class SecureWalletService:
             # Atomic balance update: move from locked back to balance
             success = await self._atomic_balance_update(
                 wallet.id,
-                amount_decimal,   # Add to balance
-                -amount_decimal   # Remove from locked
+                amount_decimal,  # Add to balance
+                -amount_decimal,  # Remove from locked
             )
 
             if not success:
@@ -293,8 +317,9 @@ class SecureWalletService:
 
             return transaction
 
-    async def process_win(self, user_id: int, amount: float, description: str,
-                         current_user_id: int = None) -> Transaction:
+    async def process_win(
+        self, user_id: int, amount: float, description: str, current_user_id: int = None
+    ) -> Transaction:
         """Process winning bet payout"""
         if current_user_id is None:
             current_user_id = user_id
@@ -312,7 +337,7 @@ class SecureWalletService:
                 type=TransactionType.BET_WON,
                 amount=float(amount_decimal),
                 status=TransactionStatus.PENDING,
-                description=description
+                description=description,
             )
 
             self.db.add(transaction)
@@ -339,8 +364,9 @@ class SecureWalletService:
 
             return transaction
 
-    async def process_loss(self, user_id: int, amount: float, description: str,
-                          current_user_id: int = None) -> Transaction:
+    async def process_loss(
+        self, user_id: int, amount: float, description: str, current_user_id: int = None
+    ) -> Transaction:
         """Process losing bet (funds already locked)"""
         if current_user_id is None:
             current_user_id = user_id
@@ -361,14 +387,16 @@ class SecureWalletService:
                 type=TransactionType.BET_LOST,
                 amount=float(amount_decimal),
                 status=TransactionStatus.PENDING,
-                description=description
+                description=description,
             )
 
             self.db.add(transaction)
             await self.db.flush()
 
             # Atomic balance update: remove from locked balance
-            success = await self._atomic_balance_update(wallet.id, Decimal('0'), -amount_decimal)
+            success = await self._atomic_balance_update(
+                wallet.id, Decimal("0"), -amount_decimal
+            )
 
             if not success:
                 await self.db.rollback()
@@ -381,8 +409,9 @@ class SecureWalletService:
 
             return transaction
 
-    async def get_transactions(self, user_id: int, current_user_id: int,
-                              page: int = 1, limit: int = 20) -> Tuple[List[Transaction], int]:
+    async def get_transactions(
+        self, user_id: int, current_user_id: int, page: int = 1, limit: int = 20
+    ) -> Tuple[List[Transaction], int]:
         """Get user transactions with ownership validation"""
         await self._validate_user_ownership(user_id, current_user_id)
 

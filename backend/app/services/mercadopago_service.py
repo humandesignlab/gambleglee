@@ -16,10 +16,12 @@ class MercadoPagoService:
         self.base_url = "https://api.mercadopago.com"
         self.headers = {
             "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
-    async def create_customer(self, user_id: int, email: str, name: Optional[str] = None) -> str:
+    async def create_customer(
+        self, user_id: int, email: str, name: Optional[str] = None
+    ) -> str:
         """Create a MercadoPago customer"""
         try:
             async with httpx.AsyncClient() as client:
@@ -28,29 +30,34 @@ class MercadoPagoService:
                     headers=self.headers,
                     json={
                         "email": email,
-                        "first_name": name.split()[0] if name and name.split() else None,
-                        "last_name": name.split()[-1] if name and len(name.split()) > 1 else None,
-                        "metadata": {
-                            "user_id": str(user_id),
-                            "platform": "gambleglee"
-                        }
-                    }
+                        "first_name": (
+                            name.split()[0] if name and name.split() else None
+                        ),
+                        "last_name": (
+                            name.split()[-1] if name and len(name.split()) > 1 else None
+                        ),
+                        "metadata": {"user_id": str(user_id), "platform": "gambleglee"},
+                    },
                 )
 
                 if response.status_code == 201:
                     data = response.json()
                     return data["id"]
                 else:
-                    raise GambleGleeException(f"Failed to create MercadoPago customer: {response.text}")
+                    raise GambleGleeException(
+                        f"Failed to create MercadoPago customer: {response.text}"
+                    )
         except httpx.RequestError as e:
-            raise GambleGleeException(f"Failed to create MercadoPago customer: {str(e)}")
+            raise GambleGleeException(
+                f"Failed to create MercadoPago customer: {str(e)}"
+            )
 
     async def create_payment_intent(
         self,
         amount: float,
         customer_id: str,
         currency: str = "MXN",
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Create a payment intent for deposits"""
         try:
@@ -65,8 +72,8 @@ class MercadoPagoService:
                         "description": "GambleGlee Deposit",
                         "payment_method_id": "pix",  # Default to PIX for Brazil, but we'll use card
                         "installments": 1,
-                        "metadata": metadata or {}
-                    }
+                        "metadata": metadata or {},
+                    },
                 )
 
                 if response.status_code == 201:
@@ -75,10 +82,12 @@ class MercadoPagoService:
                         "id": data["id"],
                         "status": data["status"],
                         "transaction_amount": data["transaction_amount"],
-                        "currency_id": data["currency_id"]
+                        "currency_id": data["currency_id"],
                     }
                 else:
-                    raise GambleGleeException(f"Failed to create payment: {response.text}")
+                    raise GambleGleeException(
+                        f"Failed to create payment: {response.text}"
+                    )
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to create payment: {str(e)}")
 
@@ -87,7 +96,7 @@ class MercadoPagoService:
         amount: float,
         customer_id: str,
         currency: str = "MXN",
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Create a payment preference for OXXO and other payment methods"""
         try:
@@ -101,25 +110,23 @@ class MercadoPagoService:
                                 "title": "GambleGlee Deposit",
                                 "quantity": 1,
                                 "unit_price": amount,
-                                "currency_id": currency
+                                "currency_id": currency,
                             }
                         ],
-                        "payer": {
-                            "id": customer_id
-                        },
+                        "payer": {"id": customer_id},
                         "payment_methods": {
                             "excluded_payment_methods": [],
                             "excluded_payment_types": [],
-                            "installments": 1
+                            "installments": 1,
                         },
                         "back_urls": {
                             "success": f"{settings.FRONTEND_URL}/wallet?status=success",
                             "failure": f"{settings.FRONTEND_URL}/wallet?status=failure",
-                            "pending": f"{settings.FRONTEND_URL}/wallet?status=pending"
+                            "pending": f"{settings.FRONTEND_URL}/wallet?status=pending",
                         },
                         "auto_return": "approved",
-                        "metadata": metadata or {}
-                    }
+                        "metadata": metadata or {},
+                    },
                 )
 
                 if response.status_code == 201:
@@ -128,10 +135,12 @@ class MercadoPagoService:
                         "id": data["id"],
                         "init_point": data["init_point"],
                         "sandbox_init_point": data.get("sandbox_init_point"),
-                        "status": "pending"
+                        "status": "pending",
                     }
                 else:
-                    raise GambleGleeException(f"Failed to create preference: {response.text}")
+                    raise GambleGleeException(
+                        f"Failed to create preference: {response.text}"
+                    )
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to create preference: {str(e)}")
 
@@ -140,8 +149,7 @@ class MercadoPagoService:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    f"{self.base_url}/v1/payments/{payment_id}",
-                    headers=self.headers
+                    f"{self.base_url}/v1/payments/{payment_id}", headers=self.headers
                 )
 
                 if response.status_code == 200:
@@ -164,7 +172,7 @@ class MercadoPagoService:
         amount: float,
         destination_account: str,
         currency: str = "MXN",
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Create a transfer for withdrawals"""
         try:
@@ -176,8 +184,8 @@ class MercadoPagoService:
                         "amount": amount,
                         "currency_id": currency,
                         "destination_user_id": destination_account,
-                        "metadata": metadata or {}
-                    }
+                        "metadata": metadata or {},
+                    },
                 )
 
                 if response.status_code == 201:
@@ -185,10 +193,12 @@ class MercadoPagoService:
                     return {
                         "id": data["id"],
                         "status": data["status"],
-                        "amount": data["amount"]
+                        "amount": data["amount"],
                     }
                 else:
-                    raise GambleGleeException(f"Failed to create transfer: {response.text}")
+                    raise GambleGleeException(
+                        f"Failed to create transfer: {response.text}"
+                    )
         except httpx.RequestError as e:
             raise GambleGleeException(f"Failed to create transfer: {str(e)}")
 
@@ -197,10 +207,6 @@ class MercadoPagoService:
         try:
             # MercadoPago webhook verification would go here
             # For now, return the payload
-            return {
-                "type": "payment",
-                "data": payload,
-                "id": "webhook_id"
-            }
+            return {"type": "payment", "data": payload, "id": "webhook_id"}
         except Exception as e:
             raise GambleGleeException(f"Webhook processing failed: {str(e)}")

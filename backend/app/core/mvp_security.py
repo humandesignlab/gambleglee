@@ -38,15 +38,17 @@ redis_client = redis.from_url(settings.REDIS_URL)
 
 class MVPSecurityLevel(Enum):
     """MVP security level enumeration"""
+
     ENTERPRISE = "enterprise"  # 8.5/10 - Current MVP
-    EXCELLENT = "excellent"    # 9.0/10 - Growth phase
+    EXCELLENT = "excellent"  # 9.0/10 - Growth phase
     OUTSTANDING = "outstanding"  # 9.5/10 - Scale phase
-    PERFECT = "perfect"        # 10/10 - Enterprise phase
+    PERFECT = "perfect"  # 10/10 - Enterprise phase
 
 
 @dataclass
 class MVPSecurityScore:
     """MVP security score representation"""
+
     overall: float
     authentication: float
     authorization: float
@@ -88,7 +90,9 @@ class MVPSecurityManager:
         self.current_stage = "mvp"  # mvp, growth, scale, enterprise
         self.security_investment = 2000  # $2,000/month for MVP
 
-    async def get_current_security_score(self, user_count: int, monthly_revenue: float) -> MVPSecurityScore:
+    async def get_current_security_score(
+        self, user_count: int, monthly_revenue: float
+    ) -> MVPSecurityScore:
         """Get current security score based on business metrics"""
 
         # Determine business stage
@@ -122,15 +126,15 @@ class MVPSecurityManager:
         return MVPSecurityScore(
             overall=0.85,
             authentication=0.90,  # JWT + bcrypt + session management
-            authorization=0.85,   # RBAC + user permissions
-            data_protection=0.90, # AES-256 encryption + secure storage
-            network_security=0.80, # HTTPS + CORS + basic headers
-            monitoring=0.80,      # Basic logging + error tracking
-            compliance=0.85,     # Basic documentation + legal setup
+            authorization=0.85,  # RBAC + user permissions
+            data_protection=0.90,  # AES-256 encryption + secure storage
+            network_security=0.80,  # HTTPS + CORS + basic headers
+            monitoring=0.80,  # Basic logging + error tracking
+            compliance=0.85,  # Basic documentation + legal setup
             infrastructure=0.85,  # Docker + PostgreSQL + Redis
-            incident_response=0.80, # Manual alerts + basic runbooks
+            incident_response=0.80,  # Manual alerts + basic runbooks
             business_stage="mvp",
-            investment_level="$2,000/month"
+            investment_level="$2,000/month",
         )
 
     def _get_growth_security_score(self) -> MVPSecurityScore:
@@ -138,15 +142,15 @@ class MVPSecurityManager:
         return MVPSecurityScore(
             overall=0.90,
             authentication=0.95,  # MFA + OAuth + enhanced JWT
-            authorization=0.90,   # Enhanced RBAC + attribute-based
-            data_protection=0.90, # Enhanced encryption + key management
-            network_security=0.90, # WAF + DDoS protection + enhanced headers
-            monitoring=0.90,     # DataDog + advanced logging
-            compliance=0.90,    # Enhanced documentation + audits
-            infrastructure=0.90, # Enhanced Docker + Kubernetes
-            incident_response=0.85, # Automated alerts + enhanced runbooks
+            authorization=0.90,  # Enhanced RBAC + attribute-based
+            data_protection=0.90,  # Enhanced encryption + key management
+            network_security=0.90,  # WAF + DDoS protection + enhanced headers
+            monitoring=0.90,  # DataDog + advanced logging
+            compliance=0.90,  # Enhanced documentation + audits
+            infrastructure=0.90,  # Enhanced Docker + Kubernetes
+            incident_response=0.85,  # Automated alerts + enhanced runbooks
             business_stage="growth",
-            investment_level="$5,000/month"
+            investment_level="$5,000/month",
         )
 
     def _get_scale_security_score(self) -> MVPSecurityScore:
@@ -154,34 +158,36 @@ class MVPSecurityManager:
         return MVPSecurityScore(
             overall=0.95,
             authentication=0.98,  # Zero-trust + advanced MFA
-            authorization=0.95,   # Perfect RBAC + policy-based
-            data_protection=0.95, # Advanced encryption + key rotation
-            network_security=0.95, # Advanced WAF + threat intelligence
-            monitoring=0.95,      # Splunk + AI monitoring
-            compliance=0.95,     # Automated compliance + audits
-            infrastructure=0.95, # Advanced infrastructure + security
-            incident_response=0.90, # AI-powered response + automation
+            authorization=0.95,  # Perfect RBAC + policy-based
+            data_protection=0.95,  # Advanced encryption + key rotation
+            network_security=0.95,  # Advanced WAF + threat intelligence
+            monitoring=0.95,  # Splunk + AI monitoring
+            compliance=0.95,  # Automated compliance + audits
+            infrastructure=0.95,  # Advanced infrastructure + security
+            incident_response=0.90,  # AI-powered response + automation
             business_stage="scale",
-            investment_level="$15,000/month"
+            investment_level="$15,000/month",
         )
 
     def _get_enterprise_security_score(self) -> MVPSecurityScore:
         """Get enterprise security score (10/10)"""
         return MVPSecurityScore(
             overall=1.0,
-            authentication=1.0,   # Perfect zero-trust + biometrics
-            authorization=1.0,   # Perfect RBAC + attribute-based
+            authentication=1.0,  # Perfect zero-trust + biometrics
+            authorization=1.0,  # Perfect RBAC + attribute-based
             data_protection=1.0,  # Military-grade encryption
-            network_security=1.0, # Perfect network isolation
-            monitoring=1.0,      # Perfect AI monitoring
-            compliance=1.0,      # Perfect compliance framework
+            network_security=1.0,  # Perfect network isolation
+            monitoring=1.0,  # Perfect AI monitoring
+            compliance=1.0,  # Perfect compliance framework
             infrastructure=1.0,  # Perfect infrastructure security
-            incident_response=1.0, # Perfect automated response
+            incident_response=1.0,  # Perfect automated response
             business_stage="enterprise",
-            investment_level="$50,000/month"
+            investment_level="$50,000/month",
         )
 
-    async def get_security_recommendations(self, user_count: int, monthly_revenue: float) -> List[Dict[str, Any]]:
+    async def get_security_recommendations(
+        self, user_count: int, monthly_revenue: float
+    ) -> List[Dict[str, Any]]:
         """Get security recommendations based on business stage"""
         stage = self._determine_business_stage(user_count, monthly_revenue)
 
@@ -203,26 +209,26 @@ class MVPSecurityManager:
                 "priority": "high",
                 "recommendation": "Keep current 8.5/10 security - excellent for MVP",
                 "cost": "$0",
-                "benefit": "Maintains enterprise-grade security"
+                "benefit": "Maintains enterprise-grade security",
             },
             {
                 "priority": "medium",
                 "recommendation": "Document security practices for compliance",
                 "cost": "$500/month",
-                "benefit": "Ensures regulatory compliance"
+                "benefit": "Ensures regulatory compliance",
             },
             {
                 "priority": "medium",
                 "recommendation": "Set up basic monitoring and alerting",
                 "cost": "$200/month",
-                "benefit": "Early threat detection"
+                "benefit": "Early threat detection",
             },
             {
                 "priority": "low",
                 "recommendation": "Create security incident response runbooks",
                 "cost": "$0",
-                "benefit": "Prepared incident response"
-            }
+                "benefit": "Prepared incident response",
+            },
         ]
 
     def _get_growth_recommendations(self) -> List[Dict[str, Any]]:
@@ -232,32 +238,32 @@ class MVPSecurityManager:
                 "priority": "high",
                 "recommendation": "Deploy Cloudflare Pro for WAF + DDoS protection",
                 "cost": "$20/month",
-                "benefit": "Enhanced network security"
+                "benefit": "Enhanced network security",
             },
             {
                 "priority": "high",
                 "recommendation": "Add DataDog monitoring for 4 hosts",
                 "cost": "$60/month",
-                "benefit": "Advanced monitoring and alerting"
+                "benefit": "Advanced monitoring and alerting",
             },
             {
                 "priority": "medium",
                 "recommendation": "Implement Snyk vulnerability scanning",
                 "cost": "$25/month",
-                "benefit": "Automated security scanning"
+                "benefit": "Automated security scanning",
             },
             {
                 "priority": "medium",
                 "recommendation": "Deploy AWS S3 encrypted backups",
                 "cost": "$50/month",
-                "benefit": "Secure data backup"
+                "benefit": "Secure data backup",
             },
             {
                 "priority": "high",
                 "recommendation": "Add legal compliance consultation",
                 "cost": "$500/month",
-                "benefit": "Regulatory compliance"
-            }
+                "benefit": "Regulatory compliance",
+            },
         ]
 
     def _get_scale_recommendations(self) -> List[Dict[str, Any]]:
@@ -267,32 +273,32 @@ class MVPSecurityManager:
                 "priority": "high",
                 "recommendation": "Deploy AI-powered fraud detection",
                 "cost": "$2,000/month",
-                "benefit": "Advanced threat detection"
+                "benefit": "Advanced threat detection",
             },
             {
                 "priority": "high",
                 "recommendation": "Implement Splunk enterprise monitoring",
                 "cost": "$1,500/month",
-                "benefit": "Enterprise-grade monitoring"
+                "benefit": "Enterprise-grade monitoring",
             },
             {
                 "priority": "medium",
                 "recommendation": "Add threat intelligence feeds",
                 "cost": "$1,000/month",
-                "benefit": "Proactive threat detection"
+                "benefit": "Proactive threat detection",
             },
             {
                 "priority": "medium",
                 "recommendation": "Deploy automated compliance tools",
                 "cost": "$800/month",
-                "benefit": "Automated compliance"
+                "benefit": "Automated compliance",
             },
             {
                 "priority": "high",
                 "recommendation": "Hire dedicated security analyst",
                 "cost": "$5,000/month",
-                "benefit": "Dedicated security expertise"
-            }
+                "benefit": "Dedicated security expertise",
+            },
         ]
 
     def _get_enterprise_recommendations(self) -> List[Dict[str, Any]]:
@@ -302,38 +308,44 @@ class MVPSecurityManager:
                 "priority": "high",
                 "recommendation": "Deploy zero-trust architecture",
                 "cost": "$15,000/month",
-                "benefit": "Perfect security model"
+                "benefit": "Perfect security model",
             },
             {
                 "priority": "high",
                 "recommendation": "Implement military-grade encryption",
                 "cost": "$5,000/month",
-                "benefit": "Perfect data protection"
+                "benefit": "Perfect data protection",
             },
             {
                 "priority": "high",
                 "recommendation": "Deploy advanced AI security",
                 "cost": "$10,000/month",
-                "benefit": "Perfect threat detection"
+                "benefit": "Perfect threat detection",
             },
             {
                 "priority": "high",
                 "recommendation": "Build full security team",
                 "cost": "$20,000/month",
-                "benefit": "Dedicated security team"
+                "benefit": "Dedicated security team",
             },
             {
                 "priority": "high",
                 "recommendation": "Implement 24/7 SOC monitoring",
                 "cost": "$12,000/month",
-                "benefit": "Perfect incident response"
-            }
+                "benefit": "Perfect incident response",
+            },
         ]
 
-    async def get_security_metrics(self, user_count: int, monthly_revenue: float) -> Dict[str, Any]:
+    async def get_security_metrics(
+        self, user_count: int, monthly_revenue: float
+    ) -> Dict[str, Any]:
         """Get security metrics for dashboard"""
-        security_score = await self.get_current_security_score(user_count, monthly_revenue)
-        recommendations = await self.get_security_recommendations(user_count, monthly_revenue)
+        security_score = await self.get_current_security_score(
+            user_count, monthly_revenue
+        )
+        recommendations = await self.get_security_recommendations(
+            user_count, monthly_revenue
+        )
 
         return {
             "security_score": security_score.overall,
@@ -349,11 +361,13 @@ class MVPSecurityManager:
                 "monitoring": security_score.monitoring,
                 "compliance": security_score.compliance,
                 "infrastructure": security_score.infrastructure,
-                "incident_response": security_score.incident_response
-            }
+                "incident_response": security_score.incident_response,
+            },
         }
 
-    def _get_next_milestone(self, user_count: int, monthly_revenue: float) -> Dict[str, Any]:
+    def _get_next_milestone(
+        self, user_count: int, monthly_revenue: float
+    ) -> Dict[str, Any]:
         """Get next security milestone"""
         if user_count < 1000 and monthly_revenue < 10000:
             return {
@@ -361,7 +375,11 @@ class MVPSecurityManager:
                 "trigger": "1,000 users OR $10,000/month revenue",
                 "security_score": "9.0/10",
                 "investment": "$5,000/month",
-                "benefits": ["Enhanced monitoring", "WAF protection", "Compliance automation"]
+                "benefits": [
+                    "Enhanced monitoring",
+                    "WAF protection",
+                    "Compliance automation",
+                ],
             }
         elif user_count < 10000 and monthly_revenue < 100000:
             return {
@@ -369,7 +387,11 @@ class MVPSecurityManager:
                 "trigger": "10,000 users OR $100,000/month revenue",
                 "security_score": "9.5/10",
                 "investment": "$15,000/month",
-                "benefits": ["AI fraud detection", "Enterprise monitoring", "Threat intelligence"]
+                "benefits": [
+                    "AI fraud detection",
+                    "Enterprise monitoring",
+                    "Threat intelligence",
+                ],
             }
         elif user_count < 100000 and monthly_revenue < 1000000:
             return {
@@ -377,7 +399,11 @@ class MVPSecurityManager:
                 "trigger": "100,000 users OR $1,000,000/month revenue",
                 "security_score": "10/10",
                 "investment": "$50,000/month",
-                "benefits": ["Zero-trust architecture", "Military encryption", "Perfect security"]
+                "benefits": [
+                    "Zero-trust architecture",
+                    "Military encryption",
+                    "Perfect security",
+                ],
             }
         else:
             return {
@@ -385,7 +411,11 @@ class MVPSecurityManager:
                 "trigger": "All milestones reached",
                 "security_score": "10/10",
                 "investment": "$50,000/month",
-                "benefits": ["Perfect security", "Zero-trust", "Military-grade protection"]
+                "benefits": [
+                    "Perfect security",
+                    "Zero-trust",
+                    "Military-grade protection",
+                ],
             }
 
 
@@ -393,16 +423,20 @@ class MVPSecurityManager:
 async def require_mvp_security(
     request: Request,
     user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """Require MVP security for access"""
     security_manager = MVPSecurityManager(db)
 
     # Get current security score (simplified for MVP)
-    security_score = await security_manager.get_current_security_score(1000, 10000)  # Example metrics
+    security_score = await security_manager.get_current_security_score(
+        1000, 10000
+    )  # Example metrics
 
     if not security_score.is_enterprise_grade:
-        logger.warning(f"Security score below enterprise grade: {security_score.overall}")
+        logger.warning(
+            f"Security score below enterprise grade: {security_score.overall}"
+        )
 
     return user
 
@@ -411,7 +445,7 @@ async def require_mvp_security(
 @router.get("/security/status")
 async def get_security_status(
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get current security status"""
     security_manager = MVPSecurityManager(db)
@@ -425,14 +459,14 @@ async def get_security_status(
         "business_stage": metrics["business_stage"],
         "investment_level": metrics["investment_level"],
         "recommendations": metrics["recommendations"],
-        "next_milestone": metrics["next_milestone"]
+        "next_milestone": metrics["next_milestone"],
     }
 
 
 @router.get("/security/recommendations")
 async def get_security_recommendations(
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get security recommendations"""
     security_manager = MVPSecurityManager(db)
@@ -442,6 +476,10 @@ async def get_security_recommendations(
 
     return {
         "recommendations": recommendations,
-        "total_cost": sum(rec.get("cost", 0) for rec in recommendations if isinstance(rec.get("cost"), (int, float))),
-        "priority_order": sorted(recommendations, key=lambda x: x["priority"])
+        "total_cost": sum(
+            rec.get("cost", 0)
+            for rec in recommendations
+            if isinstance(rec.get("cost"), (int, float))
+        ),
+        "priority_order": sorted(recommendations, key=lambda x: x["priority"]),
     }

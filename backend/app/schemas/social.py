@@ -1,20 +1,25 @@
 """
 Social schemas for GambleGlee
 """
+
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
+
 class FriendshipStatus(str, Enum):
     """Friendship status enumeration"""
+
     PENDING = "pending"
     ACCEPTED = "accepted"
     BLOCKED = "blocked"
     DECLINED = "declined"
 
+
 class NotificationType(str, Enum):
     """Notification type enumeration"""
+
     FRIEND_REQUEST = "friend_request"
     FRIEND_ACCEPTED = "friend_accepted"
     BET_INVITATION = "bet_invitation"
@@ -26,8 +31,10 @@ class NotificationType(str, Enum):
     SYSTEM_ANNOUNCEMENT = "system_announcement"
     SECURITY_ALERT = "security_alert"
 
+
 class ActivityType(str, Enum):
     """Activity type enumeration"""
+
     USER_REGISTERED = "user_registered"
     USER_LOGIN = "user_login"
     BET_CREATED = "bet_created"
@@ -41,77 +48,121 @@ class ActivityType(str, Enum):
     ACHIEVEMENT_UNLOCKED = "achievement_unlocked"
     PROFILE_UPDATED = "profile_updated"
 
+
 class PrivacyLevel(str, Enum):
     """Privacy level enumeration"""
+
     PUBLIC = "public"
     FRIENDS_ONLY = "friends_only"
     PRIVATE = "private"
 
+
 # === REQUEST SCHEMAS ===
+
 
 class FriendRequestRequest(BaseModel):
     """Friend request request"""
-    friend_id: int = Field(..., gt=0, description="ID of the user to send friend request to")
-    message: Optional[str] = Field(None, max_length=500, description="Optional message with friend request")
+
+    friend_id: int = Field(
+        ..., gt=0, description="ID of the user to send friend request to"
+    )
+    message: Optional[str] = Field(
+        None, max_length=500, description="Optional message with friend request"
+    )
+
 
 class FriendRequestResponse(BaseModel):
     """Friend request response"""
+
     friend_id: int = Field(..., gt=0, description="ID of the user to respond to")
     action: str = Field(..., description="Action to take: accept, decline, block")
 
+
 class UserSearchRequest(BaseModel):
     """User search request"""
+
     query: str = Field(..., min_length=1, max_length=100, description="Search query")
-    search_type: str = Field("user", description="Type of search: user, bet, trick_shot")
+    search_type: str = Field(
+        "user", description="Type of search: user, bet, trick_shot"
+    )
     filters: Optional[Dict[str, Any]] = Field(None, description="Search filters")
     page: int = Field(1, ge=1, description="Page number")
     size: int = Field(10, ge=1, le=50, description="Page size")
 
+
 class ActivityCreateRequest(BaseModel):
     """Activity creation request"""
+
     activity_type: ActivityType = Field(..., description="Type of activity")
     title: str = Field(..., min_length=1, max_length=255, description="Activity title")
-    description: Optional[str] = Field(None, max_length=1000, description="Activity description")
+    description: Optional[str] = Field(
+        None, max_length=1000, description="Activity description"
+    )
     metadata: Optional[Dict[str, Any]] = Field(None, description="Activity metadata")
     is_public: bool = Field(True, description="Whether activity is public")
 
+
 class NotificationCreateRequest(BaseModel):
     """Notification creation request"""
+
     user_id: int = Field(..., gt=0, description="User ID to send notification to")
     notification_type: NotificationType = Field(..., description="Type of notification")
-    title: str = Field(..., min_length=1, max_length=255, description="Notification title")
-    message: str = Field(..., min_length=1, max_length=1000, description="Notification message")
+    title: str = Field(
+        ..., min_length=1, max_length=255, description="Notification title"
+    )
+    message: str = Field(
+        ..., min_length=1, max_length=1000, description="Notification message"
+    )
     action_url: Optional[str] = Field(None, max_length=500, description="Action URL")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Notification metadata")
+    metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Notification metadata"
+    )
     is_important: bool = Field(False, description="Whether notification is important")
+
 
 class ProfileUpdateRequest(BaseModel):
     """Profile update request"""
+
     bio: Optional[str] = Field(None, max_length=1000, description="User bio")
     location: Optional[str] = Field(None, max_length=100, description="User location")
     website: Optional[str] = Field(None, max_length=255, description="User website")
     privacy_level: Optional[PrivacyLevel] = Field(None, description="Privacy level")
     show_online_status: Optional[bool] = Field(None, description="Show online status")
     show_activity: Optional[bool] = Field(None, description="Show activity")
-    allow_friend_requests: Optional[bool] = Field(None, description="Allow friend requests")
+    allow_friend_requests: Optional[bool] = Field(
+        None, description="Allow friend requests"
+    )
     allow_messages: Optional[bool] = Field(None, description="Allow messages")
+
 
 class CommentCreateRequest(BaseModel):
     """Comment creation request"""
-    content: str = Field(..., min_length=1, max_length=1000, description="Comment content")
-    parent_comment_id: Optional[int] = Field(None, gt=0, description="Parent comment ID for replies")
+
+    content: str = Field(
+        ..., min_length=1, max_length=1000, description="Comment content"
+    )
+    parent_comment_id: Optional[int] = Field(
+        None, gt=0, description="Parent comment ID for replies"
+    )
+
 
 class LeaderboardRequest(BaseModel):
     """Leaderboard request"""
+
     category: str = Field(..., description="Leaderboard category")
-    time_period: str = Field("all_time", description="Time period: daily, weekly, monthly, all_time")
+    time_period: str = Field(
+        "all_time", description="Time period: daily, weekly, monthly, all_time"
+    )
     page: int = Field(1, ge=1, description="Page number")
     size: int = Field(20, ge=1, le=100, description="Page size")
 
+
 # === RESPONSE SCHEMAS ===
+
 
 class UserProfileResponse(BaseModel):
     """User profile response"""
+
     id: int
     user_id: int
     bio: Optional[str]
@@ -144,8 +195,10 @@ class UserProfileResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class FriendshipResponse(BaseModel):
     """Friendship response"""
+
     id: int
     user_id: int
     friend_id: int
@@ -160,8 +213,10 @@ class FriendshipResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserActivityResponse(BaseModel):
     """User activity response"""
+
     id: int
     user_id: int
     activity_type: ActivityType
@@ -179,8 +234,10 @@ class UserActivityResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ActivityLikeResponse(BaseModel):
     """Activity like response"""
+
     id: int
     activity_id: int
     user_id: int
@@ -189,8 +246,10 @@ class ActivityLikeResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ActivityCommentResponse(BaseModel):
     """Activity comment response"""
+
     id: int
     activity_id: int
     user_id: int
@@ -206,8 +265,10 @@ class ActivityCommentResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class NotificationResponse(BaseModel):
     """Notification response"""
+
     id: int
     user_id: int
     notification_type: NotificationType
@@ -224,8 +285,10 @@ class NotificationResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserAchievementResponse(BaseModel):
     """User achievement response"""
+
     id: int
     user_id: int
     achievement_type: str
@@ -240,8 +303,10 @@ class UserAchievementResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class LeaderboardResponse(BaseModel):
     """Leaderboard response"""
+
     id: int
     name: str
     description: Optional[str]
@@ -258,8 +323,10 @@ class LeaderboardResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class LeaderboardEntryResponse(BaseModel):
     """Leaderboard entry response"""
+
     id: int
     leaderboard_id: int
     user_id: int
@@ -272,8 +339,10 @@ class LeaderboardEntryResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserSearchResponse(BaseModel):
     """User search response"""
+
     id: int
     username: str
     display_name: str
@@ -291,24 +360,30 @@ class UserSearchResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserSearchListResponse(BaseModel):
     """User search list response"""
+
     items: List[UserSearchResponse]
     total: int
     page: int
     size: int
     pages: int
 
+
 class ActivityListResponse(BaseModel):
     """Activity list response"""
+
     items: List[UserActivityResponse]
     total: int
     page: int
     size: int
     pages: int
 
+
 class NotificationListResponse(BaseModel):
     """Notification list response"""
+
     items: List[NotificationResponse]
     total: int
     page: int
@@ -316,24 +391,30 @@ class NotificationListResponse(BaseModel):
     pages: int
     unread_count: int
 
+
 class LeaderboardListResponse(BaseModel):
     """Leaderboard list response"""
+
     items: List[LeaderboardEntryResponse]
     total: int
     page: int
     size: int
     pages: int
 
+
 class FriendshipListResponse(BaseModel):
     """Friendship list response"""
+
     items: List[FriendshipResponse]
     total: int
     page: int
     size: int
     pages: int
 
+
 class UserStatsResponse(BaseModel):
     """User statistics response"""
+
     total_bets: int
     won_bets: int
     lost_bets: int
@@ -348,8 +429,10 @@ class UserStatsResponse(BaseModel):
     achievements_count: int
     total_points: int
 
+
 class SocialDashboardResponse(BaseModel):
     """Social dashboard response"""
+
     user_profile: UserProfileResponse
     recent_activities: List[UserActivityResponse]
     friends_activities: List[UserActivityResponse]
@@ -358,10 +441,13 @@ class SocialDashboardResponse(BaseModel):
     leaderboard_position: Optional[LeaderboardEntryResponse]
     stats: UserStatsResponse
 
+
 # === INTERNAL SCHEMAS ===
+
 
 class FriendshipData(BaseModel):
     """Friendship data schema"""
+
     user_id: int
     friend_id: int
     status: FriendshipStatus
@@ -369,8 +455,10 @@ class FriendshipData(BaseModel):
     is_favorite: bool = False
     notes: Optional[str] = None
 
+
 class ActivityData(BaseModel):
     """Activity data schema"""
+
     user_id: int
     activity_type: ActivityType
     title: str
@@ -379,8 +467,10 @@ class ActivityData(BaseModel):
     is_public: bool = True
     is_featured: bool = False
 
+
 class NotificationData(BaseModel):
     """Notification data schema"""
+
     user_id: int
     notification_type: NotificationType
     title: str
@@ -390,8 +480,10 @@ class NotificationData(BaseModel):
     is_important: bool = False
     expires_at: Optional[datetime] = None
 
+
 class AchievementData(BaseModel):
     """Achievement data schema"""
+
     user_id: int
     achievement_type: str
     title: str
@@ -401,8 +493,10 @@ class AchievementData(BaseModel):
     rarity: str = "common"
     category: str
 
+
 class LeaderboardData(BaseModel):
     """Leaderboard data schema"""
+
     name: str
     description: Optional[str] = None
     category: str
@@ -412,18 +506,23 @@ class LeaderboardData(BaseModel):
     is_active: bool = True
     is_public: bool = True
 
+
 class LeaderboardEntryData(BaseModel):
     """Leaderboard entry data schema"""
+
     leaderboard_id: int
     user_id: int
     rank: int
     score: float
     metadata: Optional[Dict[str, Any]] = None
 
+
 # === VALIDATION SCHEMAS ===
+
 
 class UserSearchFilters(BaseModel):
     """User search filters"""
+
     location: Optional[str] = None
     min_friends: Optional[int] = None
     max_friends: Optional[int] = None
@@ -432,8 +531,10 @@ class UserSearchFilters(BaseModel):
     is_online: Optional[bool] = None
     has_avatar: Optional[bool] = None
 
+
 class ActivityFilters(BaseModel):
     """Activity filters"""
+
     activity_type: Optional[ActivityType] = None
     is_public: Optional[bool] = None
     is_featured: Optional[bool] = None
@@ -441,8 +542,10 @@ class ActivityFilters(BaseModel):
     date_to: Optional[datetime] = None
     user_id: Optional[int] = None
 
+
 class NotificationFilters(BaseModel):
     """Notification filters"""
+
     notification_type: Optional[NotificationType] = None
     is_read: Optional[bool] = None
     is_important: Optional[bool] = None

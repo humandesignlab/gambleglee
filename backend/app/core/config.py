@@ -51,7 +51,9 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://gambleglee:password@localhost:5432/gambleglee"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://gambleglee:password@localhost:5432/gambleglee"
+    )
     DATABASE_POOL_SIZE: int = 10
     DATABASE_MAX_OVERFLOW: int = 20
 

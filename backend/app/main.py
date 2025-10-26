@@ -29,7 +29,7 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
+        structlog.processors.JSONRenderer(),
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
@@ -61,10 +61,7 @@ app = FastAPI(
 )
 
 # Security middleware
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=settings.ALLOWED_HOSTS
-)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
 
 # CORS middleware
 app.add_middleware(
@@ -78,22 +75,22 @@ app.add_middleware(
 # Geolocation middleware
 app.add_middleware(GeolocationMiddleware)
 
+
 # Global exception handler
 @app.exception_handler(GambleGleeException)
 async def gambleglee_exception_handler(request: Request, exc: GambleGleeException):
     logger.error("GambleGlee exception", error=str(exc), path=request.url.path)
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.detail, "error_code": exc.error_code}
+        content={"detail": exc.detail, "error_code": exc.error_code},
     )
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     logger.error("Unhandled exception", error=str(exc), path=request.url.path)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
 
 # Startup event
 @app.on_event("startup")
@@ -107,11 +104,13 @@ async def startup_event():
 
     logger.info("Database tables created successfully")
 
+
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup tasks on shutdown"""
     logger.info("Shutting down GambleGlee API server")
+
 
 # Health check endpoints
 @app.get("/health")
@@ -119,10 +118,12 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "service": "gambleglee-api"}
 
+
 @app.get("/api/health")
 async def api_health_check():
     """API health check endpoint"""
     return {"status": "healthy", "api": "gambleglee-api", "version": "1.0.0"}
+
 
 @app.get("/api/health/db")
 async def database_health_check():
@@ -130,21 +131,24 @@ async def database_health_check():
     # This would check actual database connectivity
     return {"status": "healthy", "database": "postgresql"}
 
+
 @app.get("/api/health/redis")
 async def redis_health_check():
     """Redis health check endpoint"""
     # This would check actual Redis connectivity
     return {"status": "healthy", "cache": "redis"}
 
+
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
         port=8000,
         reload=True if settings.ENVIRONMENT == "development" else False,
-        log_level="info"
+        log_level="info",
     )

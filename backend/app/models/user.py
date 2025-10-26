@@ -11,6 +11,7 @@ import enum
 
 class KYCStatus(str, enum.Enum):
     """KYC verification status"""
+
     PENDING = "pending"
     VERIFIED = "verified"
     REJECTED = "rejected"
@@ -19,6 +20,7 @@ class KYCStatus(str, enum.Enum):
 
 class UserStatus(str, enum.Enum):
     """User account status"""
+
     ACTIVE = "active"
     SUSPENDED = "suspended"
     BANNED = "banned"
@@ -27,6 +29,7 @@ class UserStatus(str, enum.Enum):
 
 class User(Base):
     """User model"""
+
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -67,10 +70,16 @@ class User(Base):
     transactions = relationship("Transaction", back_populates="user")
 
     # Betting relationships
-    created_bets = relationship("Bet", foreign_keys="Bet.created_by", back_populates="creator")
+    created_bets = relationship(
+        "Bet", foreign_keys="Bet.created_by", back_populates="creator"
+    )
     bet_participations = relationship("BetParticipant", back_populates="user")
     bet_limits = relationship("BetLimit", back_populates="user", uselist=False)
 
     # Social relationships
-    friendships = relationship("Friendship", back_populates="user", foreign_keys="Friendship.user_id")
-    friend_of = relationship("Friendship", back_populates="friend", foreign_keys="Friendship.friend_id")
+    friendships = relationship(
+        "Friendship", back_populates="user", foreign_keys="Friendship.user_id"
+    )
+    friend_of = relationship(
+        "Friendship", back_populates="friend", foreign_keys="Friendship.friend_id"
+    )

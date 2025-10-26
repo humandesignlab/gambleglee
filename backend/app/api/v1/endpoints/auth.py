@@ -1,44 +1,65 @@
 """
 Authentication endpoints for GambleGlee
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import get_current_active_user
 from app.models.auth import User
 from app.schemas.auth import (
-    UserRegisterRequest, UserLoginRequest, PasswordResetRequest,
-    PasswordResetConfirmRequest, EmailVerificationRequest,
-    ChangePasswordRequest, TwoFactorSetupRequest, TwoFactorVerifyRequest,
-    TwoFactorDisableRequest, OAuthLoginRequest, RefreshTokenRequest,
-    LogoutRequest, UsernameCheckRequest, EmailCheckRequest,
-    AuthResponse, UserResponse, SessionResponse, LoginHistoryResponse,
-    DeviceResponse, TwoFactorSetupResponse, PasswordResetResponse,
-    EmailVerificationResponse, LogoutResponse, UsernameCheckResponse,
-    EmailCheckResponse
+    UserRegisterRequest,
+    UserLoginRequest,
+    PasswordResetRequest,
+    PasswordResetConfirmRequest,
+    EmailVerificationRequest,
+    ChangePasswordRequest,
+    TwoFactorSetupRequest,
+    TwoFactorVerifyRequest,
+    TwoFactorDisableRequest,
+    OAuthLoginRequest,
+    RefreshTokenRequest,
+    LogoutRequest,
+    UsernameCheckRequest,
+    EmailCheckRequest,
+    AuthResponse,
+    UserResponse,
+    SessionResponse,
+    LoginHistoryResponse,
+    DeviceResponse,
+    TwoFactorSetupResponse,
+    PasswordResetResponse,
+    EmailVerificationResponse,
+    LogoutResponse,
+    UsernameCheckResponse,
+    EmailCheckResponse,
 )
 from app.services.auth_service import AuthService
 from app.core.exceptions import (
-    AuthenticationError, ValidationError, SecurityError,
-    UserNotFoundError, AccountLockedError, EmailNotVerifiedError
+    AuthenticationError,
+    ValidationError,
+    SecurityError,
+    UserNotFoundError,
+    AccountLockedError,
+    EmailNotVerifiedError,
 )
 import structlog
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
 
-@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(
-    user_data: UserRegisterRequest,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
+    user_data: UserRegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
 ):
     """Register a new user"""
     try:
         auth_service = AuthService(db)
         user = await auth_service.register_user(
-            user_data,
-            ip_address=request.client.host if request.client else None
+            user_data, ip_address=request.client.host if request.client else None
         )
 
         # Note: In a real implementation, you'd need to handle the token generation
@@ -48,19 +69,21 @@ async def register(
             refresh_token="temp_refresh_token",
             token_type="bearer",
             expires_in=3600,
-            user=UserResponse.from_orm(user)
+            user=UserResponse.from_orm(user),
         )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Registration failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Registration failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Registration failed",
+        )
+
 
 @router.post("/login", response_model=AuthResponse)
 async def login(
-    login_data: UserLoginRequest,
-    request: Request,
-    db: AsyncSession = Depends(get_db)
+    login_data: UserLoginRequest, request: Request, db: AsyncSession = Depends(get_db)
 ):
     """Login user"""
     try:
@@ -68,7 +91,7 @@ async def login(
         user, access_token, refresh_token = await auth_service.login_user(
             login_data,
             ip_address=request.client.host if request.client else None,
-            user_agent=request.headers.get("user-agent")
+            user_agent=request.headers.get("user-agent"),
         )
 
         return AuthResponse(
@@ -76,7 +99,7 @@ async def login(
             refresh_token=refresh_token,
             token_type="bearer",
             expires_in=3600,
-            user=UserResponse.from_orm(user)
+            user=UserResponse.from_orm(user),
         )
     except (AuthenticationError, EmailNotVerifiedError, AccountLockedError) as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
@@ -84,65 +107,71 @@ async def login(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Login failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Login failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Login failed"
+        )
+
 
 @router.post("/refresh", response_model=AuthResponse)
 async def refresh_token(
-    refresh_data: RefreshTokenRequest,
-    db: AsyncSession = Depends(get_db)
+    refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)
 ):
     """Refresh access token"""
     try:
         auth_service = AuthService(db)
-        access_token, refresh_token = await auth_service.refresh_access_token(refresh_data.refresh_token)
+        access_token, refresh_token = await auth_service.refresh_access_token(
+            refresh_data.refresh_token
+        )
 
         return AuthResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
             expires_in=3600,
-            user=None  # User would be fetched in a real implementation
+            user=None,  # User would be fetched in a real implementation
         )
     except AuthenticationError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except Exception as e:
         logger.error("Token refresh failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Token refresh failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Token refresh failed",
+        )
+
 
 @router.post("/logout", response_model=LogoutResponse)
 async def logout(
     logout_data: LogoutRequest,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Logout user"""
     try:
         auth_service = AuthService(db)
         sessions_logged_out = await auth_service.logout_user(
-            current_user.id,
-            logout_data.session_id,
-            logout_data.logout_all
+            current_user.id, logout_data.session_id, logout_data.logout_all
         )
 
         return LogoutResponse(
-            message="Logged out successfully",
-            sessions_logged_out=sessions_logged_out
+            message="Logged out successfully", sessions_logged_out=sessions_logged_out
         )
     except Exception as e:
         logger.error("Logout failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Logout failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Logout failed"
+        )
+
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user(
-    current_user: User = Depends(get_current_active_user)
-):
+async def get_current_user(current_user: User = Depends(get_current_active_user)):
     """Get current user details"""
     return UserResponse.from_orm(current_user)
 
+
 @router.post("/verify-email", response_model=EmailVerificationResponse)
 async def verify_email(
-    verification_data: EmailVerificationRequest,
-    db: AsyncSession = Depends(get_db)
+    verification_data: EmailVerificationRequest, db: AsyncSession = Depends(get_db)
 ):
     """Verify user email"""
     try:
@@ -150,82 +179,91 @@ async def verify_email(
         user = await auth_service.verify_email(verification_data.token)
 
         return EmailVerificationResponse(
-            message="Email verified successfully",
-            expires_in=0
+            message="Email verified successfully", expires_in=0
         )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Email verification failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Email verification failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Email verification failed",
+        )
+
 
 @router.post("/resend-verification", response_model=EmailVerificationResponse)
-async def resend_verification_email(
-    email: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def resend_verification_email(email: str, db: AsyncSession = Depends(get_db)):
     """Resend verification email"""
     try:
         auth_service = AuthService(db)
         await auth_service.resend_verification_email(email)
 
         return EmailVerificationResponse(
-            message="Verification email sent",
-            expires_in=86400  # 24 hours
+            message="Verification email sent", expires_in=86400  # 24 hours
         )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Resend verification failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Resend verification failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Resend verification failed",
+        )
+
 
 @router.post("/forgot-password", response_model=PasswordResetResponse)
 async def forgot_password(
     reset_data: PasswordResetRequest,
     request: Request,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Request password reset"""
     try:
         auth_service = AuthService(db)
         await auth_service.request_password_reset(
-            reset_data.email,
-            ip_address=request.client.host if request.client else None
+            reset_data.email, ip_address=request.client.host if request.client else None
         )
 
         return PasswordResetResponse(
-            message="Password reset email sent",
-            expires_in=3600  # 1 hour
+            message="Password reset email sent", expires_in=3600  # 1 hour
         )
     except Exception as e:
         logger.error("Password reset request failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Password reset request failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password reset request failed",
+        )
+
 
 @router.post("/reset-password", response_model=PasswordResetResponse)
 async def reset_password(
-    reset_data: PasswordResetConfirmRequest,
-    db: AsyncSession = Depends(get_db)
+    reset_data: PasswordResetConfirmRequest, db: AsyncSession = Depends(get_db)
 ):
     """Reset password using token"""
     try:
         auth_service = AuthService(db)
-        user = await auth_service.reset_password(reset_data.token, reset_data.new_password)
+        user = await auth_service.reset_password(
+            reset_data.token, reset_data.new_password
+        )
 
         return PasswordResetResponse(
-            message="Password reset successfully",
-            expires_in=0
+            message="Password reset successfully", expires_in=0
         )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Password reset failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Password reset failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password reset failed",
+        )
+
 
 @router.post("/change-password", response_model=PasswordResetResponse)
 async def change_password(
     password_data: ChangePasswordRequest,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Change user password"""
     try:
@@ -234,37 +272,46 @@ async def change_password(
         # await auth_service.change_password(current_user.id, password_data.current_password, password_data.new_password)
 
         return PasswordResetResponse(
-            message="Password changed successfully",
-            expires_in=0
+            message="Password changed successfully", expires_in=0
         )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Password change failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Password change failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Password change failed",
+        )
+
 
 @router.post("/check-username", response_model=UsernameCheckResponse)
 async def check_username_availability(
-    username_data: UsernameCheckRequest,
-    db: AsyncSession = Depends(get_db)
+    username_data: UsernameCheckRequest, db: AsyncSession = Depends(get_db)
 ):
     """Check if username is available"""
     try:
         auth_service = AuthService(db)
-        available = await auth_service.check_username_availability(username_data.username)
+        available = await auth_service.check_username_availability(
+            username_data.username
+        )
 
         return UsernameCheckResponse(
             available=available,
-            message="Username is available" if available else "Username is already taken"
+            message=(
+                "Username is available" if available else "Username is already taken"
+            ),
         )
     except Exception as e:
         logger.error("Username check failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Username check failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Username check failed",
+        )
+
 
 @router.post("/check-email", response_model=EmailCheckResponse)
 async def check_email_availability(
-    email_data: EmailCheckRequest,
-    db: AsyncSession = Depends(get_db)
+    email_data: EmailCheckRequest, db: AsyncSession = Depends(get_db)
 ):
     """Check if email is available"""
     try:
@@ -273,8 +320,13 @@ async def check_email_availability(
 
         return EmailCheckResponse(
             available=available,
-            message="Email is available" if available else "Email is already registered"
+            message=(
+                "Email is available" if available else "Email is already registered"
+            ),
         )
     except Exception as e:
         logger.error("Email check failed", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Email check failed")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Email check failed",
+        )

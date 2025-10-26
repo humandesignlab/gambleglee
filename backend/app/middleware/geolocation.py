@@ -34,15 +34,25 @@ class GeolocationMiddleware(BaseHTTPMiddleware):
 
             # Add location data to request state
             request.state.location = location_data
-            request.state.payment_processor = self.geolocation_service.get_payment_processor(location_data)
-            request.state.payment_methods = self.geolocation_service.get_payment_methods(location_data)
-            request.state.compliance_requirements = self.geolocation_service.get_compliance_requirements(location_data)
+            request.state.payment_processor = (
+                self.geolocation_service.get_payment_processor(location_data)
+            )
+            request.state.payment_methods = (
+                self.geolocation_service.get_payment_methods(location_data)
+            )
+            request.state.compliance_requirements = (
+                self.geolocation_service.get_compliance_requirements(location_data)
+            )
 
             # Add location headers for debugging
             response = await call_next(request)
-            response.headers["X-Detected-Country"] = location_data.get("country", "UNKNOWN")
+            response.headers["X-Detected-Country"] = location_data.get(
+                "country", "UNKNOWN"
+            )
             response.headers["X-Payment-Processor"] = request.state.payment_processor
-            response.headers["X-Compliance-Status"] = location_data.get("compliance_status", "unknown")
+            response.headers["X-Compliance-Status"] = location_data.get(
+                "compliance_status", "unknown"
+            )
 
         except Exception as e:
             # If geolocation fails, use default US location
@@ -51,14 +61,14 @@ class GeolocationMiddleware(BaseHTTPMiddleware):
                 "country_name": "United States",
                 "compliance_status": "allowed",
                 "compliance_reason": "Default location",
-                "source": "fallback"
+                "source": "fallback",
             }
             request.state.payment_processor = "stripe"
             request.state.payment_methods = ["card", "ach", "bank_transfer"]
             request.state.compliance_requirements = {
                 "kyc_required": True,
                 "age_verification": True,
-                "currency": "USD"
+                "currency": "USD",
             }
 
             response = await call_next(request)
@@ -74,12 +84,6 @@ class GeolocationMiddleware(BaseHTTPMiddleware):
 
     def _should_skip_geolocation(self, request: Request) -> bool:
         """Determine if geolocation should be skipped for this request"""
-        skip_paths = [
-            "/health",
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/favicon.ico"
-        ]
+        skip_paths = ["/health", "/docs", "/redoc", "/openapi.json", "/favicon.ico"]
 
         return any(request.url.path.startswith(path) for path in skip_paths)

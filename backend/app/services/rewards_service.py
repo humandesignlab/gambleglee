@@ -1,6 +1,7 @@
 """
 Rewards service for GambleGlee
 """
+
 from decimal import Decimal
 from typing import Dict, List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,16 +11,27 @@ from datetime import datetime, timedelta
 import json
 
 from app.models.rewards import (
-    Reward, RewardType, RewardStatus, UserTier, UserTierInfo,
-    TrickShooterReward, FriendBetReward, PointsTransaction,
-    RewardRedemption, Achievement, UserAchievement,
-    CreatorProgram, SeasonalReward, UserSeasonalReward
+    Reward,
+    RewardType,
+    RewardStatus,
+    UserTier,
+    UserTierInfo,
+    TrickShooterReward,
+    FriendBetReward,
+    PointsTransaction,
+    RewardRedemption,
+    Achievement,
+    UserAchievement,
+    CreatorProgram,
+    SeasonalReward,
+    UserSeasonalReward,
 )
 from app.models.user import User
 from app.core.exceptions import ValidationError, InsufficientFundsError
 import structlog
 
 logger = structlog.get_logger(__name__)
+
 
 class RewardsService:
     """Service for managing rewards and points system"""
@@ -44,7 +56,7 @@ class RewardsService:
                 total_points=0,
                 tier_points=0,
                 tier_progress=0.0,
-                bonus_rate=0.0
+                bonus_rate=0.0,
             )
             self.db.add(tier_info)
             await self.db.commit()
@@ -64,7 +76,9 @@ class RewardsService:
         tier_info.current_tier = new_tier
 
         # Calculate tier progress
-        tier_info.tier_progress = self._calculate_tier_progress(tier_info.total_points, new_tier)
+        tier_info.tier_progress = self._calculate_tier_progress(
+            tier_info.total_points, new_tier
+        )
 
         # Calculate bonus rate
         tier_info.bonus_rate = self._calculate_bonus_rate(new_tier)
@@ -85,28 +99,40 @@ class RewardsService:
         else:
             return UserTier.BRONZE
 
-    def _calculate_tier_progress(self, total_points: int, current_tier: UserTier) -> float:
+    def _calculate_tier_progress(
+        self, total_points: int, current_tier: UserTier
+    ) -> float:
         """Calculate progress to next tier (0-100)"""
         tier_thresholds = {
             UserTier.BRONZE: 0,
             UserTier.SILVER: 1000,
             UserTier.GOLD: 5000,
             UserTier.PLATINUM: 10000,
-            UserTier.DIAMOND: 25000
+            UserTier.DIAMOND: 25000,
         }
 
         current_threshold = tier_thresholds[current_tier]
-        next_threshold = tier_thresholds.get(self._get_next_tier(current_tier), current_threshold)
+        next_threshold = tier_thresholds.get(
+            self._get_next_tier(current_tier), current_threshold
+        )
 
         if next_threshold == current_threshold:
             return 100.0  # Already at highest tier
 
-        progress = ((total_points - current_threshold) / (next_threshold - current_threshold)) * 100
+        progress = (
+            (total_points - current_threshold) / (next_threshold - current_threshold)
+        ) * 100
         return min(100.0, max(0.0, progress))
 
     def _get_next_tier(self, current_tier: UserTier) -> Optional[UserTier]:
         """Get next tier level"""
-        tier_order = [UserTier.BRONZE, UserTier.SILVER, UserTier.GOLD, UserTier.PLATINUM, UserTier.DIAMOND]
+        tier_order = [
+            UserTier.BRONZE,
+            UserTier.SILVER,
+            UserTier.GOLD,
+            UserTier.PLATINUM,
+            UserTier.DIAMOND,
+        ]
         current_index = tier_order.index(current_tier)
         if current_index < len(tier_order) - 1:
             return tier_order[current_index + 1]
@@ -119,7 +145,7 @@ class RewardsService:
             UserTier.SILVER: 0.10,
             UserTier.GOLD: 0.20,
             UserTier.PLATINUM: 0.30,
-            UserTier.DIAMOND: 0.50
+            UserTier.DIAMOND: 0.50,
         }
         return bonus_rates.get(tier, 0.0)
 
@@ -132,14 +158,18 @@ class RewardsService:
         viewer_count: int = 0,
         bet_count: int = 0,
         completion_status: bool = False,
-        community_rating: float = 0.0
+        community_rating: float = 0.0,
     ) -> TrickShooterReward:
         """Create reward for trick shooter event"""
         tier_info = await self.get_user_tier(user_id)
 
         # Calculate rewards based on tier
         base_rewards = self._calculate_trick_shooter_rewards(
-            tier_info.current_tier, viewer_count, bet_count, completion_status, community_rating
+            tier_info.current_tier,
+            viewer_count,
+            bet_count,
+            completion_status,
+            community_rating,
         )
 
         # Apply tier bonus
@@ -159,7 +189,7 @@ class RewardsService:
             viewer_count=viewer_count,
             bet_count=bet_count,
             completion_status=completion_status,
-            community_rating=community_rating
+            community_rating=community_rating,
         )
 
         self.db.add(trick_shooter_reward)
@@ -168,15 +198,21 @@ class RewardsService:
         # Create points transaction
         points_earned = int(total_reward * 100)  # $1 = 100 points
         await self._create_points_transaction(
-            user_id, "earned", points_earned,
-            f"Trick shooter reward for event {event_id}"
+            user_id,
+            "earned",
+            points_earned,
+            f"Trick shooter reward for event {event_id}",
         )
 
         # Update user tier
         await self.update_user_tier(user_id, points_earned)
 
-        logger.info("Trick shooter reward created",
-                   user_id=user_id, event_id=event_id, total_reward=total_reward)
+        logger.info(
+            "Trick shooter reward created",
+            user_id=user_id,
+            event_id=event_id,
+            total_reward=total_reward,
+        )
 
         return trick_shooter_reward
 
@@ -186,7 +222,7 @@ class RewardsService:
         viewer_count: int,
         bet_count: int,
         completion_status: bool,
-        community_rating: float
+        community_rating: float,
     ) -> Dict[str, float]:
         """Calculate trick shooter rewards based on tier and performance"""
         base_rewards = {
@@ -195,7 +231,7 @@ class RewardsService:
             "engagement_bonus": 0.05,
             "completion_bonus": 10.0,
             "rating_bonus": 5.0,
-            "recurring_bonus": 0.0
+            "recurring_bonus": 0.0,
         }
 
         # Adjust base rewards based on tier
@@ -204,7 +240,7 @@ class RewardsService:
             UserTier.SILVER: 1.2,
             UserTier.GOLD: 1.5,
             UserTier.PLATINUM: 2.0,
-            UserTier.DIAMOND: 2.5
+            UserTier.DIAMOND: 2.5,
         }
 
         multiplier = tier_multipliers.get(tier, 1.0)
@@ -213,10 +249,18 @@ class RewardsService:
         rewards = {
             "event_creation": base_rewards["event_creation"] * multiplier,
             "viewer_bonus": base_rewards["viewer_bonus"] * viewer_count * multiplier,
-            "engagement_bonus": base_rewards["engagement_bonus"] * bet_count * multiplier,
-            "completion_bonus": base_rewards["completion_bonus"] * multiplier if completion_status else 0.0,
-            "rating_bonus": base_rewards["rating_bonus"] * (community_rating / 5.0) * multiplier,
-            "recurring_bonus": base_rewards["recurring_bonus"] * multiplier
+            "engagement_bonus": base_rewards["engagement_bonus"]
+            * bet_count
+            * multiplier,
+            "completion_bonus": (
+                base_rewards["completion_bonus"] * multiplier
+                if completion_status
+                else 0.0
+            ),
+            "rating_bonus": base_rewards["rating_bonus"]
+            * (community_rating / 5.0)
+            * multiplier,
+            "recurring_bonus": base_rewards["recurring_bonus"] * multiplier,
         }
 
         return rewards
@@ -230,14 +274,18 @@ class RewardsService:
         bet_amount: float,
         acceptance_status: bool = False,
         completion_status: bool = False,
-        social_interactions: int = 0
+        social_interactions: int = 0,
     ) -> FriendBetReward:
         """Create reward for friend bet"""
         tier_info = await self.get_user_tier(user_id)
 
         # Calculate rewards based on tier
         base_rewards = self._calculate_friend_bet_rewards(
-            tier_info.current_tier, bet_amount, acceptance_status, completion_status, social_interactions
+            tier_info.current_tier,
+            bet_amount,
+            acceptance_status,
+            completion_status,
+            social_interactions,
         )
 
         # Apply tier bonus
@@ -256,7 +304,7 @@ class RewardsService:
             bet_amount=bet_amount,
             acceptance_status=acceptance_status,
             completion_status=completion_status,
-            social_interactions=social_interactions
+            social_interactions=social_interactions,
         )
 
         self.db.add(friend_bet_reward)
@@ -265,15 +313,18 @@ class RewardsService:
         # Create points transaction
         points_earned = int(total_reward * 100)  # $1 = 100 points
         await self._create_points_transaction(
-            user_id, "earned", points_earned,
-            f"Friend bet reward for bet {bet_id}"
+            user_id, "earned", points_earned, f"Friend bet reward for bet {bet_id}"
         )
 
         # Update user tier
         await self.update_user_tier(user_id, points_earned)
 
-        logger.info("Friend bet reward created",
-                   user_id=user_id, bet_id=bet_id, total_reward=total_reward)
+        logger.info(
+            "Friend bet reward created",
+            user_id=user_id,
+            bet_id=bet_id,
+            total_reward=total_reward,
+        )
 
         return friend_bet_reward
 
@@ -283,7 +334,7 @@ class RewardsService:
         bet_amount: float,
         acceptance_status: bool,
         completion_status: bool,
-        social_interactions: int
+        social_interactions: int,
     ) -> Dict[str, float]:
         """Calculate friend bet rewards based on tier and performance"""
         base_rewards = {
@@ -291,7 +342,7 @@ class RewardsService:
             "acceptance_bonus": 2.0,
             "completion_bonus": 3.0,
             "social_bonus": 0.50,
-            "community_bonus": 5.0
+            "community_bonus": 5.0,
         }
 
         # Adjust base rewards based on tier
@@ -300,7 +351,7 @@ class RewardsService:
             UserTier.SILVER: 1.2,
             UserTier.GOLD: 1.5,
             UserTier.PLATINUM: 2.0,
-            UserTier.DIAMOND: 2.5
+            UserTier.DIAMOND: 2.5,
         }
 
         multiplier = tier_multipliers.get(tier, 1.0)
@@ -308,10 +359,20 @@ class RewardsService:
         # Calculate actual rewards
         rewards = {
             "creation_bonus": base_rewards["creation_bonus"] * multiplier,
-            "acceptance_bonus": base_rewards["acceptance_bonus"] * multiplier if acceptance_status else 0.0,
-            "completion_bonus": base_rewards["completion_bonus"] * multiplier if completion_status else 0.0,
-            "social_bonus": base_rewards["social_bonus"] * social_interactions * multiplier,
-            "community_bonus": base_rewards["community_bonus"] * multiplier
+            "acceptance_bonus": (
+                base_rewards["acceptance_bonus"] * multiplier
+                if acceptance_status
+                else 0.0
+            ),
+            "completion_bonus": (
+                base_rewards["completion_bonus"] * multiplier
+                if completion_status
+                else 0.0
+            ),
+            "social_bonus": base_rewards["social_bonus"]
+            * social_interactions
+            * multiplier,
+            "community_bonus": base_rewards["community_bonus"] * multiplier,
         }
 
         return rewards
@@ -325,7 +386,7 @@ class RewardsService:
         points_amount: int,
         description: str,
         source_id: Optional[int] = None,
-        source_type: Optional[str] = None
+        source_type: Optional[str] = None,
     ) -> PointsTransaction:
         """Create a points transaction"""
         transaction = PointsTransaction(
@@ -334,7 +395,7 @@ class RewardsService:
             points_amount=points_amount,
             description=description,
             source_id=source_id,
-            source_type=source_type
+            source_type=source_type,
         )
 
         self.db.add(transaction)
@@ -345,8 +406,9 @@ class RewardsService:
     async def get_user_points(self, user_id: int) -> int:
         """Get user's total points"""
         result = await self.db.execute(
-            select(func.sum(PointsTransaction.points_amount))
-            .where(PointsTransaction.user_id == user_id)
+            select(func.sum(PointsTransaction.points_amount)).where(
+                PointsTransaction.user_id == user_id
+            )
         )
         total_points = result.scalar() or 0
         return total_points
@@ -356,7 +418,7 @@ class RewardsService:
         user_id: int,
         redemption_type: str,
         points_used: int,
-        value_received: float
+        value_received: float,
     ) -> RewardRedemption:
         """Redeem points for rewards"""
         # Check if user has enough points
@@ -371,7 +433,7 @@ class RewardsService:
             redemption_type=redemption_type,
             points_used=points_used,
             value_received=value_received,
-            status="pending"
+            status="pending",
         )
 
         self.db.add(redemption)
@@ -379,18 +441,23 @@ class RewardsService:
 
         # Create points transaction
         await self._create_points_transaction(
-            user_id, "redeemed", -points_used,
-            f"Points redemption: {redemption_type}"
+            user_id, "redeemed", -points_used, f"Points redemption: {redemption_type}"
         )
 
-        logger.info("Points redeemed",
-                   user_id=user_id, points_used=points_used, value_received=value_received)
+        logger.info(
+            "Points redeemed",
+            user_id=user_id,
+            points_used=points_used,
+            value_received=value_received,
+        )
 
         return redemption
 
     # === ACHIEVEMENT SYSTEM ===
 
-    async def check_achievements(self, user_id: int, achievement_type: str, progress: int = 1):
+    async def check_achievements(
+        self, user_id: int, achievement_type: str, progress: int = 1
+    ):
         """Check and update user achievements"""
         # Get all active achievements
         result = await self.db.execute(
@@ -404,7 +471,7 @@ class RewardsService:
                 select(UserAchievement).where(
                     and_(
                         UserAchievement.user_id == user_id,
-                        UserAchievement.achievement_id == achievement.id
+                        UserAchievement.achievement_id == achievement.id,
                     )
                 )
             )
@@ -413,9 +480,7 @@ class RewardsService:
             if not user_achievement:
                 # Create new user achievement
                 user_achievement = UserAchievement(
-                    user_id=user_id,
-                    achievement_id=achievement.id,
-                    progress=progress
+                    user_id=user_id, achievement_id=achievement.id, progress=progress
                 )
                 self.db.add(user_achievement)
             else:
@@ -423,7 +488,9 @@ class RewardsService:
                 user_achievement.progress += progress
 
             # Check if achievement is completed
-            if user_achievement.progress >= self._get_achievement_requirement(achievement):
+            if user_achievement.progress >= self._get_achievement_requirement(
+                achievement
+            ):
                 if not user_achievement.is_completed:
                     user_achievement.is_completed = True
                     user_achievement.completed_at = datetime.utcnow()
@@ -431,12 +498,17 @@ class RewardsService:
                     # Award achievement rewards
                     if achievement.points_reward > 0:
                         await self._create_points_transaction(
-                            user_id, "earned", achievement.points_reward,
-                            f"Achievement: {achievement.name}"
+                            user_id,
+                            "earned",
+                            achievement.points_reward,
+                            f"Achievement: {achievement.name}",
                         )
 
-                    logger.info("Achievement completed",
-                               user_id=user_id, achievement_id=achievement.id)
+                    logger.info(
+                        "Achievement completed",
+                        user_id=user_id,
+                        achievement_id=achievement.id,
+                    )
 
         await self.db.commit()
 
@@ -449,10 +521,7 @@ class RewardsService:
     # === CREATOR PROGRAM ===
 
     async def enroll_creator_program(
-        self,
-        user_id: int,
-        program_type: str,
-        requirements_met: Dict
+        self, user_id: int, program_type: str, requirements_met: Dict
     ) -> CreatorProgram:
         """Enroll user in creator program"""
         # Check if user is already enrolled
@@ -467,14 +536,15 @@ class RewardsService:
             program_type=program_type,
             status="active",
             benefits=json.dumps(self._get_creator_benefits(program_type)),
-            requirements_met=json.dumps(requirements_met)
+            requirements_met=json.dumps(requirements_met),
         )
 
         self.db.add(creator_program)
         await self.db.commit()
 
-        logger.info("Creator program enrollment",
-                   user_id=user_id, program_type=program_type)
+        logger.info(
+            "Creator program enrollment", user_id=user_id, program_type=program_type
+        )
 
         return creator_program
 
@@ -487,7 +557,7 @@ class RewardsService:
                 "merchandise": "Free GambleGlee merchandise",
                 "events": "Exclusive creator events and meetups",
                 "recognition": "Creator badge, featured placement",
-                "support": "Dedicated creator support team"
+                "support": "Dedicated creator support team",
             },
             "influencer": {
                 "enhanced_rewards": "Triple points and cash rewards",
@@ -495,8 +565,8 @@ class RewardsService:
                 "merchandise": "Free GambleGlee merchandise",
                 "events": "Exclusive influencer events",
                 "recognition": "Influencer badge, featured placement",
-                "support": "Dedicated influencer support team"
-            }
+                "support": "Dedicated influencer support team",
+            },
         }
         return benefits.get(program_type, {})
 
@@ -512,7 +582,8 @@ class RewardsService:
 
         # Get recent rewards
         result = await self.db.execute(
-            select(Reward).where(Reward.user_id == user_id)
+            select(Reward)
+            .where(Reward.user_id == user_id)
             .order_by(Reward.created_at.desc())
             .limit(10)
         )
@@ -523,7 +594,7 @@ class RewardsService:
             select(UserAchievement).where(
                 and_(
                     UserAchievement.user_id == user_id,
-                    UserAchievement.is_completed == True
+                    UserAchievement.is_completed == True,
                 )
             )
         )
@@ -540,8 +611,9 @@ class RewardsService:
                     "points": reward.points_earned,
                     "cash": reward.cash_earned,
                     "description": reward.description,
-                    "created_at": reward.created_at
-                } for reward in recent_rewards
+                    "created_at": reward.created_at,
+                }
+                for reward in recent_rewards
             ],
-            "completed_achievements": len(completed_achievements)
+            "completed_achievements": len(completed_achievements),
         }

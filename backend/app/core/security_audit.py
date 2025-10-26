@@ -28,32 +28,38 @@ class SecurityAudit:
         # Check for rapid transactions
         rapid_transactions = await self._check_rapid_transactions(user_id)
         if rapid_transactions:
-            alerts.append({
-                "type": "rapid_transactions",
-                "severity": "high",
-                "message": f"User {user_id} has {rapid_transactions} transactions in the last 5 minutes",
-                "timestamp": datetime.utcnow()
-            })
+            alerts.append(
+                {
+                    "type": "rapid_transactions",
+                    "severity": "high",
+                    "message": f"User {user_id} has {rapid_transactions} transactions in the last 5 minutes",
+                    "timestamp": datetime.utcnow(),
+                }
+            )
 
         # Check for unusual amounts
         unusual_amounts = await self._check_unusual_amounts(user_id)
         if unusual_amounts:
-            alerts.append({
-                "type": "unusual_amounts",
-                "severity": "medium",
-                "message": f"User {user_id} has transactions with unusual amounts",
-                "timestamp": datetime.utcnow()
-            })
+            alerts.append(
+                {
+                    "type": "unusual_amounts",
+                    "severity": "medium",
+                    "message": f"User {user_id} has transactions with unusual amounts",
+                    "timestamp": datetime.utcnow(),
+                }
+            )
 
         # Check for potential money laundering patterns
         ml_patterns = await self._check_money_laundering_patterns(user_id)
         if ml_patterns:
-            alerts.append({
-                "type": "money_laundering",
-                "severity": "critical",
-                "message": f"User {user_id} shows potential money laundering patterns",
-                "timestamp": datetime.utcnow()
-            })
+            alerts.append(
+                {
+                    "type": "money_laundering",
+                    "severity": "critical",
+                    "message": f"User {user_id} shows potential money laundering patterns",
+                    "timestamp": datetime.utcnow(),
+                }
+            )
 
         return alerts
 
@@ -68,7 +74,9 @@ class SecurityAudit:
         )
 
         count = result.scalar()
-        return count if count > 10 else 0  # Alert if more than 10 transactions in 5 minutes
+        return (
+            count if count > 10 else 0
+        )  # Alert if more than 10 transactions in 5 minutes
 
     async def _check_unusual_amounts(self, user_id: int) -> bool:
         """Check for unusual transaction amounts"""
@@ -89,7 +97,7 @@ class SecurityAudit:
         # Calculate average and standard deviation
         avg_amount = sum(amounts) / len(amounts)
         variance = sum((amount - avg_amount) ** 2 for amount in amounts) / len(amounts)
-        std_dev = variance ** 0.5
+        std_dev = variance**0.5
 
         # Check for amounts that are 3 standard deviations from the mean
         threshold = avg_amount + (3 * std_dev)
@@ -147,8 +155,8 @@ class SecurityAudit:
         transactions = result.scalars().all()
 
         # Calculate expected balance
-        expected_balance = Decimal('0')
-        expected_locked = Decimal('0')
+        expected_balance = Decimal("0")
+        expected_locked = Decimal("0")
 
         for transaction in transactions:
             amount = Decimal(str(transaction.amount))
@@ -173,19 +181,27 @@ class SecurityAudit:
             "expected_balance": float(expected_balance),
             "expected_locked": float(expected_locked),
             "transaction_count": len(transactions),
-            "audit_timestamp": datetime.utcnow()
+            "audit_timestamp": datetime.utcnow(),
         }
 
-    async def log_security_event(self, event_type: str, user_id: int,
-                                details: Dict[str, Any], severity: str = "medium"):
+    async def log_security_event(
+        self,
+        event_type: str,
+        user_id: int,
+        details: Dict[str, Any],
+        severity: str = "medium",
+    ):
         """Log security events for monitoring"""
-        logger.warning(f"SECURITY_EVENT: {event_type} | User: {user_id} | Severity: {severity} | Details: {details}")
+        logger.warning(
+            f"SECURITY_EVENT: {event_type} | User: {user_id} | Severity: {severity} | Details: {details}"
+        )
 
         # In production, this would send to a security monitoring system
         # like Splunk, ELK stack, or AWS CloudWatch
 
-    async def check_velocity_limits(self, user_id: int, amount: Decimal,
-                                  transaction_type: TransactionType) -> bool:
+    async def check_velocity_limits(
+        self, user_id: int, amount: Decimal, transaction_type: TransactionType
+    ) -> bool:
         """Check velocity limits for transactions"""
         # Check hourly limits
         one_hour_ago = datetime.utcnow() - timedelta(hours=1)

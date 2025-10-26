@@ -1,6 +1,7 @@
 """
 Pytest configuration and fixtures for GambleGlee testing
 """
+
 import asyncio
 import pytest
 import pytest_asyncio
@@ -30,6 +31,7 @@ from app.services.rewards_service import RewardsService
 TEST_DATABASE_URL = "postgresql+asyncpg://test:test@localhost:5432/test_gambleglee"
 TEST_REDIS_URL = "redis://localhost:6379/0"
 
+
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
@@ -37,17 +39,20 @@ def event_loop():
     yield loop
     loop.close()
 
+
 @pytest.fixture(scope="session")
 def postgres_container():
     """Start PostgreSQL container for testing"""
     with PostgresContainer("postgres:15") as postgres:
         yield postgres
 
+
 @pytest.fixture(scope="session")
 def redis_container():
     """Start Redis container for testing"""
     with RedisContainer("redis:7") as redis:
         yield redis
+
 
 @pytest.fixture(scope="session")
 async def test_engine(postgres_container):
@@ -72,6 +77,7 @@ async def test_engine(postgres_container):
         await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
+
 @pytest.fixture
 async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
     """Create test database session"""
@@ -83,9 +89,11 @@ async def test_db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
         yield session
         await session.rollback()
 
+
 @pytest.fixture
 def test_client(test_db_session):
     """Create test client with database dependency override"""
+
     def override_get_db():
         yield test_db_session
 
@@ -96,9 +104,11 @@ def test_client(test_db_session):
 
     app.dependency_overrides.clear()
 
+
 @pytest.fixture
 async def async_test_client(test_db_session):
     """Create async test client"""
+
     def override_get_db():
         yield test_db_session
 
@@ -109,7 +119,9 @@ async def async_test_client(test_db_session):
 
     app.dependency_overrides.clear()
 
+
 # === USER FIXTURES ===
+
 
 @pytest.fixture
 async def test_user(test_db_session) -> User:
@@ -121,12 +133,13 @@ async def test_user(test_db_session) -> User:
         first_name="Test",
         last_name="User",
         is_active=True,
-        is_verified=True
+        is_verified=True,
     )
     test_db_session.add(user)
     await test_db_session.commit()
     await test_db_session.refresh(user)
     return user
+
 
 @pytest.fixture
 async def test_user_2(test_db_session) -> User:
@@ -138,52 +151,51 @@ async def test_user_2(test_db_session) -> User:
         first_name="Test",
         last_name="User2",
         is_active=True,
-        is_verified=True
+        is_verified=True,
     )
     test_db_session.add(user)
     await test_db_session.commit()
     await test_db_session.refresh(user)
     return user
 
+
 @pytest.fixture
 def test_user_token(test_user) -> str:
     """Create JWT token for test user"""
     return create_access_token(data={"sub": str(test_user.id)})
+
 
 @pytest.fixture
 def test_user_2_token(test_user_2) -> str:
     """Create JWT token for second test user"""
     return create_access_token(data={"sub": str(test_user_2.id)})
 
+
 # === WALLET FIXTURES ===
+
 
 @pytest.fixture
 async def test_wallet(test_db_session, test_user) -> Wallet:
     """Create test wallet for user"""
-    wallet = Wallet(
-        user_id=test_user.id,
-        balance=1000.00,
-        currency="USD"
-    )
+    wallet = Wallet(user_id=test_user.id, balance=1000.00, currency="USD")
     test_db_session.add(wallet)
     await test_db_session.commit()
     await test_db_session.refresh(wallet)
     return wallet
+
 
 @pytest.fixture
 async def test_wallet_2(test_db_session, test_user_2) -> Wallet:
     """Create test wallet for second user"""
-    wallet = Wallet(
-        user_id=test_user_2.id,
-        balance=1000.00,
-        currency="USD"
-    )
+    wallet = Wallet(user_id=test_user_2.id, balance=1000.00, currency="USD")
     test_db_session.add(wallet)
     await test_db_session.commit()
     await test_db_session.refresh(wallet)
     return wallet
 
+
 # === BETTING FIXTURES ===
+
 
 @pytest.fixture
 async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
@@ -200,7 +212,7 @@ async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
         total_pot=Decimal("205.00"),
         winner_payout=Decimal("100.00"),
         created_by=test_user.id,
-        status="pending"
+        status="pending",
     )
     test_db_session.add(bet)
     await test_db_session.commit()
@@ -212,7 +224,7 @@ async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
         user_id=test_user.id,
         role="creator",
         stake_amount=Decimal("100.00"),
-        potential_winnings=Decimal("100.00")
+        potential_winnings=Decimal("100.00"),
     )
     test_db_session.add(creator_participant)
 
@@ -221,12 +233,13 @@ async def test_bet(test_db_session, test_user, test_user_2) -> Bet:
         user_id=test_user_2.id,
         role="acceptor",
         stake_amount=Decimal("100.00"),
-        potential_winnings=Decimal("100.00")
+        potential_winnings=Decimal("100.00"),
     )
     test_db_session.add(acceptor_participant)
 
     await test_db_session.commit()
     return bet
+
 
 @pytest.fixture
 async def test_bet_limit(test_db_session, test_user) -> BetLimit:
@@ -242,31 +255,37 @@ async def test_bet_limit(test_db_session, test_user) -> BetLimit:
         min_single_bet=Decimal("1.00"),
         daily_reset_at=datetime.utcnow() + timedelta(days=1),
         weekly_reset_at=datetime.utcnow() + timedelta(weeks=1),
-        monthly_reset_at=datetime.utcnow() + timedelta(days=30)
+        monthly_reset_at=datetime.utcnow() + timedelta(days=30),
     )
     test_db_session.add(bet_limit)
     await test_db_session.commit()
     await test_db_session.refresh(bet_limit)
     return bet_limit
 
+
 # === SERVICE FIXTURES ===
+
 
 @pytest.fixture
 def betting_service(test_db_session) -> BettingService:
     """Create betting service instance"""
     return BettingService(test_db_session)
 
+
 @pytest.fixture
 def wallet_service(test_db_session) -> SecureWalletService:
     """Create wallet service instance"""
     return SecureWalletService(test_db_session)
+
 
 @pytest.fixture
 def rewards_service(test_db_session) -> RewardsService:
     """Create rewards service instance"""
     return RewardsService(test_db_session)
 
+
 # === TEST DATA FIXTURES ===
+
 
 @pytest.fixture
 def sample_bet_data():
@@ -276,8 +295,9 @@ def sample_bet_data():
         "description": "Test bet description",
         "bet_type": "friend_bet",
         "amount": 100.0,
-        "expires_in_hours": 24
+        "expires_in_hours": 24,
     }
+
 
 @pytest.fixture
 def sample_bet_resolution_data():
@@ -285,18 +305,18 @@ def sample_bet_resolution_data():
     return {
         "outcome": "winner_a",
         "resolution_data": {"reason": "Test resolution"},
-        "resolution_method": "manual"
+        "resolution_method": "manual",
     }
+
 
 @pytest.fixture
 def sample_wallet_data():
     """Sample wallet data"""
-    return {
-        "balance": 1000.0,
-        "currency": "USD"
-    }
+    return {"balance": 1000.0, "currency": "USD"}
+
 
 # === MOCK FIXTURES ===
+
 
 @pytest.fixture
 def mock_stripe_service():
@@ -306,12 +326,11 @@ def mock_stripe_service():
     mock_service = AsyncMock()
     mock_service.create_payment_intent.return_value = {
         "client_secret": "pi_test_123",
-        "payment_intent_id": "pi_test_123"
+        "payment_intent_id": "pi_test_123",
     }
-    mock_service.confirm_payment_intent.return_value = {
-        "status": "succeeded"
-    }
+    mock_service.confirm_payment_intent.return_value = {"status": "succeeded"}
     return mock_service
+
 
 @pytest.fixture
 def mock_mercadopago_service():
@@ -321,9 +340,10 @@ def mock_mercadopago_service():
     mock_service = AsyncMock()
     mock_service.create_preference.return_value = {
         "id": "pref_test_123",
-        "init_point": "https://test.mercadopago.com/checkout"
+        "init_point": "https://test.mercadopago.com/checkout",
     }
     return mock_service
+
 
 @pytest.fixture
 def mock_geolocation_service():
@@ -336,11 +356,13 @@ def mock_geolocation_service():
         "region": "California",
         "city": "San Francisco",
         "compliance_status": "allowed",
-        "payment_processor": "stripe"
+        "payment_processor": "stripe",
     }
     return mock_service
 
+
 # === PERFORMANCE TEST FIXTURES ===
+
 
 @pytest.fixture
 def performance_test_data():
@@ -349,10 +371,12 @@ def performance_test_data():
         "concurrent_users": 100,
         "bets_per_user": 10,
         "test_duration": 300,  # 5 minutes
-        "ramp_up_time": 60,   # 1 minute
+        "ramp_up_time": 60,  # 1 minute
     }
 
+
 # === CLEANUP FIXTURES ===
+
 
 @pytest.fixture(autouse=True)
 async def cleanup_test_data(test_db_session):
@@ -360,31 +384,20 @@ async def cleanup_test_data(test_db_session):
     yield
     # Cleanup is handled by database rollback in test_db_session fixture
 
+
 # === TEST CONFIGURATION ===
+
 
 def pytest_configure(config):
     """Configure pytest"""
-    config.addinivalue_line(
-        "markers", "unit: mark test as unit test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as integration test"
-    )
-    config.addinivalue_line(
-        "markers", "e2e: mark test as end-to-end test"
-    )
-    config.addinivalue_line(
-        "markers", "financial: mark test as financial test"
-    )
-    config.addinivalue_line(
-        "markers", "security: mark test as security test"
-    )
-    config.addinivalue_line(
-        "markers", "performance: mark test as performance test"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow test"
-    )
+    config.addinivalue_line("markers", "unit: mark test as unit test")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "e2e: mark test as end-to-end test")
+    config.addinivalue_line("markers", "financial: mark test as financial test")
+    config.addinivalue_line("markers", "security: mark test as security test")
+    config.addinivalue_line("markers", "performance: mark test as performance test")
+    config.addinivalue_line("markers", "slow: mark test as slow test")
+
 
 def pytest_collection_modifyitems(config, items):
     """Modify test collection"""
@@ -394,7 +407,11 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.slow)
 
         # Mark financial tests
-        if "financial" in item.nodeid or "wallet" in item.nodeid or "betting" in item.nodeid:
+        if (
+            "financial" in item.nodeid
+            or "wallet" in item.nodeid
+            or "betting" in item.nodeid
+        ):
             item.add_marker(pytest.mark.financial)
 
         # Mark security tests

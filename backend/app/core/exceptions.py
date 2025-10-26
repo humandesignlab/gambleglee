@@ -12,7 +12,7 @@ class GambleGleeException(HTTPException):
         self,
         detail: str,
         status_code: int = status.HTTP_400_BAD_REQUEST,
-        error_code: str = "GAMBLEGLEE_ERROR"
+        error_code: str = "GAMBLEGLEE_ERROR",
     ):
         self.detail = detail
         self.status_code = status_code
@@ -27,7 +27,7 @@ class AuthenticationError(GambleGleeException):
         super().__init__(
             detail=detail,
             status_code=status.HTTP_401_UNAUTHORIZED,
-            error_code="AUTH_ERROR"
+            error_code="AUTH_ERROR",
         )
 
 
@@ -38,7 +38,7 @@ class AuthorizationError(GambleGleeException):
         super().__init__(
             detail=detail,
             status_code=status.HTTP_403_FORBIDDEN,
-            error_code="AUTHZ_ERROR"
+            error_code="AUTHZ_ERROR",
         )
 
 
@@ -49,7 +49,7 @@ class ValidationError(GambleGleeException):
         super().__init__(
             detail=detail,
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            error_code="VALIDATION_ERROR"
+            error_code="VALIDATION_ERROR",
         )
 
 
@@ -58,9 +58,7 @@ class NotFoundError(GambleGleeException):
 
     def __init__(self, detail: str = "Resource not found"):
         super().__init__(
-            detail=detail,
-            status_code=status.HTTP_404_NOT_FOUND,
-            error_code="NOT_FOUND"
+            detail=detail, status_code=status.HTTP_404_NOT_FOUND, error_code="NOT_FOUND"
         )
 
 
@@ -69,9 +67,7 @@ class ConflictError(GambleGleeException):
 
     def __init__(self, detail: str = "Resource conflict"):
         super().__init__(
-            detail=detail,
-            status_code=status.HTTP_409_CONFLICT,
-            error_code="CONFLICT"
+            detail=detail, status_code=status.HTTP_409_CONFLICT, error_code="CONFLICT"
         )
 
 
@@ -82,7 +78,7 @@ class InsufficientFundsError(GambleGleeException):
         super().__init__(
             detail=detail,
             status_code=status.HTTP_400_BAD_REQUEST,
-            error_code="INSUFFICIENT_FUNDS"
+            error_code="INSUFFICIENT_FUNDS",
         )
 
 
@@ -93,7 +89,7 @@ class BettingError(GambleGleeException):
         super().__init__(
             detail=detail,
             status_code=status.HTTP_400_BAD_REQUEST,
-            error_code="BETTING_ERROR"
+            error_code="BETTING_ERROR",
         )
 
 
@@ -104,5 +100,5 @@ class ComplianceError(GambleGleeException):
         super().__init__(
             detail=detail,
             status_code=status.HTTP_400_BAD_REQUEST,
-            error_code="COMPLIANCE_ERROR"
+            error_code="COMPLIANCE_ERROR",
         )

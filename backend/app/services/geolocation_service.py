@@ -50,8 +50,7 @@ class GeolocationService:
             # Use ipapi.co (free tier: 1000 requests/day)
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    f"http://ipapi.co/{ip_address}/json/",
-                    timeout=5.0
+                    f"http://ipapi.co/{ip_address}/json/", timeout=5.0
                 )
 
                 if response.status_code == 200:
@@ -65,7 +64,7 @@ class GeolocationService:
                         "longitude": data.get("longitude"),
                         "timezone": data.get("timezone", ""),
                         "isp": data.get("org", ""),
-                        "source": "ipapi"
+                        "source": "ipapi",
                     }
         except Exception as e:
             print(f"IP geolocation failed: {e}")
@@ -80,7 +79,7 @@ class GeolocationService:
             "longitude": None,
             "timezone": "UTC",
             "isp": "",
-            "source": "fallback"
+            "source": "fallback",
         }
 
     def _get_location_hints(self, request: Request) -> Dict[str, Any]:
@@ -112,15 +111,18 @@ class GeolocationService:
 
         return hints
 
-    def _combine_location_data(self, location_data: Dict[str, Any],
-                             location_hints: Dict[str, Any],
-                             ip_address: str) -> Dict[str, Any]:
+    def _combine_location_data(
+        self,
+        location_data: Dict[str, Any],
+        location_hints: Dict[str, Any],
+        ip_address: str,
+    ) -> Dict[str, Any]:
         """Combine and validate location data"""
         combined = {
             **location_data,
             **location_hints,
             "ip_address": ip_address,
-            "detected_at": "now()"  # Will be replaced with actual timestamp
+            "detected_at": "now()",  # Will be replaced with actual timestamp
         }
 
         # Validate country is allowed
@@ -165,7 +167,9 @@ class GeolocationService:
             # For unsupported countries, show limited options
             return ["card", "bank_transfer"]
 
-    def get_compliance_requirements(self, location_data: Dict[str, Any]) -> Dict[str, Any]:
+    def get_compliance_requirements(
+        self, location_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Get compliance requirements for the user's location"""
         country = location_data.get("country", "").upper()
 
@@ -176,27 +180,39 @@ class GeolocationService:
             "tax_collection": True,
             "deposit_limits": {"daily": 1000, "weekly": 5000, "monthly": 20000},
             "withdrawal_limits": {"daily": 5000, "weekly": 10000, "monthly": 50000},
-            "currency": "USD"
+            "currency": "USD",
         }
 
         if country == "US":
-            requirements.update({
-                "kyc_required": True,
-                "age_verification": True,
-                "tax_collection": True,
-                "deposit_limits": {"daily": 1000, "weekly": 5000, "monthly": 20000},
-                "withdrawal_limits": {"daily": 5000, "weekly": 10000, "monthly": 50000},
-                "currency": "USD"
-            })
+            requirements.update(
+                {
+                    "kyc_required": True,
+                    "age_verification": True,
+                    "tax_collection": True,
+                    "deposit_limits": {"daily": 1000, "weekly": 5000, "monthly": 20000},
+                    "withdrawal_limits": {
+                        "daily": 5000,
+                        "weekly": 10000,
+                        "monthly": 50000,
+                    },
+                    "currency": "USD",
+                }
+            )
         elif country == "MX":
-            requirements.update({
-                "kyc_required": True,
-                "age_verification": True,
-                "tax_collection": True,
-                "deposit_limits": {"daily": 500, "weekly": 2500, "monthly": 10000},
-                "withdrawal_limits": {"daily": 2500, "weekly": 5000, "monthly": 25000},
-                "currency": "MXN"
-            })
+            requirements.update(
+                {
+                    "kyc_required": True,
+                    "age_verification": True,
+                    "tax_collection": True,
+                    "deposit_limits": {"daily": 500, "weekly": 2500, "monthly": 10000},
+                    "withdrawal_limits": {
+                        "daily": 2500,
+                        "weekly": 5000,
+                        "monthly": 25000,
+                    },
+                    "currency": "MXN",
+                }
+            )
 
         return requirements
 

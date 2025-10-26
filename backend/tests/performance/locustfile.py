@@ -5,7 +5,7 @@ from locust import HttpUser, task, between
 
 class GambleGleeUser(HttpUser):
     """Simulated user for performance testing."""
-    
+
     wait_time = between(1, 3)
     host = "http://localhost:8000"
 

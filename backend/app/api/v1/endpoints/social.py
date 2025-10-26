@@ -1,6 +1,7 @@
 """
 Social endpoints for GambleGlee
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
@@ -9,20 +10,41 @@ from app.core.database import get_db
 from app.core.security import get_current_active_user
 from app.models.user import User
 from app.schemas.social import (
-    FriendRequestRequest, FriendRequestResponse, UserSearchRequest,
-    ActivityCreateRequest, NotificationCreateRequest, ProfileUpdateRequest,
-    CommentCreateRequest, LeaderboardRequest,
-    UserProfileResponse, FriendshipResponse, UserActivityResponse,
-    ActivityCommentResponse, NotificationResponse, UserAchievementResponse,
-    LeaderboardEntryResponse, UserSearchResponse, UserSearchListResponse,
-    ActivityListResponse, NotificationListResponse, LeaderboardListResponse,
-    FriendshipListResponse, UserStatsResponse, SocialDashboardResponse,
-    UserSearchFilters, ActivityFilters, NotificationFilters, ActivityData
+    FriendRequestRequest,
+    FriendRequestResponse,
+    UserSearchRequest,
+    ActivityCreateRequest,
+    NotificationCreateRequest,
+    ProfileUpdateRequest,
+    CommentCreateRequest,
+    LeaderboardRequest,
+    UserProfileResponse,
+    FriendshipResponse,
+    UserActivityResponse,
+    ActivityCommentResponse,
+    NotificationResponse,
+    UserAchievementResponse,
+    LeaderboardEntryResponse,
+    UserSearchResponse,
+    UserSearchListResponse,
+    ActivityListResponse,
+    NotificationListResponse,
+    LeaderboardListResponse,
+    FriendshipListResponse,
+    UserStatsResponse,
+    SocialDashboardResponse,
+    UserSearchFilters,
+    ActivityFilters,
+    NotificationFilters,
+    ActivityData,
 )
 from app.services.social_service import SocialService
 from app.core.exceptions import (
-    ValidationError, UserNotFoundError, FriendshipNotFoundError,
-    NotificationNotFoundError, ActivityNotFoundError
+    ValidationError,
+    UserNotFoundError,
+    FriendshipNotFoundError,
+    NotificationNotFoundError,
+    ActivityNotFoundError,
 )
 import structlog
 
@@ -31,19 +53,22 @@ router = APIRouter()
 
 # === FRIEND SYSTEM ENDPOINTS ===
 
-@router.post("/friends/request", response_model=FriendshipResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/friends/request",
+    response_model=FriendshipResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def send_friend_request(
     friend_request: FriendRequestRequest,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Send a friend request to another user"""
     try:
         social_service = SocialService(db)
         friendship = await social_service.send_friend_request(
-            current_user.id,
-            friend_request.friend_id,
-            friend_request.message
+            current_user.id, friend_request.friend_id, friend_request.message
         )
         return FriendshipResponse.from_orm(friendship)
     except ValidationError as e:
@@ -52,21 +77,23 @@ async def send_friend_request(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error("Failed to send friend request", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to send friend request")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send friend request",
+        )
+
 
 @router.post("/friends/respond", response_model=FriendshipResponse)
 async def respond_to_friend_request(
     friend_response: FriendRequestResponse,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Respond to a friend request"""
     try:
         social_service = SocialService(db)
         friendship = await social_service.respond_to_friend_request(
-            current_user.id,
-            friend_response.friend_id,
-            friend_response.action
+            current_user.id, friend_response.friend_id, friend_response.action
         )
         return FriendshipResponse.from_orm(friendship)
     except ValidationError as e:
@@ -75,13 +102,17 @@ async def respond_to_friend_request(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error("Failed to respond to friend request", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to respond to friend request")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to respond to friend request",
+        )
+
 
 @router.delete("/friends/{friend_id}")
 async def remove_friend(
     friend_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Remove a friend"""
     try:
@@ -92,13 +123,17 @@ async def remove_friend(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Failed to remove friend", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to remove friend")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to remove friend",
+        )
+
 
 @router.post("/friends/{friend_id}/block", response_model=FriendshipResponse)
 async def block_user(
     friend_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Block a user"""
     try:
@@ -107,61 +142,78 @@ async def block_user(
         return FriendshipResponse.from_orm(friendship)
     except Exception as e:
         logger.error("Failed to block user", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to block user")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to block user",
+        )
+
 
 @router.get("/friends", response_model=FriendshipListResponse)
 async def get_friends(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100)
+    size: int = Query(20, ge=1, le=100),
 ):
     """Get user's friends list"""
     try:
         social_service = SocialService(db)
-        friendships, total = await social_service.get_friends(current_user.id, page, size)
+        friendships, total = await social_service.get_friends(
+            current_user.id, page, size
+        )
 
         return FriendshipListResponse(
             items=[FriendshipResponse.from_orm(f) for f in friendships],
             total=total,
             page=page,
             size=size,
-            pages=(total + size - 1) // size
+            pages=(total + size - 1) // size,
         )
     except Exception as e:
         logger.error("Failed to get friends", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get friends")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get friends",
+        )
+
 
 @router.get("/friends/requests", response_model=FriendshipListResponse)
 async def get_friend_requests(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100)
+    size: int = Query(20, ge=1, le=100),
 ):
     """Get pending friend requests"""
     try:
         social_service = SocialService(db)
-        friendships, total = await social_service.get_friend_requests(current_user.id, page, size)
+        friendships, total = await social_service.get_friend_requests(
+            current_user.id, page, size
+        )
 
         return FriendshipListResponse(
             items=[FriendshipResponse.from_orm(f) for f in friendships],
             total=total,
             page=page,
             size=size,
-            pages=(total + size - 1) // size
+            pages=(total + size - 1) // size,
         )
     except Exception as e:
         logger.error("Failed to get friend requests", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get friend requests")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get friend requests",
+        )
+
 
 # === USER SEARCH ENDPOINTS ===
+
 
 @router.post("/search/users", response_model=UserSearchListResponse)
 async def search_users(
     search_request: UserSearchRequest,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Search for users"""
     try:
@@ -177,7 +229,7 @@ async def search_users(
             current_user.id,
             filters,
             search_request.page,
-            search_request.size
+            search_request.size,
         )
 
         # Convert to response format
@@ -187,40 +239,52 @@ async def search_users(
             friendship_status = None
             # This would be implemented to check friendship status
 
-            user_responses.append(UserSearchResponse(
-                id=user.id,
-                username=user.username,
-                display_name=user.display_name or user.username,
-                avatar_url=user.avatar_url,
-                bio=user.bio,
-                location=user.location,
-                is_online=user.last_active and (user.last_active > datetime.utcnow() - timedelta(minutes=5)),
-                last_active=user.last_active,
-                friends_count=0,  # This would be fetched from profile
-                total_bets=0,  # This would be fetched from profile
-                win_rate=0.0,  # This would be fetched from profile
-                is_friend=False,  # This would be determined by friendship status
-                friendship_status=friendship_status
-            ))
+            user_responses.append(
+                UserSearchResponse(
+                    id=user.id,
+                    username=user.username,
+                    display_name=user.display_name or user.username,
+                    avatar_url=user.avatar_url,
+                    bio=user.bio,
+                    location=user.location,
+                    is_online=user.last_active
+                    and (user.last_active > datetime.utcnow() - timedelta(minutes=5)),
+                    last_active=user.last_active,
+                    friends_count=0,  # This would be fetched from profile
+                    total_bets=0,  # This would be fetched from profile
+                    win_rate=0.0,  # This would be fetched from profile
+                    is_friend=False,  # This would be determined by friendship status
+                    friendship_status=friendship_status,
+                )
+            )
 
         return UserSearchListResponse(
             items=user_responses,
             total=total,
             page=search_request.page,
             size=search_request.size,
-            pages=(total + search_request.size - 1) // search_request.size
+            pages=(total + search_request.size - 1) // search_request.size,
         )
     except Exception as e:
         logger.error("Failed to search users", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to search users")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to search users",
+        )
+
 
 # === ACTIVITY FEED ENDPOINTS ===
 
-@router.post("/activities", response_model=UserActivityResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/activities",
+    response_model=UserActivityResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_activity(
     activity_request: ActivityCreateRequest,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Create a new activity"""
     try:
@@ -232,7 +296,7 @@ async def create_activity(
                 title=activity_request.title,
                 description=activity_request.description,
                 metadata=activity_request.metadata,
-                is_public=activity_request.is_public
+                is_public=activity_request.is_public,
             )
         )
         return UserActivityResponse.from_orm(activity)
@@ -240,7 +304,11 @@ async def create_activity(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.error("Failed to create activity", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create activity")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create activity",
+        )
+
 
 @router.get("/activities", response_model=ActivityListResponse)
 async def get_user_activities(
@@ -250,7 +318,7 @@ async def get_user_activities(
     size: int = Query(20, ge=1, le=100),
     activity_type: Optional[str] = Query(None),
     is_public: Optional[bool] = Query(None),
-    is_featured: Optional[bool] = Query(None)
+    is_featured: Optional[bool] = Query(None),
 ):
     """Get user's activities"""
     try:
@@ -258,9 +326,7 @@ async def get_user_activities(
 
         # Create filters
         filters = ActivityFilters(
-            activity_type=activity_type,
-            is_public=is_public,
-            is_featured=is_featured
+            activity_type=activity_type, is_public=is_public, is_featured=is_featured
         )
 
         activities, total = await social_service.get_user_activities(
@@ -272,18 +338,22 @@ async def get_user_activities(
             total=total,
             page=page,
             size=size,
-            pages=(total + size - 1) // size
+            pages=(total + size - 1) // size,
         )
     except Exception as e:
         logger.error("Failed to get user activities", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get user activities")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get user activities",
+        )
+
 
 @router.get("/activities/friends", response_model=ActivityListResponse)
 async def get_friends_activities(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100)
+    size: int = Query(20, ge=1, le=100),
 ):
     """Get friends' activities"""
     try:
@@ -297,13 +367,18 @@ async def get_friends_activities(
             total=total,
             page=page,
             size=size,
-            pages=(total + size - 1) // size
+            pages=(total + size - 1) // size,
         )
     except Exception as e:
         logger.error("Failed to get friends activities", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get friends activities")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get friends activities",
+        )
+
 
 # === NOTIFICATION ENDPOINTS ===
+
 
 @router.get("/notifications", response_model=NotificationListResponse)
 async def get_notifications(
@@ -313,7 +388,7 @@ async def get_notifications(
     size: int = Query(20, ge=1, le=100),
     notification_type: Optional[str] = Query(None),
     is_read: Optional[bool] = Query(None),
-    is_important: Optional[bool] = Query(None)
+    is_important: Optional[bool] = Query(None),
 ):
     """Get user's notifications"""
     try:
@@ -323,11 +398,13 @@ async def get_notifications(
         filters = NotificationFilters(
             notification_type=notification_type,
             is_read=is_read,
-            is_important=is_important
+            is_important=is_important,
         )
 
-        notifications, total, unread_count = await social_service.get_user_notifications(
-            current_user.id, page, size, filters
+        notifications, total, unread_count = (
+            await social_service.get_user_notifications(
+                current_user.id, page, size, filters
+            )
         )
 
         return NotificationListResponse(
@@ -336,17 +413,21 @@ async def get_notifications(
             page=page,
             size=size,
             pages=(total + size - 1) // size,
-            unread_count=unread_count
+            unread_count=unread_count,
         )
     except Exception as e:
         logger.error("Failed to get notifications", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get notifications")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get notifications",
+        )
+
 
 @router.post("/notifications/{notification_id}/read")
 async def mark_notification_read(
     notification_id: int,
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Mark a notification as read"""
     try:
@@ -357,12 +438,16 @@ async def mark_notification_read(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         logger.error("Failed to mark notification as read", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to mark notification as read")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to mark notification as read",
+        )
+
 
 @router.post("/notifications/read-all")
 async def mark_all_notifications_read(
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Mark all notifications as read"""
     try:
@@ -371,9 +456,14 @@ async def mark_all_notifications_read(
         return {"message": f"Marked {count} notifications as read"}
     except Exception as e:
         logger.error("Failed to mark all notifications as read", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to mark all notifications as read")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to mark all notifications as read",
+        )
+
 
 # === LEADERBOARD ENDPOINTS ===
+
 
 @router.get("/leaderboards/{category}", response_model=LeaderboardListResponse)
 async def get_leaderboard(
@@ -382,7 +472,7 @@ async def get_leaderboard(
     db: AsyncSession = Depends(get_db),
     time_period: str = Query("all_time"),
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100)
+    size: int = Query(20, ge=1, le=100),
 ):
     """Get leaderboard entries"""
     try:
@@ -396,18 +486,23 @@ async def get_leaderboard(
             total=total,
             page=page,
             size=size,
-            pages=(total + size - 1) // size
+            pages=(total + size - 1) // size,
         )
     except Exception as e:
         logger.error("Failed to get leaderboard", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get leaderboard")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get leaderboard",
+        )
+
 
 # === DASHBOARD ENDPOINT ===
+
 
 @router.get("/dashboard", response_model=SocialDashboardResponse)
 async def get_social_dashboard(
     current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get social dashboard data"""
     try:
@@ -423,8 +518,11 @@ async def get_social_dashboard(
             notifications=[],  # This would be fetched
             achievements=[],  # This would be fetched
             leaderboard_position=None,  # This would be fetched
-            stats=None  # This would be fetched
+            stats=None,  # This would be fetched
         )
     except Exception as e:
         logger.error("Failed to get social dashboard", error=str(e))
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get social dashboard")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get social dashboard",
+        )

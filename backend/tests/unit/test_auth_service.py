@@ -34,23 +34,23 @@ class TestAuthService:
             password="TestPass123!",
             first_name="Test",
             last_name="User",
-            date_of_birth="1990-01-01"
+            date_of_birth="1990-01-01",
         )
 
         # This test would need actual implementation
         # For now, just test that the method exists
-        assert hasattr(auth_service, 'register_user')
+        assert hasattr(auth_service, "register_user")
 
     @pytest.mark.asyncio
     async def test_login_user_success(self, auth_service, mock_db):
         """Test successful user login."""
         # This test would need actual implementation
         # For now, just test that the method exists
-        assert hasattr(auth_service, 'login_user')
+        assert hasattr(auth_service, "login_user")
 
     @pytest.mark.asyncio
     async def test_verify_user_email_success(self, auth_service, mock_db):
         """Test successful email verification."""
         # This test would need actual implementation
         # For now, just test that the method exists
-        assert hasattr(auth_service, 'verify_user_email')
+        assert hasattr(auth_service, "verify_user_email")

@@ -1,6 +1,7 @@
 """
 Email service for GambleGlee
 """
+
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -10,6 +11,7 @@ import structlog
 from app.core.config import settings
 
 logger = structlog.get_logger(__name__)
+
 
 class EmailService:
     """Email service for sending various types of emails"""
@@ -80,7 +82,9 @@ class EmailService:
             logger.error("Failed to send verification email", email=email, error=str(e))
             return False
 
-    async def send_password_reset_email(self, email: str, name: str, token: str) -> bool:
+    async def send_password_reset_email(
+        self, email: str, name: str, token: str
+    ) -> bool:
         """Send password reset email"""
         try:
             subject = "Reset your GambleGlee password"
@@ -134,7 +138,9 @@ class EmailService:
             return await self._send_email(email, subject, text_content, html_content)
 
         except Exception as e:
-            logger.error("Failed to send password reset email", email=email, error=str(e))
+            logger.error(
+                "Failed to send password reset email", email=email, error=str(e)
+            )
             return False
 
     async def send_welcome_email(self, email: str, name: str) -> bool:
@@ -201,7 +207,9 @@ class EmailService:
             logger.error("Failed to send welcome email", email=email, error=str(e))
             return False
 
-    async def send_security_alert_email(self, email: str, name: str, alert_type: str, details: Dict[str, Any]) -> bool:
+    async def send_security_alert_email(
+        self, email: str, name: str, alert_type: str, details: Dict[str, Any]
+    ) -> bool:
         """Send security alert email"""
         try:
             subject = f"Security Alert: {alert_type}"
@@ -268,21 +276,25 @@ class EmailService:
             return await self._send_email(email, subject, text_content, html_content)
 
         except Exception as e:
-            logger.error("Failed to send security alert email", email=email, error=str(e))
+            logger.error(
+                "Failed to send security alert email", email=email, error=str(e)
+            )
             return False
 
-    async def _send_email(self, to_email: str, subject: str, text_content: str, html_content: str) -> bool:
+    async def _send_email(
+        self, to_email: str, subject: str, text_content: str, html_content: str
+    ) -> bool:
         """Send email using SMTP"""
         try:
             # Create message
-            msg = MIMEMultipart('alternative')
-            msg['From'] = f"{self.from_name} <{self.from_email}>"
-            msg['To'] = to_email
-            msg['Subject'] = subject
+            msg = MIMEMultipart("alternative")
+            msg["From"] = f"{self.from_name} <{self.from_email}>"
+            msg["To"] = to_email
+            msg["Subject"] = subject
 
             # Add text and HTML parts
-            text_part = MIMEText(text_content, 'plain')
-            html_part = MIMEText(html_content, 'html')
+            text_part = MIMEText(text_content, "plain")
+            html_part = MIMEText(html_content, "html")
 
             msg.attach(text_part)
             msg.attach(html_part)
@@ -290,7 +302,9 @@ class EmailService:
             # Send email
             if settings.ENVIRONMENT == "development":
                 # In development, just log the email
-                logger.info("Email sent (development mode)", to=to_email, subject=subject)
+                logger.info(
+                    "Email sent (development mode)", to=to_email, subject=subject
+                )
                 return True
             else:
                 # In production, actually send the email
@@ -305,5 +319,7 @@ class EmailService:
                 return True
 
         except Exception as e:
-            logger.error("Failed to send email", to=to_email, subject=subject, error=str(e))
+            logger.error(
+                "Failed to send email", to=to_email, subject=subject, error=str(e)
+            )
             return False

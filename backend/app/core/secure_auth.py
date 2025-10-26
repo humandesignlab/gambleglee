@@ -34,7 +34,9 @@ class SecureAuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_secure_session(self, user_id: int, request: Request) -> Dict[str, Any]:
+    async def create_secure_session(
+        self, user_id: int, request: Request
+    ) -> Dict[str, Any]:
         """Create a secure session with device fingerprinting"""
         # Generate secure session token
         session_token = secrets.token_urlsafe(32)
@@ -50,14 +52,12 @@ class SecureAuthService:
             "ip_address": request.client.host if request.client else "unknown",
             "user_agent": request.headers.get("user-agent", ""),
             "created_at": datetime.utcnow().isoformat(),
-            "expires_at": (datetime.utcnow() + timedelta(hours=24)).isoformat()
+            "expires_at": (datetime.utcnow() + timedelta(hours=24)).isoformat(),
         }
 
         # Store session in Redis
         await redis_client.setex(
-            f"session:{session_token}",
-            86400,  # 24 hours
-            str(session_data)
+            f"session:{session_token}", 86400, str(session_data)  # 24 hours
         )
 
         # Log security event
@@ -65,7 +65,7 @@ class SecureAuthService:
 
         return {
             "session_token": session_token,
-            "expires_at": session_data["expires_at"]
+            "expires_at": session_data["expires_at"],
         }
 
     async def _get_device_fingerprint(self, request: Request) -> str:
@@ -74,13 +74,15 @@ class SecureAuthService:
             "user_agent": request.headers.get("user-agent", ""),
             "accept_language": request.headers.get("accept-language", ""),
             "accept_encoding": request.headers.get("accept-encoding", ""),
-            "ip_address": request.client.host if request.client else "unknown"
+            "ip_address": request.client.host if request.client else "unknown",
         }
 
         fingerprint_string = "|".join(fingerprint_data.values())
         return hashlib.sha256(fingerprint_string.encode()).hexdigest()
 
-    async def verify_session(self, session_token: str, request: Request) -> Optional[Dict[str, Any]]:
+    async def verify_session(
+        self, session_token: str, request: Request
+    ) -> Optional[Dict[str, Any]]:
         """Verify session with device fingerprinting"""
         try:
             # Get session from Redis
@@ -93,7 +95,9 @@ class SecureAuthService:
             # Verify device fingerprint
             current_fingerprint = await self._get_device_fingerprint(request)
             if session.get("device_fingerprint") != current_fingerprint:
-                logger.warning(f"Device fingerprint mismatch for session {session_token}")
+                logger.warning(
+                    f"Device fingerprint mismatch for session {session_token}"
+                )
                 await self._invalidate_session(session_token)
                 return None
 
@@ -170,9 +174,7 @@ class MFAService:
 
         # Store secret securely
         await redis_client.setex(
-            f"mfa_secret:{user_id}",
-            3600,  # 1 hour to complete setup
-            secret
+            f"mfa_secret:{user_id}", 3600, secret  # 1 hour to complete setup
         )
 
         return secret
@@ -198,13 +200,12 @@ class MFAService:
 async def get_secure_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     request: Request = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """Get current user with enhanced security"""
     if not credentials:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required"
         )
 
     token = credentials.credentials
@@ -216,7 +217,7 @@ async def get_secure_current_user(
     if not session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired session"
+            detail="Invalid or expired session",
         )
 
     # Get user from database
@@ -225,14 +226,12 @@ async def get_secure_current_user(
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
 
     if user.status != "active":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is not active"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Account is not active"
         )
 
     return user
@@ -240,7 +239,7 @@ async def get_secure_current_user(
 
 async def require_mfa_verified(
     current_user: User = Depends(get_secure_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> User:
     """Require MFA verification"""
     mfa_service = MFAService()
@@ -254,12 +253,11 @@ async def require_mfa_verified(
 
 
 async def require_kyc_verified(
-    current_user: User = Depends(get_secure_current_user)
+    current_user: User = Depends(get_secure_current_user),
 ) -> User:
     """Require KYC verification"""
     if current_user.kyc_status != "verified":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="KYC verification required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="KYC verification required"
         )
     return current_user

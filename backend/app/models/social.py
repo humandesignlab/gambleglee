@@ -1,7 +1,19 @@
 """
 Social models for GambleGlee
 """
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, ForeignKey, Enum, Float, JSON
+
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    Boolean,
+    Text,
+    ForeignKey,
+    Enum,
+    Float,
+    JSON,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -11,15 +23,19 @@ import uuid
 
 Base = declarative_base()
 
+
 class FriendshipStatus(PyEnum):
     """Friendship status enumeration"""
+
     PENDING = "pending"
     ACCEPTED = "accepted"
     BLOCKED = "blocked"
     DECLINED = "declined"
 
+
 class NotificationType(PyEnum):
     """Notification type enumeration"""
+
     FRIEND_REQUEST = "friend_request"
     FRIEND_ACCEPTED = "friend_accepted"
     BET_INVITATION = "bet_invitation"
@@ -31,8 +47,10 @@ class NotificationType(PyEnum):
     SYSTEM_ANNOUNCEMENT = "system_announcement"
     SECURITY_ALERT = "security_alert"
 
+
 class ActivityType(PyEnum):
     """Activity type enumeration"""
+
     USER_REGISTERED = "user_registered"
     USER_LOGIN = "user_login"
     BET_CREATED = "bet_created"
@@ -46,14 +64,18 @@ class ActivityType(PyEnum):
     ACHIEVEMENT_UNLOCKED = "achievement_unlocked"
     PROFILE_UPDATED = "profile_updated"
 
+
 class PrivacyLevel(PyEnum):
     """Privacy level enumeration"""
+
     PUBLIC = "public"
     FRIENDS_ONLY = "friends_only"
     PRIVATE = "private"
 
+
 class UserProfile(Base):
     """Enhanced user profile model"""
+
     __tablename__ = "user_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -67,7 +89,9 @@ class UserProfile(Base):
     gender = Column(String(20), nullable=True)
 
     # Social preferences
-    privacy_level = Column(Enum(PrivacyLevel), default=PrivacyLevel.PUBLIC, nullable=False)
+    privacy_level = Column(
+        Enum(PrivacyLevel), default=PrivacyLevel.PUBLIC, nullable=False
+    )
     show_online_status = Column(Boolean, default=True, nullable=False)
     show_activity = Column(Boolean, default=True, nullable=False)
     allow_friend_requests = Column(Boolean, default=True, nullable=False)
@@ -93,8 +117,15 @@ class UserProfile(Base):
     following_count = Column(Integer, default=0, nullable=False)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
     last_active = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
@@ -102,8 +133,10 @@ class UserProfile(Base):
     activities = relationship("UserActivity", back_populates="user_profile")
     achievements = relationship("UserAchievement", back_populates="user_profile")
 
+
 class Friendship(Base):
     """Friendship model"""
+
     __tablename__ = "friendships"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -111,7 +144,9 @@ class Friendship(Base):
     friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Friendship details
-    status = Column(Enum(FriendshipStatus), default=FriendshipStatus.PENDING, nullable=False)
+    status = Column(
+        Enum(FriendshipStatus), default=FriendshipStatus.PENDING, nullable=False
+    )
     initiated_by = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Friendship metadata
@@ -119,8 +154,15 @@ class Friendship(Base):
     notes = Column(Text, nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
     accepted_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
@@ -136,8 +178,10 @@ class Friendship(Base):
         # CheckConstraint('user_id != friend_id', name='_no_self_friendship'),
     )
 
+
 class UserActivity(Base):
     """User activity model for activity feeds"""
+
     __tablename__ = "user_activities"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -160,17 +204,30 @@ class UserActivity(Base):
     shares_count = Column(Integer, default=0, nullable=False)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     user = relationship("User")
     user_profile = relationship("UserProfile", back_populates="activities")
-    likes = relationship("ActivityLike", back_populates="activity", cascade="all, delete-orphan")
-    comments = relationship("ActivityComment", back_populates="activity", cascade="all, delete-orphan")
+    likes = relationship(
+        "ActivityLike", back_populates="activity", cascade="all, delete-orphan"
+    )
+    comments = relationship(
+        "ActivityComment", back_populates="activity", cascade="all, delete-orphan"
+    )
+
 
 class ActivityLike(Base):
     """Activity like model"""
+
     __tablename__ = "activity_likes"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -178,7 +235,9 @@ class ActivityLike(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Like metadata
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     # Relationships
     activity = relationship("UserActivity", back_populates="likes")
@@ -190,8 +249,10 @@ class ActivityLike(Base):
         # UniqueConstraint('activity_id', 'user_id', name='_activity_user_like_uc'),
     )
 
+
 class ActivityComment(Base):
     """Activity comment model"""
+
     __tablename__ = "activity_comments"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -200,7 +261,9 @@ class ActivityComment(Base):
 
     # Comment details
     content = Column(Text, nullable=False)
-    parent_comment_id = Column(Integer, ForeignKey("activity_comments.id"), nullable=True)
+    parent_comment_id = Column(
+        Integer, ForeignKey("activity_comments.id"), nullable=True
+    )
 
     # Comment metadata
     is_edited = Column(Boolean, default=False, nullable=False)
@@ -211,8 +274,15 @@ class ActivityComment(Base):
     replies_count = Column(Integer, default=0, nullable=False)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     activity = relationship("UserActivity", back_populates="comments")
@@ -220,8 +290,10 @@ class ActivityComment(Base):
     parent_comment = relationship("ActivityComment", remote_side=[id])
     replies = relationship("ActivityComment", back_populates="parent_comment")
 
+
 class Notification(Base):
     """Notification model"""
+
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -239,15 +311,19 @@ class Notification(Base):
     metadata = Column(JSON, nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     read_at = Column(DateTime(timezone=True), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     user = relationship("User")
 
+
 class UserAchievement(Base):
     """User achievement model"""
+
     __tablename__ = "user_achievements"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -262,18 +338,26 @@ class UserAchievement(Base):
 
     # Achievement metadata
     points = Column(Integer, default=0, nullable=False)
-    rarity = Column(String(20), default="common", nullable=False)  # common, rare, epic, legendary
-    category = Column(String(50), nullable=False)  # betting, social, trick_shot, general
+    rarity = Column(
+        String(20), default="common", nullable=False
+    )  # common, rare, epic, legendary
+    category = Column(
+        String(50), nullable=False
+    )  # betting, social, trick_shot, general
 
     # Timestamps
-    unlocked_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    unlocked_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     # Relationships
     user = relationship("User")
     user_profile = relationship("UserProfile", back_populates="achievements")
 
+
 class Leaderboard(Base):
     """Leaderboard model"""
+
     __tablename__ = "leaderboards"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -281,11 +365,17 @@ class Leaderboard(Base):
     # Leaderboard details
     name = Column(String(100), nullable=False)
     description = Column(Text, nullable=True)
-    category = Column(String(50), nullable=False)  # betting, trick_shot, social, general
+    category = Column(
+        String(50), nullable=False
+    )  # betting, trick_shot, social, general
 
     # Leaderboard configuration
-    metric = Column(String(50), nullable=False)  # win_rate, total_winnings, friends_count, etc.
-    time_period = Column(String(20), default="all_time", nullable=False)  # daily, weekly, monthly, all_time
+    metric = Column(
+        String(50), nullable=False
+    )  # win_rate, total_winnings, friends_count, etc.
+    time_period = Column(
+        String(20), default="all_time", nullable=False
+    )  # daily, weekly, monthly, all_time
     max_entries = Column(Integer, default=100, nullable=False)
 
     # Leaderboard status
@@ -293,15 +383,26 @@ class Leaderboard(Base):
     is_public = Column(Boolean, default=True, nullable=False)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
     last_updated = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    entries = relationship("LeaderboardEntry", back_populates="leaderboard", cascade="all, delete-orphan")
+    entries = relationship(
+        "LeaderboardEntry", back_populates="leaderboard", cascade="all, delete-orphan"
+    )
+
 
 class LeaderboardEntry(Base):
     """Leaderboard entry model"""
+
     __tablename__ = "leaderboard_entries"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -314,8 +415,15 @@ class LeaderboardEntry(Base):
     metadata = Column(JSON, nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     # Relationships
     leaderboard = relationship("Leaderboard", back_populates="entries")
@@ -327,16 +435,22 @@ class LeaderboardEntry(Base):
         # UniqueConstraint('leaderboard_id', 'user_id', name='_leaderboard_user_uc'),
     )
 
+
 class UserSearch(Base):
     """User search model for search analytics"""
+
     __tablename__ = "user_searches"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for anonymous searches
+    user_id = Column(
+        Integer, ForeignKey("users.id"), nullable=True
+    )  # Nullable for anonymous searches
 
     # Search details
     query = Column(String(255), nullable=False)
-    search_type = Column(String(50), default="user", nullable=False)  # user, bet, trick_shot
+    search_type = Column(
+        String(50), default="user", nullable=False
+    )  # user, bet, trick_shot
     filters = Column(JSON, nullable=True)
 
     # Search results
@@ -344,7 +458,9 @@ class UserSearch(Base):
     clicked_result_id = Column(Integer, nullable=True)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
     # Relationships
     user = relationship("User")

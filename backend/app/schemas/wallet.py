@@ -10,6 +10,7 @@ from decimal import Decimal
 
 class WalletResponse(BaseModel):
     """Wallet response schema"""
+
     id: int
     user_id: int
     balance: float
@@ -27,6 +28,7 @@ class WalletResponse(BaseModel):
 
 class TransactionResponse(BaseModel):
     """Transaction response schema"""
+
     id: int
     user_id: int
     wallet_id: int
@@ -43,32 +45,35 @@ class TransactionResponse(BaseModel):
 
 class DepositRequest(BaseModel):
     """Deposit request schema"""
+
     amount: float
 
-    @validator('amount')
+    @validator("amount")
     def validate_amount(cls, v):
         if v <= 0:
-            raise ValueError('Amount must be greater than 0')
+            raise ValueError("Amount must be greater than 0")
         if v > 10000:  # Max deposit limit for MVP
-            raise ValueError('Amount cannot exceed $10,000')
+            raise ValueError("Amount cannot exceed $10,000")
         return v
 
 
 class WithdrawalRequest(BaseModel):
     """Withdrawal request schema"""
+
     amount: float
 
-    @validator('amount')
+    @validator("amount")
     def validate_amount(cls, v):
         if v <= 0:
-            raise ValueError('Amount must be greater than 0')
+            raise ValueError("Amount must be greater than 0")
         if v > 5000:  # Max withdrawal limit for MVP
-            raise ValueError('Amount cannot exceed $5,000')
+            raise ValueError("Amount cannot exceed $5,000")
         return v
 
 
 class PaymentIntentResponse(BaseModel):
     """Payment intent response for both Stripe and MercadoPago"""
+
     # Stripe fields
     client_secret: Optional[str] = None
     payment_intent_id: Optional[str] = None
@@ -86,6 +91,7 @@ class PaymentIntentResponse(BaseModel):
 
 class TransactionListResponse(BaseModel):
     """Transaction list response"""
+
     items: List[TransactionResponse]
     total: int
     page: int
