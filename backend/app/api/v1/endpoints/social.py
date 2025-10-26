@@ -401,10 +401,12 @@ async def get_notifications(
             is_important=is_important,
         )
 
-        notifications, total, unread_count = (
-            await social_service.get_user_notifications(
-                current_user.id, page, size, filters
-            )
+        (
+            notifications,
+            total,
+            unread_count,
+        ) = await social_service.get_user_notifications(
+            current_user.id, page, size, filters
         )
 
         return NotificationListResponse(
