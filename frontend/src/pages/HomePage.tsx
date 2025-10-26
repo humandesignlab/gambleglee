@@ -1,10 +1,10 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import { useAuthStore } from '@/store/authStore'
-import { Play, Users, DollarSign, Shield } from 'lucide-react'
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuthStore } from "@/store/authStore";
+import { Play, Users, DollarSign, Shield } from "lucide-react";
 
 const HomePage: React.FC = () => {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
@@ -13,14 +13,13 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-primary-600">GambleGlee</h1>
+              <h1 className="text-3xl font-bold text-primary-600">
+                GambleGlee
+              </h1>
             </div>
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
-                <Link
-                  to="/dashboard"
-                  className="btn-primary px-6 py-2"
-                >
+                <Link to="/dashboard" className="btn-primary px-6 py-2">
                   Go to Dashboard
                 </Link>
               ) : (
@@ -31,10 +30,7 @@ const HomePage: React.FC = () => {
                   >
                     Sign In
                   </Link>
-                  <Link
-                    to="/register"
-                    className="btn-primary px-6 py-2"
-                  >
+                  <Link to="/register" className="btn-primary px-6 py-2">
                     Get Started
                   </Link>
                 </>
@@ -53,21 +49,16 @@ const HomePage: React.FC = () => {
               <span className="text-primary-600"> Fun</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Challenge your friends, make predictions, and enjoy the thrill of betting together.
-              From casual wagers to live trick shot events - it's all Fun n Games!
+              Challenge your friends, make predictions, and enjoy the thrill of
+              betting together. From casual wagers to live trick shot events -
+              it's all Fun n Games!
             </p>
             {!isAuthenticated && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  to="/register"
-                  className="btn-primary px-8 py-4 text-lg"
-                >
+                <Link to="/register" className="btn-primary px-8 py-4 text-lg">
                   Start Betting Now
                 </Link>
-                <Link
-                  to="/login"
-                  className="btn-outline px-8 py-4 text-lg"
-                >
+                <Link to="/login" className="btn-outline px-8 py-4 text-lg">
                   Sign In
                 </Link>
               </div>
@@ -97,7 +88,8 @@ const HomePage: React.FC = () => {
                 Social Betting
               </h3>
               <p className="text-gray-600">
-                Bet with friends, create challenges, and build your social betting community.
+                Bet with friends, create challenges, and build your social
+                betting community.
               </p>
             </div>
 
@@ -109,7 +101,8 @@ const HomePage: React.FC = () => {
                 Live Events
               </h3>
               <p className="text-gray-600">
-                Watch live trick shots and bet on outcomes in real-time with friends.
+                Watch live trick shots and bet on outcomes in real-time with
+                friends.
               </p>
             </div>
 
@@ -121,7 +114,8 @@ const HomePage: React.FC = () => {
                 Secure Wallet
               </h3>
               <p className="text-gray-600">
-                Safe and secure peer-to-peer betting with escrow protection for all funds.
+                Safe and secure peer-to-peer betting with escrow protection for
+                all funds.
               </p>
             </div>
 
@@ -133,7 +127,8 @@ const HomePage: React.FC = () => {
                 Responsible Gaming
               </h3>
               <p className="text-gray-600">
-                Built-in limits, self-exclusion tools, and responsible gambling features.
+                Built-in limits, self-exclusion tools, and responsible gambling
+                features.
               </p>
             </div>
           </div>
@@ -147,7 +142,8 @@ const HomePage: React.FC = () => {
             Ready to Start Betting with Friends?
           </h2>
           <p className="text-xl text-primary-100 mb-8">
-            Join thousands of users who are already enjoying social betting on GambleGlee.
+            Join thousands of users who are already enjoying social betting on
+            GambleGlee.
           </p>
           {!isAuthenticated && (
             <Link
@@ -169,13 +165,14 @@ const HomePage: React.FC = () => {
               Social betting platform for friends. It's all Fun n Games!
             </p>
             <p className="text-sm text-gray-500">
-              © 2024 GambleGlee. All rights reserved. | 18+ only. Please gamble responsibly.
+              © 2024 GambleGlee. All rights reserved. | 18+ only. Please gamble
+              responsibly.
             </p>
           </div>
         </div>
       </footer>
     </div>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;
