@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import InsufficientFundsError, ValidationError
+from app.models.auth import User
 from app.models.rewards import (
     Achievement,
     CreatorProgram,
@@ -29,7 +30,6 @@ from app.models.rewards import (
     UserTier,
     UserTierInfo,
 )
-from app.models.auth import User
 
 logger = structlog.get_logger(__name__)
 
