@@ -6,8 +6,19 @@ import uuid
 from decimal import Decimal
 from enum import Enum as PyEnum
 
-from sqlalchemy import (Boolean, Column, DateTime, Enum, Float, ForeignKey,
-                        Index, Integer, Numeric, String, Text)
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    Text,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
