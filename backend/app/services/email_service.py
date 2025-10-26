@@ -3,9 +3,10 @@ Email service for GambleGlee
 """
 
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Optional, Dict, Any
+from email.mime.text import MIMEText
+from typing import Any, Dict, Optional
+
 import structlog
 
 from app.core.config import settings

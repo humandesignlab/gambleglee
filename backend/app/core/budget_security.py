@@ -2,37 +2,38 @@
 Budget-constrained security implementation for 9.2/10 security score
 """
 
-import secrets
+import asyncio
+import base64
 import hashlib
 import hmac
-import asyncio
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
-from decimal import Decimal
 import json
 import logging
+import secrets
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from decimal import Decimal
 from enum import Enum
+from io import BytesIO
+from typing import Any, Dict, List, Optional
 
-from fastapi import Request, HTTPException, status, Depends, APIRouter
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
+import pyotp  # Free TOTP library
+import qrcode  # Free QR code generation
 import redis.asyncio as redis
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.core.security import get_current_active_user
 from app.models.user import User
-import pyotp  # Free TOTP library
-import qrcode  # Free QR code generation
-from io import BytesIO
-import base64
 
 # Create router for security endpoints
 router = APIRouter()
 
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.exceptions import AuthenticationError, SecurityError
 from app.models.user import User
-from app.core.exceptions import SecurityError, AuthenticationError
 
 logger = logging.getLogger(__name__)
 

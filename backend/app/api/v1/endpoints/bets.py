@@ -2,22 +2,25 @@
 Comprehensive betting API endpoints for GambleGlee with extensive edge case handling
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, or_
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, validator
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
+
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from pydantic import BaseModel, Field, validator
+from sqlalchemy import func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.exceptions import (BettingError, InsufficientFundsError,
+                                 ValidationError)
+from app.core.rate_limiter import RateLimitException, rate_limiter
 from app.core.security import get_current_active_user
+from app.models.betting import (Bet, BetOutcome, BetParticipant, BetStatus,
+                                BetType)
 from app.models.user import User
-from app.models.betting import Bet, BetParticipant, BetStatus, BetType, BetOutcome
 from app.services.betting_service import BettingService
-from app.core.exceptions import ValidationError, InsufficientFundsError, BettingError
-from app.core.rate_limiter import rate_limiter, RateLimitException
-import structlog
 
 logger = structlog.get_logger(__name__)
 

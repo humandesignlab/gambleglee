@@ -2,48 +2,28 @@
 Social service for GambleGlee
 """
 
-from typing import Optional, List, Dict, Any, Tuple
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, func, and_, or_, desc, asc
-from sqlalchemy.orm import selectinload, joinedload
 from datetime import datetime, timedelta
-import structlog
+from typing import Any, Dict, List, Optional, Tuple
 
+import structlog
+from sqlalchemy import and_, asc, delete, desc, func, or_, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
+
+from app.core.exceptions import (ActivityNotFoundError,
+                                 FriendshipNotFoundError,
+                                 NotificationNotFoundError, UserNotFoundError,
+                                 ValidationError)
 from app.models.auth import User
-from app.models.social import (
-    UserProfile,
-    Friendship,
-    UserActivity,
-    ActivityLike,
-    ActivityComment,
-    Notification,
-    UserAchievement,
-    Leaderboard,
-    LeaderboardEntry,
-    UserSearch,
-    FriendshipStatus,
-    NotificationType,
-    ActivityType,
-    PrivacyLevel,
-)
-from app.schemas.social import (
-    FriendRequestData,
-    ActivityData,
-    NotificationData,
-    AchievementData,
-    LeaderboardData,
-    LeaderboardEntryData,
-    UserSearchFilters,
-    ActivityFilters,
-    NotificationFilters,
-)
-from app.core.exceptions import (
-    ValidationError,
-    UserNotFoundError,
-    FriendshipNotFoundError,
-    NotificationNotFoundError,
-    ActivityNotFoundError,
-)
+from app.models.social import (ActivityComment, ActivityLike, ActivityType,
+                               Friendship, FriendshipStatus, Leaderboard,
+                               LeaderboardEntry, Notification,
+                               NotificationType, PrivacyLevel, UserAchievement,
+                               UserActivity, UserProfile, UserSearch)
+from app.schemas.social import (AchievementData, ActivityData, ActivityFilters,
+                                FriendRequestData, LeaderboardData,
+                                LeaderboardEntryData, NotificationData,
+                                NotificationFilters, UserSearchFilters)
 
 logger = structlog.get_logger(__name__)
 

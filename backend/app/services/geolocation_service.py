@@ -2,9 +2,11 @@
 Geolocation service for detecting user location and compliance
 """
 
+from typing import Any, Dict, Optional, Tuple
+
 import httpx
-from typing import Optional, Dict, Any, Tuple
 from fastapi import Request
+
 from app.core.config import settings
 from app.core.exceptions import ComplianceError
 

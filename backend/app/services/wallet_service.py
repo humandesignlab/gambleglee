@@ -2,17 +2,19 @@
 Wallet service for managing user finances
 """
 
-from typing import Optional, List, Tuple
 from decimal import Decimal
+from typing import List, Optional, Tuple
+
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 
-from app.models.user import User
-from app.models.wallet import Wallet, Transaction, TransactionType, TransactionStatus
-from app.services.stripe_service import StripeService
-from app.services.mercadopago_service import MercadoPagoService
 from app.core.exceptions import InsufficientFundsError, ValidationError
+from app.models.user import User
+from app.models.wallet import (Transaction, TransactionStatus, TransactionType,
+                               Wallet)
+from app.services.mercadopago_service import MercadoPagoService
+from app.services.stripe_service import StripeService
 
 
 class WalletService:

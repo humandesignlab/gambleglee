@@ -4,10 +4,11 @@ Rate limiting functionality for GambleGlee
 
 import asyncio
 import time
-from typing import Dict, Optional
 from functools import wraps
-from fastapi import HTTPException, Request, status
+from typing import Dict, Optional
+
 import structlog
+from fastapi import HTTPException, Request, status
 
 logger = structlog.get_logger(__name__)
 

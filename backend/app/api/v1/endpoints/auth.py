@@ -2,48 +2,30 @@
 Authentication endpoints for GambleGlee
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
+from app.core.exceptions import (AccountLockedError, AuthenticationError,
+                                 EmailNotVerifiedError, SecurityError,
+                                 UserNotFoundError, ValidationError)
 from app.core.security import get_current_active_user
 from app.models.auth import User
-from app.schemas.auth import (
-    UserRegisterRequest,
-    UserLoginRequest,
-    PasswordResetRequest,
-    PasswordResetConfirmRequest,
-    EmailVerificationRequest,
-    ChangePasswordRequest,
-    TwoFactorSetupRequest,
-    TwoFactorVerifyRequest,
-    TwoFactorDisableRequest,
-    OAuthLoginRequest,
-    RefreshTokenRequest,
-    LogoutRequest,
-    UsernameCheckRequest,
-    EmailCheckRequest,
-    AuthResponse,
-    UserResponse,
-    SessionResponse,
-    LoginHistoryResponse,
-    DeviceResponse,
-    TwoFactorSetupResponse,
-    PasswordResetResponse,
-    EmailVerificationResponse,
-    LogoutResponse,
-    UsernameCheckResponse,
-    EmailCheckResponse,
-)
+from app.schemas.auth import (AuthResponse, ChangePasswordRequest,
+                              DeviceResponse, EmailCheckRequest,
+                              EmailCheckResponse, EmailVerificationRequest,
+                              EmailVerificationResponse, LoginHistoryResponse,
+                              LogoutRequest, LogoutResponse, OAuthLoginRequest,
+                              PasswordResetConfirmRequest,
+                              PasswordResetRequest, PasswordResetResponse,
+                              RefreshTokenRequest, SessionResponse,
+                              TwoFactorDisableRequest, TwoFactorSetupRequest,
+                              TwoFactorSetupResponse, TwoFactorVerifyRequest,
+                              UserLoginRequest, UsernameCheckRequest,
+                              UsernameCheckResponse, UserRegisterRequest,
+                              UserResponse)
 from app.services.auth_service import AuthService
-from app.core.exceptions import (
-    AuthenticationError,
-    ValidationError,
-    SecurityError,
-    UserNotFoundError,
-    AccountLockedError,
-    EmailNotVerifiedError,
-)
-import structlog
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()

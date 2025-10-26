@@ -2,18 +2,19 @@
 Rewards API endpoints for GambleGlee
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Dict, Any
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Any, Dict, List
+
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.exceptions import InsufficientFundsError, ValidationError
 from app.core.security import get_current_active_user
 from app.models.user import User
 from app.services.rewards_service import RewardsService
-from app.core.exceptions import ValidationError, InsufficientFundsError
-import structlog
 
 logger = structlog.get_logger(__name__)
 

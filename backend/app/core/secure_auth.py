@@ -2,22 +2,23 @@
 Enhanced secure authentication system
 """
 
-import secrets
 import hashlib
 import hmac
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
-import redis.asyncio as redis
 import logging
+import secrets
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
+
+import redis.asyncio as redis
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.models.user import User
 from app.core.exceptions import AuthenticationError, SecurityError
+from app.models.user import User
 
 logger = logging.getLogger(__name__)
 

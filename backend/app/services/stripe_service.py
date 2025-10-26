@@ -2,8 +2,10 @@
 Stripe payment processing service
 """
 
+from typing import Any, Dict, Optional
+
 import stripe
-from typing import Dict, Any, Optional
+
 from app.core.config import settings
 from app.core.exceptions import GambleGleeException
 

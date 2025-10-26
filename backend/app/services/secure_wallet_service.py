@@ -2,22 +2,25 @@
 Secure wallet service with comprehensive security measures
 """
 
-from typing import Optional, List, Tuple
-from decimal import Decimal, ROUND_HALF_UP
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func, text
-from sqlalchemy.orm import selectinload
-from sqlalchemy.exc import IntegrityError
 import asyncio
 import json
 import logging
 from datetime import datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
+from typing import List, Optional, Tuple
 
+from sqlalchemy import func, select, text, update
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.core.exceptions import (InsufficientFundsError, SecurityError,
+                                 ValidationError)
 from app.models.user import User
-from app.models.wallet import Wallet, Transaction, TransactionType, TransactionStatus
-from app.services.stripe_service import StripeService
+from app.models.wallet import (Transaction, TransactionStatus, TransactionType,
+                               Wallet)
 from app.services.mercadopago_service import MercadoPagoService
-from app.core.exceptions import InsufficientFundsError, ValidationError, SecurityError
+from app.services.stripe_service import StripeService
 
 logger = logging.getLogger(__name__)
 

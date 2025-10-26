@@ -2,39 +2,29 @@
 Comprehensive betting service for GambleGlee with extensive edge case handling
 """
 
-from decimal import Decimal, ROUND_HALF_UP
-from typing import Dict, List, Optional, Tuple, Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func, and_, or_, text
-from sqlalchemy.orm import selectinload
-from datetime import datetime, timedelta
-import json
 import asyncio
+import json
 from asyncio import Lock
+from datetime import datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
+from typing import Any, Dict, List, Optional, Tuple
 
-from app.models.betting import (
-    Bet,
-    BetStatus,
-    BetType,
-    BetOutcome,
-    BetParticipant,
-    BetParticipantRole,
-    BetTransaction,
-    BetResolution,
-    BetAuditLog,
-    BetLimit,
-)
-from app.models.user import User
-from app.models.wallet import Transaction, TransactionType, TransactionStatus
-from app.core.exceptions import (
-    ValidationError,
-    InsufficientFundsError,
-    BettingError,
-    SecurityError,
-    BusinessLogicError,
-)
-from app.services.secure_wallet_service import WalletService as SecureWalletService
 import structlog
+from sqlalchemy import and_, func, or_, select, text, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.core.exceptions import (BettingError, BusinessLogicError,
+                                 InsufficientFundsError, SecurityError,
+                                 ValidationError)
+from app.models.betting import (Bet, BetAuditLog, BetLimit, BetOutcome,
+                                BetParticipant, BetParticipantRole,
+                                BetResolution, BetStatus, BetTransaction,
+                                BetType)
+from app.models.user import User
+from app.models.wallet import Transaction, TransactionStatus, TransactionType
+from app.services.secure_wallet_service import \
+    WalletService as SecureWalletService
 
 logger = structlog.get_logger(__name__)
 

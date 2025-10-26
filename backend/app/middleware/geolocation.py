@@ -2,12 +2,13 @@
 Geolocation middleware for automatic location detection
 """
 
+import json
+import time
+from typing import Any, Dict
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-import json
-import time
-from typing import Dict, Any
 
 from app.services.geolocation_service import GeolocationService
 

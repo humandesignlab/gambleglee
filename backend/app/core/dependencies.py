@@ -2,8 +2,10 @@
 FastAPI dependencies for common functionality
 """
 
+from typing import Any, Dict, Optional
+
 from fastapi import Depends, Request
-from typing import Dict, Any, Optional
+
 from app.services.geolocation_service import GeolocationService
 
 

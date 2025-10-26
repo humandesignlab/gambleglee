@@ -2,61 +2,37 @@
 Authentication service for GambleGlee
 """
 
+import base64
+import io
 import secrets
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
 import pyotp
 import qrcode
-import io
-import base64
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List, Tuple
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, and_, or_
-from sqlalchemy.orm import selectinload
-from passlib.context import CryptContext
-from jose import JWTError, jwt
 import structlog
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from sqlalchemy import and_, or_, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from app.models.auth import (
-    User,
-    UserSession,
-    LoginHistory,
-    UserDevice,
-    EmailVerification,
-    PasswordReset,
-    TwoFactorBackup,
-    AuthProvider,
-    UserRole,
-    UserStatus,
-)
-from app.schemas.auth import (
-    TokenData,
-    SessionData,
-    LoginAttempt,
-    SecurityEvent,
-    UserRegisterRequest,
-    UserLoginRequest,
-    PasswordResetRequest,
-    PasswordResetConfirmRequest,
-    EmailVerificationRequest,
-    ChangePasswordRequest,
-    TwoFactorSetupRequest,
-    TwoFactorVerifyRequest,
-    TwoFactorDisableRequest,
-    OAuthLoginRequest,
-    RefreshTokenRequest,
-    LogoutRequest,
-    UsernameCheckRequest,
-    EmailCheckRequest,
-)
 from app.core.config import settings
-from app.core.exceptions import (
-    AuthenticationError,
-    ValidationError,
-    SecurityError,
-    UserNotFoundError,
-    AccountLockedError,
-    EmailNotVerifiedError,
-)
+from app.core.exceptions import (AccountLockedError, AuthenticationError,
+                                 EmailNotVerifiedError, SecurityError,
+                                 UserNotFoundError, ValidationError)
+from app.models.auth import (AuthProvider, EmailVerification, LoginHistory,
+                             PasswordReset, TwoFactorBackup, User, UserDevice,
+                             UserRole, UserSession, UserStatus)
+from app.schemas.auth import (ChangePasswordRequest, EmailCheckRequest,
+                              EmailVerificationRequest, LoginAttempt,
+                              LogoutRequest, OAuthLoginRequest,
+                              PasswordResetConfirmRequest,
+                              PasswordResetRequest, RefreshTokenRequest,
+                              SecurityEvent, SessionData, TokenData,
+                              TwoFactorDisableRequest, TwoFactorSetupRequest,
+                              TwoFactorVerifyRequest, UserLoginRequest,
+                              UsernameCheckRequest, UserRegisterRequest)
 from app.services.email_service import EmailService
 from app.services.security_service import SecurityService
 

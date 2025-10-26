@@ -2,10 +2,11 @@
 Wallet and transaction schemas
 """
 
-from pydantic import BaseModel, validator
-from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
+from typing import List, Optional
+
+from pydantic import BaseModel, validator
 
 
 class WalletResponse(BaseModel):

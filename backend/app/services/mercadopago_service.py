@@ -2,8 +2,10 @@
 MercadoPago payment processing service for Mexico
 """
 
+from typing import Any, Dict, Optional
+
 import httpx
-from typing import Dict, Any, Optional
+
 from app.core.config import settings
 from app.core.exceptions import GambleGleeException
 

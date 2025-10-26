@@ -2,24 +2,15 @@
 Social models for GambleGlee
 """
 
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    DateTime,
-    Boolean,
-    Text,
-    ForeignKey,
-    Enum,
-    Float,
-    JSON,
-)
+import uuid
+from datetime import datetime
+from enum import Enum as PyEnum
+
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
+                        ForeignKey, Integer, String, Text)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from enum import Enum as PyEnum
-from datetime import datetime
-import uuid
 
 Base = declarative_base()
 

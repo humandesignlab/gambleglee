@@ -3,18 +3,9 @@ API v1 router configuration
 """
 
 from fastapi import APIRouter
-from app.api.v1.endpoints import (
-    auth,
-    users,
-    wallet,
-    bets,
-    friends,
-    events,
-    stream,
-    location,
-    rewards,
-    social,
-)
+
+from app.api.v1.endpoints import (auth, bets, events, friends, location,
+                                  rewards, social, stream, users, wallet)
 
 api_router = APIRouter()
 

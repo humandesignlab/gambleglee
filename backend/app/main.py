@@ -3,18 +3,18 @@ GambleGlee Backend Application
 Main FastAPI application entry point
 """
 
+import sentry_sdk
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
-import structlog
-import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-from app.core.config import settings
-from app.core.database import engine, Base
 from app.api.v1.api import api_router
+from app.core.config import settings
+from app.core.database import Base, engine
 from app.core.exceptions import GambleGleeException
 from app.middleware.geolocation import GeolocationMiddleware
 

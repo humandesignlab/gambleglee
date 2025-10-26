@@ -5,7 +5,8 @@ Security service for GambleGlee
 import hashlib
 import secrets
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
+
 import structlog
 
 from app.core.config import settings
