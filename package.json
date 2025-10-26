@@ -1,18 +1,22 @@
 {
-  "name": "gambleglee-dev-tools",
-  "version": "1.0.0",
-  "description": "Development tools and scripts for GambleGlee",
-  "scripts": {
-    "format:backend": "cd backend && python -m black app/ && python -m isort app/",
-    "format:frontend": "cd frontend && npm run lint -- --fix",
-    "format:all": "npm run format:backend && npm run format:frontend",
-    "check:backend": "cd backend && python -m black --check app/ && python -m isort --check-only app/ && python -m flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics",
-    "check:frontend": "cd frontend && npm run lint",
-    "check:all": "npm run check:backend && npm run check:frontend",
-    "pre-commit": "./scripts/pre-commit.sh"
-  },
-  "devDependencies": {},
-  "keywords": ["development", "formatting", "linting"],
-  "author": "GambleGlee Team",
-  "license": "MIT"
+    "name": "gambleglee-dev-tools",
+    "version": "1.0.0",
+    "description": "Development tools and scripts for GambleGlee",
+    "scripts": {
+        "format:backend": "cd backend && python -m black app/ && python -m isort app/",
+        "format:frontend": "cd frontend && npm run lint -- --fix",
+        "format:all": "npm run format:backend && npm run format:frontend",
+        "check:backend": "cd backend && python -m black --check app/ && python -m isort --check-only app/ && python -m flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics",
+        "check:frontend": "cd frontend && npm run lint",
+        "check:all": "npm run check:backend && npm run check:frontend",
+        "pre-commit": "./scripts/pre-commit.sh"
+    },
+    "devDependencies": {},
+    "keywords": [
+        "development",
+        "formatting",
+        "linting"
+    ],
+    "author": "GambleGlee Team",
+    "license": "MIT"
 }
