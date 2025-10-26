@@ -40,8 +40,8 @@ async def send_friend_request(
     try:
         social_service = SocialService(db)
         friendship = await social_service.send_friend_request(
-            current_user.id, 
-            friend_request.friend_id, 
+            current_user.id,
+            friend_request.friend_id,
             friend_request.message
         )
         return FriendshipResponse.from_orm(friendship)
@@ -63,8 +63,8 @@ async def respond_to_friend_request(
     try:
         social_service = SocialService(db)
         friendship = await social_service.respond_to_friend_request(
-            current_user.id, 
-            friend_response.friend_id, 
+            current_user.id,
+            friend_response.friend_id,
             friend_response.action
         )
         return FriendshipResponse.from_orm(friendship)
@@ -119,7 +119,7 @@ async def get_friends(
     try:
         social_service = SocialService(db)
         friendships, total = await social_service.get_friends(current_user.id, page, size)
-        
+
         return FriendshipListResponse(
             items=[FriendshipResponse.from_orm(f) for f in friendships],
             total=total,
@@ -142,7 +142,7 @@ async def get_friend_requests(
     try:
         social_service = SocialService(db)
         friendships, total = await social_service.get_friend_requests(current_user.id, page, size)
-        
+
         return FriendshipListResponse(
             items=[FriendshipResponse.from_orm(f) for f in friendships],
             total=total,
@@ -165,12 +165,12 @@ async def search_users(
     """Search for users"""
     try:
         social_service = SocialService(db)
-        
+
         # Convert filters if provided
         filters = None
         if search_request.filters:
             filters = UserSearchFilters(**search_request.filters)
-        
+
         users, total = await social_service.search_users(
             search_request.query,
             current_user.id,
@@ -178,14 +178,14 @@ async def search_users(
             search_request.page,
             search_request.size
         )
-        
+
         # Convert to response format
         user_responses = []
         for user in users:
             # Check friendship status
             friendship_status = None
             # This would be implemented to check friendship status
-            
+
             user_responses.append(UserSearchResponse(
                 id=user.id,
                 username=user.username,
@@ -201,7 +201,7 @@ async def search_users(
                 is_friend=False,  # This would be determined by friendship status
                 friendship_status=friendship_status
             ))
-        
+
         return UserSearchListResponse(
             items=user_responses,
             total=total,
@@ -254,18 +254,18 @@ async def get_user_activities(
     """Get user's activities"""
     try:
         social_service = SocialService(db)
-        
+
         # Create filters
         filters = ActivityFilters(
             activity_type=activity_type,
             is_public=is_public,
             is_featured=is_featured
         )
-        
+
         activities, total = await social_service.get_user_activities(
             current_user.id, page, size, filters
         )
-        
+
         return ActivityListResponse(
             items=[UserActivityResponse.from_orm(a) for a in activities],
             total=total,
@@ -290,7 +290,7 @@ async def get_friends_activities(
         activities, total = await social_service.get_friends_activities(
             current_user.id, page, size
         )
-        
+
         return ActivityListResponse(
             items=[UserActivityResponse.from_orm(a) for a in activities],
             total=total,
@@ -317,18 +317,18 @@ async def get_notifications(
     """Get user's notifications"""
     try:
         social_service = SocialService(db)
-        
+
         # Create filters
         filters = NotificationFilters(
             notification_type=notification_type,
             is_read=is_read,
             is_important=is_important
         )
-        
+
         notifications, total, unread_count = await social_service.get_user_notifications(
             current_user.id, page, size, filters
         )
-        
+
         return NotificationListResponse(
             items=[NotificationResponse.from_orm(n) for n in notifications],
             total=total,
@@ -389,7 +389,7 @@ async def get_leaderboard(
         entries, total = await social_service.get_leaderboard(
             category, time_period, page, size
         )
-        
+
         return LeaderboardListResponse(
             items=[LeaderboardEntryResponse.from_orm(e) for e in entries],
             total=total,
@@ -411,10 +411,10 @@ async def get_social_dashboard(
     """Get social dashboard data"""
     try:
         social_service = SocialService(db)
-        
+
         # This would be implemented to get comprehensive dashboard data
         # For now, return a basic response structure
-        
+
         return SocialDashboardResponse(
             user_profile=None,  # This would be fetched
             recent_activities=[],  # This would be fetched

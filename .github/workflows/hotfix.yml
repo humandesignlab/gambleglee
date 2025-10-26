@@ -1,0 +1,272 @@
+name: Hotfix Deployment
+
+on:
+  push:
+    branches: [hotfix/*]
+  workflow_dispatch:
+    inputs:
+      hotfix_branch:
+        description: "Hotfix branch to deploy"
+        required: true
+        type: string
+
+env:
+  AWS_REGION: "us-east-1"
+  ENVIRONMENT: "production"
+
+jobs:
+  # Emergency Security Scan
+  emergency-scan:
+    name: Emergency Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run critical security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          severity: "CRITICAL"
+
+      - name: Run dependency vulnerability scan
+        run: |
+          cd backend
+          safety check --json --output safety-report.json || true
+          cat safety-report.json
+
+  # Quick Infrastructure Update
+  update-infrastructure:
+    name: Update Infrastructure
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'infrastructure') || contains(github.event.head_commit.message, 'terraform')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd infrastructure/terraform
+          terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          cd infrastructure/terraform
+          terraform apply -auto-approve tfplan
+
+  # Build and Deploy Hotfix
+  deploy-hotfix:
+    name: Deploy Hotfix
+    runs-on: ubuntu-latest
+    needs: [emergency-scan, update-infrastructure]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get EC2 instance IP
+        id: get-ec2-ip
+        run: |
+          cd infrastructure/terraform
+          terraform init
+          EC2_IP=$(terraform output -raw ec2_public_ip)
+          echo "ec2_ip=$EC2_IP" >> $GITHUB_OUTPUT
+
+      - name: Deploy hotfix to production
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ steps.get-ec2-ip.outputs.ec2_ip }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Update application code
+            cd /opt/gambleglee
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+
+            # Create emergency backup
+            ./infrastructure/backup.sh
+
+            # Update only changed services
+            if git diff HEAD~1 --name-only | grep -q "backend/"; then
+              echo "Backend changes detected, updating backend..."
+              docker-compose up -d --no-deps backend
+              sleep 30
+            fi
+
+            if git diff HEAD~1 --name-only | grep -q "frontend/"; then
+              echo "Frontend changes detected, updating frontend..."
+              docker-compose up -d --no-deps frontend
+              sleep 30
+            fi
+
+            if git diff HEAD~1 --name-only | grep -q "nginx/"; then
+              echo "Nginx changes detected, updating nginx..."
+              docker-compose up -d --no-deps nginx
+              sleep 30
+            fi
+
+            # Run database migrations if needed
+            if git diff HEAD~1 --name-only | grep -q "alembic/"; then
+              echo "Database migrations detected, running migrations..."
+              docker-compose exec backend alembic upgrade head
+            fi
+
+            # Quick health check
+            curl -f http://localhost:8000/health || exit 1
+
+  # Emergency Health Check
+  emergency-health-check:
+    name: Emergency Health Check
+    runs-on: ubuntu-latest
+    needs: deploy-hotfix
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get EC2 instance IP
+        id: get-ec2-ip
+        run: |
+          cd infrastructure/terraform
+          terraform init
+          EC2_IP=$(terraform output -raw ec2_public_ip)
+          echo "ec2_ip=$EC2_IP" >> $GITHUB_OUTPUT
+
+      - name: Run emergency health check
+        run: |
+          # Wait for deployment to stabilize
+          sleep 60
+
+          # Check critical endpoints
+          curl -f http://${{ steps.get-ec2-ip.outputs.ec2_ip }}/health || exit 1
+          curl -f http://${{ steps.get-ec2-ip.outputs.ec2_ip }}/api/health || exit 1
+
+          # Check database connectivity
+          curl -f http://${{ steps.get-ec2-ip.outputs.ec2_ip }}/api/health/db || exit 1
+
+          # Check Redis connectivity
+          curl -f http://${{ steps.get-ec2-ip.outputs.ec2_ip }}/api/health/redis || exit 1
+
+  # Rollback if Failed
+  rollback:
+    name: Rollback if Failed
+    runs-on: ubuntu-latest
+    needs: [deploy-hotfix, emergency-health-check]
+    if: failure()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get EC2 instance IP
+        id: get-ec2-ip
+        run: |
+          cd infrastructure/terraform
+          terraform init
+          EC2_IP=$(terraform output -raw ec2_public_ip)
+          echo "ec2_ip=$EC2_IP" >> $GITHUB_OUTPUT
+
+      - name: Rollback to previous version
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ steps.get-ec2-ip.outputs.ec2_ip }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /opt/gambleglee
+
+            # Get previous commit
+            PREVIOUS_COMMIT=$(git log --oneline -2 | tail -1 | cut -d' ' -f1)
+
+            # Rollback to previous commit
+            git checkout $PREVIOUS_COMMIT
+
+            # Restart services
+            docker-compose up -d
+
+            # Wait and check health
+            sleep 60
+            curl -f http://localhost:8000/health || exit 1
+
+  # Notify Results
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [deploy-hotfix, emergency-health-check, rollback]
+    if: always()
+
+    steps:
+      - name: Notify hotfix success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "Hotfix deployed successfully! 🚨✅"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: needs.emergency-health-check.result == 'success'
+
+      - name: Notify hotfix failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "Hotfix deployment failed! 🚨❌ Rollback initiated."
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: needs.emergency-health-check.result == 'failure'
+
+      - name: Notify rollback success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "Rollback completed successfully! 🔄✅"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: needs.rollback.result == 'success'
+
+      - name: Update deployment status
+        run: |
+          echo "## Hotfix Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Production (Emergency)" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Time**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.emergency-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Infrastructure | ${{ needs.update-infrastructure.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Hotfix Deploy | ${{ needs.deploy-hotfix.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Health Check | ${{ needs.emergency-health-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback | ${{ needs.rollback.result }} |" >> $GITHUB_STEP_SUMMARY

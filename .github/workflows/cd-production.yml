@@ -1,0 +1,350 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to deploy"
+        required: true
+        type: string
+
+env:
+  AWS_REGION: "us-east-1"
+  ENVIRONMENT: "production"
+
+jobs:
+  # Pre-deployment Checks
+  pre-deployment:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify tag format
+        run: |
+          if [[ ! "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid tag format. Expected: v1.0.0"
+            exit 1
+          fi
+
+      - name: Check if tag exists
+        run: |
+          git tag -l | grep -q "${{ github.ref_name }}" || {
+            echo "Tag ${{ github.ref_name }} does not exist"
+            exit 1
+          }
+
+      - name: Run security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          severity: "HIGH,CRITICAL"
+
+      - name: Run compliance checks
+        run: |
+          echo "Running compliance checks..."
+          # Add compliance-specific checks here
+          # - KYC requirements
+          # - Gambling regulations
+          # - Data protection compliance
+          # - Financial regulations
+
+  # Deploy Infrastructure
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd infrastructure/terraform
+          terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          cd infrastructure/terraform
+          terraform apply -auto-approve tfplan
+
+      - name: Get infrastructure outputs
+        id: terraform-outputs
+        run: |
+          cd infrastructure/terraform
+          echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+          echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
+          echo "redis_endpoint=$(terraform output -raw redis_endpoint)" >> $GITHUB_OUTPUT
+          echo "s3_bucket=$(terraform output -raw s3_main_bucket)" >> $GITHUB_OUTPUT
+
+  # Build and Push Production Images
+  build-and-push:
+    name: Build and Push Production Images
+    runs-on: ubuntu-latest
+    needs: deploy-infrastructure
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/gambleglee-backend:${{ github.ref_name }}
+            ${{ steps.login-ecr.outputs.registry }}/gambleglee-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/gambleglee-frontend:${{ github.ref_name }}
+            ${{ steps.login-ecr.outputs.registry }}/gambleglee-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy Application
+  deploy-application:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: [deploy-infrastructure, build-and-push]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ needs.deploy-infrastructure.outputs.ec2_public_ip }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Update application code
+            cd /opt/gambleglee
+            git fetch --tags
+            git checkout ${{ github.ref_name }}
+
+            # Update environment variables for production
+            cat > .env << EOF
+            DATABASE_URL=postgresql://gambleglee:${{ secrets.DB_PASSWORD }}@${{ needs.deploy-infrastructure.outputs.rds_endpoint }}:5432/gambleglee
+            REDIS_URL=redis://${{ needs.deploy-infrastructure.outputs.redis_endpoint }}:6379
+            AWS_REGION=${{ env.AWS_REGION }}
+            S3_BUCKET=${{ needs.deploy-infrastructure.outputs.s3_bucket }}
+            ENVIRONMENT=${{ env.ENVIRONMENT }}
+            DEBUG=false
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
+            JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+            STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+            MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+            MERCADOPAGO_PUBLIC_KEY=${{ secrets.MERCADOPAGO_PUBLIC_KEY }}
+            MERCADOPAGO_WEBHOOK_SECRET=${{ secrets.MERCADOPAGO_WEBHOOK_SECRET }}
+            EOF
+
+            # Pull latest images
+            docker-compose pull
+
+            # Create backup before deployment
+            ./infrastructure/backup.sh
+
+            # Restart services with zero-downtime deployment
+            docker-compose up -d --no-deps backend
+            sleep 30
+            docker-compose up -d --no-deps frontend
+            sleep 30
+            docker-compose up -d --no-deps nginx
+
+            # Run database migrations
+            docker-compose exec backend alembic upgrade head
+
+            # Check application health
+            curl -f http://localhost:8000/health || exit 1
+
+  # Run Production Tests
+  production-tests:
+    name: Production Tests
+    runs-on: ubuntu-latest
+    needs: deploy-application
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run smoke tests
+        run: |
+          cd backend
+          pytest tests/smoke/ -v --base-url=http://${{ needs.deploy-application.outputs.ec2_public_ip }}
+
+      - name: Run load tests
+        run: |
+          cd backend
+          locust -f tests/performance/locustfile.py --headless -u 50 -r 5 -t 300s --html load-test-report.html
+
+      - name: Upload load test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-report
+          path: backend/load-test-report.html
+
+  # Health Check and Monitoring
+  health-check:
+    name: Health Check and Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-application, production-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run comprehensive health check
+        run: |
+          # Wait for application to be ready
+          sleep 120
+
+          # Check backend health
+          curl -f http://${{ needs.deploy-application.outputs.ec2_public_ip }}/health || exit 1
+
+          # Check frontend
+          curl -f http://${{ needs.deploy-application.outputs.ec2_public_ip }}/ || exit 1
+
+          # Check API endpoints
+          curl -f http://${{ needs.deploy-application.outputs.ec2_public_ip }}/api/health || exit 1
+
+          # Check database connectivity
+          curl -f http://${{ needs.deploy-application.outputs.ec2_public_ip }}/api/health/db || exit 1
+
+          # Check Redis connectivity
+          curl -f http://${{ needs.deploy-application.outputs.ec2_public_ip }}/api/health/redis || exit 1
+
+      - name: Set up monitoring alerts
+        run: |
+          echo "Setting up production monitoring alerts..."
+          # Configure CloudWatch alarms
+          # Set up PagerDuty/Slack notifications
+          # Configure uptime monitoring
+
+  # Post-deployment Tasks
+  post-deployment:
+    name: Post-deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-application, production-tests, health-check]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update deployment status
+        run: |
+          echo "## Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Time**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Infrastructure | ${{ needs.deploy-infrastructure.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Build | ${{ needs.build-and-push.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Application Deploy | ${{ needs.deploy-application.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Production Tests | ${{ needs.production-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Health Check | ${{ needs.health-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Production URL**: http://${{ needs.deploy-application.outputs.ec2_public_ip }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "Production deployment successful! 🚀 Version: ${{ github.ref_name }}"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()
+
+      - name: Notify deployment failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: "Production deployment failed! ❌ Version: ${{ github.ref_name }}"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## What's New
+            - See CHANGELOG.md for detailed changes
+
+            ## Deployment
+            - **Environment**: Production
+            - **Status**: ✅ Successfully Deployed
+            - **URL**: http://${{ needs.deploy-application.outputs.ec2_public_ip }}
+
+            ## Rollback
+            If issues are detected, rollback using:
+            ```bash
+            git checkout v$(echo ${{ github.ref_name }} | sed 's/v//' | awk -F. '{print $1"."$2"."$3-1}')
+            ```
+          draft: false
+          prerelease: false

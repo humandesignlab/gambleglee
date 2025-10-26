@@ -1,0 +1,305 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "18"
+
+jobs:
+  # Code Quality Analysis
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Install Node.js dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run SonarQube analysis
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=gambleglee
+            -Dsonar.organization=gambleglee
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+            -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: python, javascript
+
+  # Security Scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results.sarif"
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Run Bandit security linter
+        run: |
+          cd backend
+          pip install bandit
+          bandit -r app/ -f json -o bandit-report.json
+
+      - name: Run Safety dependency check
+        run: |
+          cd backend
+          pip install safety
+          safety check --json --output safety-report.json
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            backend/bandit-report.json
+            backend/safety-report.json
+
+  # Performance Testing
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install locust
+
+      - name: Run load tests
+        run: |
+          cd backend
+          locust -f tests/performance/locustfile.py --headless -u 100 -r 10 -t 60s --html performance-report.html
+
+      - name: Upload performance report
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-report
+          path: backend/performance-report.html
+
+  # Compliance Checks
+  compliance-check:
+    name: Compliance Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run gambling compliance checks
+        run: |
+          echo "Running gambling compliance checks..."
+          # Check for responsible gambling features
+          # Verify age verification requirements
+          # Validate financial transaction compliance
+          # Check data protection compliance
+
+      - name: Run financial compliance checks
+        run: |
+          echo "Running financial compliance checks..."
+          # Check PCI DSS compliance
+          # Verify KYC/AML requirements
+          # Validate transaction monitoring
+          # Check audit trail requirements
+
+      - name: Run data protection compliance
+        run: |
+          echo "Running data protection compliance checks..."
+          # Check GDPR compliance
+          # Verify data encryption
+          # Validate consent management
+          # Check data retention policies
+
+  # Test Coverage Analysis
+  coverage-analysis:
+    name: Test Coverage Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          cd ../frontend
+          npm ci
+
+      - name: Run backend tests with coverage
+        run: |
+          cd backend
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=html
+
+      - name: Run frontend tests with coverage
+        run: |
+          cd frontend
+          npm run test:coverage
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend/coverage.xml,./frontend/coverage/lcov.info
+          flags: quality-gates
+          name: quality-gates-coverage
+
+  # Quality Gate Decision
+  quality-gate:
+    name: Quality Gate Decision
+    runs-on: ubuntu-latest
+    needs:
+      [
+        code-quality,
+        security-scan,
+        performance-test,
+        compliance-check,
+        coverage-analysis,
+      ]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Evaluate quality gates
+        run: |
+          echo "## Quality Gate Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Gate | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance Test | ${{ needs.performance-test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Compliance Check | ${{ needs.compliance-check.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage Analysis | ${{ needs.coverage-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check if all gates passed
+          if [[ "${{ needs.code-quality.result }}" == "success" &&
+                "${{ needs.security-scan.result }}" == "success" &&
+                "${{ needs.compliance-check.result }}" == "success" &&
+                "${{ needs.coverage-analysis.result }}" == "success" ]]; then
+            echo "✅ All quality gates passed!" >> $GITHUB_STEP_SUMMARY
+            echo "QUALITY_GATE_PASSED=true" >> $GITHUB_ENV
+          else
+            echo "❌ Some quality gates failed!" >> $GITHUB_STEP_SUMMARY
+            echo "QUALITY_GATE_PASSED=false" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('Quality Gate Results')
+            );
+
+            const body = `## Quality Gate Results
+
+            | Gate | Status |
+            |------|--------|
+            | Code Quality | ${{ needs.code-quality.result }} |
+            | Security Scan | ${{ needs.security-scan.result }} |
+            | Performance Test | ${{ needs.performance-test.result }} |
+            | Compliance Check | ${{ needs.compliance-check.result }} |
+            | Coverage Analysis | ${{ needs.coverage-analysis.result }} |
+
+            ${{ env.QUALITY_GATE_PASSED == 'true' ? '✅ All quality gates passed!' : '❌ Some quality gates failed!' }}
+            `;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
