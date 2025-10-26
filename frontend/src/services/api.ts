@@ -8,7 +8,6 @@ import {
   Wallet,
   Transaction,
   Bet,
-  BetParticipant,
   Friendship,
   Notification,
   TrickShotEvent,

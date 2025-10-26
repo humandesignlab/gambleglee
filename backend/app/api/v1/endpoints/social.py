@@ -17,7 +17,7 @@ from app.schemas.social import (
     LeaderboardEntryResponse, UserSearchResponse, UserSearchListResponse,
     ActivityListResponse, NotificationListResponse, LeaderboardListResponse,
     FriendshipListResponse, UserStatsResponse, SocialDashboardResponse,
-    UserSearchFilters, ActivityFilters, NotificationFilters
+    UserSearchFilters, ActivityFilters, NotificationFilters, ActivityData
 )
 from app.services.social_service import SocialService
 from app.core.exceptions import (

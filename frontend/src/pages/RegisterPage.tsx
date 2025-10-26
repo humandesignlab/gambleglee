@@ -27,7 +27,7 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
+  const { setAuth } = useAuthStore(); // TODO: Use setAuth after successful registration
   const [isLoading, setIsLoading] = useState(false);
 
   const {

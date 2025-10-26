@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { walletApi } from "@/services/api";
 import { useLocation } from "@/hooks/useLocation";
@@ -57,14 +57,14 @@ const WalletPage: React.FC = () => {
       if (data.payment_processor === "stripe") {
         // In a real app, you'd integrate with Stripe Elements here
         console.log("Stripe client secret:", data.client_secret);
-        toast.info("Redirecting to Stripe payment...");
+        toast("Redirecting to Stripe payment...");
       } else if (data.payment_processor === "mercadopago") {
         // Redirect to MercadoPago payment page
         console.log("MercadoPago init point:", data.init_point);
         if (data.init_point) {
           window.open(data.init_point, "_blank");
         }
-        toast.info("Redirecting to MercadoPago payment...");
+        toast("Redirecting to MercadoPago payment...");
       }
     },
     onError: (error: any) => {

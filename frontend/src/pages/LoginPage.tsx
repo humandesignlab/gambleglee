@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await authApi.login(data);
-      setAuth(response, response);
+      setAuth(response.user, response);
       toast.success("Successfully logged in!");
       navigate("/dashboard");
     } catch (error: any) {

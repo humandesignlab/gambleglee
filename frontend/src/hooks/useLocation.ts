@@ -99,6 +99,9 @@ export const useLocation = () => {
             });
           }
         );
+        
+        // Use the position data
+        console.log('Geolocation position:', position.coords);
 
         // Reverse geocoding would be needed here
         // For now, default to US
