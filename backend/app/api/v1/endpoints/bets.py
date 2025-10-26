@@ -13,12 +13,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.exceptions import (BettingError, InsufficientFundsError,
-                                 ValidationError)
+from app.core.exceptions import BettingError, InsufficientFundsError, ValidationError
 from app.core.rate_limiter import RateLimitException, rate_limiter
 from app.core.security import get_current_active_user
-from app.models.betting import (Bet, BetOutcome, BetParticipant, BetStatus,
-                                BetType)
+from app.models.betting import Bet, BetOutcome, BetParticipant, BetStatus, BetType
 from app.models.user import User
 from app.services.betting_service import BettingService
 

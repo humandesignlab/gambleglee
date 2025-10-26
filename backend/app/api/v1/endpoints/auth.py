@@ -7,24 +7,43 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.exceptions import (AccountLockedError, AuthenticationError,
-                                 EmailNotVerifiedError, SecurityError,
-                                 UserNotFoundError, ValidationError)
+from app.core.exceptions import (
+    AccountLockedError,
+    AuthenticationError,
+    EmailNotVerifiedError,
+    SecurityError,
+    UserNotFoundError,
+    ValidationError,
+)
 from app.core.security import get_current_active_user
 from app.models.auth import User
-from app.schemas.auth import (AuthResponse, ChangePasswordRequest,
-                              DeviceResponse, EmailCheckRequest,
-                              EmailCheckResponse, EmailVerificationRequest,
-                              EmailVerificationResponse, LoginHistoryResponse,
-                              LogoutRequest, LogoutResponse, OAuthLoginRequest,
-                              PasswordResetConfirmRequest,
-                              PasswordResetRequest, PasswordResetResponse,
-                              RefreshTokenRequest, SessionResponse,
-                              TwoFactorDisableRequest, TwoFactorSetupRequest,
-                              TwoFactorSetupResponse, TwoFactorVerifyRequest,
-                              UserLoginRequest, UsernameCheckRequest,
-                              UsernameCheckResponse, UserRegisterRequest,
-                              UserResponse)
+from app.schemas.auth import (
+    AuthResponse,
+    ChangePasswordRequest,
+    DeviceResponse,
+    EmailCheckRequest,
+    EmailCheckResponse,
+    EmailVerificationRequest,
+    EmailVerificationResponse,
+    LoginHistoryResponse,
+    LogoutRequest,
+    LogoutResponse,
+    OAuthLoginRequest,
+    PasswordResetConfirmRequest,
+    PasswordResetRequest,
+    PasswordResetResponse,
+    RefreshTokenRequest,
+    SessionResponse,
+    TwoFactorDisableRequest,
+    TwoFactorSetupRequest,
+    TwoFactorSetupResponse,
+    TwoFactorVerifyRequest,
+    UserLoginRequest,
+    UsernameCheckRequest,
+    UsernameCheckResponse,
+    UserRegisterRequest,
+    UserResponse,
+)
 from app.services.auth_service import AuthService
 
 logger = structlog.get_logger(__name__)
