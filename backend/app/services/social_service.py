@@ -10,41 +10,20 @@ from sqlalchemy import and_, asc, delete, desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.core.exceptions import (
-    ActivityNotFoundError,
-    FriendshipNotFoundError,
-    NotificationNotFoundError,
-    UserNotFoundError,
-    ValidationError,
-)
+from app.core.exceptions import (ActivityNotFoundError,
+                                 FriendshipNotFoundError,
+                                 NotificationNotFoundError, UserNotFoundError,
+                                 ValidationError)
 from app.models.auth import User
-from app.models.social import (
-    ActivityComment,
-    ActivityLike,
-    ActivityType,
-    Friendship,
-    FriendshipStatus,
-    Leaderboard,
-    LeaderboardEntry,
-    Notification,
-    NotificationType,
-    PrivacyLevel,
-    UserAchievement,
-    UserActivity,
-    UserProfile,
-    UserSearch,
-)
-from app.schemas.social import (
-    AchievementData,
-    ActivityData,
-    ActivityFilters,
-    FriendRequestData,
-    LeaderboardData,
-    LeaderboardEntryData,
-    NotificationData,
-    NotificationFilters,
-    UserSearchFilters,
-)
+from app.models.social import (ActivityComment, ActivityLike, ActivityType,
+                               Friendship, FriendshipStatus, Leaderboard,
+                               LeaderboardEntry, Notification,
+                               NotificationType, PrivacyLevel, UserAchievement,
+                               UserActivity, UserProfile, UserSearch)
+from app.schemas.social import (AchievementData, ActivityData, ActivityFilters,
+                                FriendRequestData, LeaderboardData,
+                                LeaderboardEntryData, NotificationData,
+                                NotificationFilters, UserSearchFilters)
 
 logger = structlog.get_logger(__name__)
 

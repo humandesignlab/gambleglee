@@ -10,44 +10,26 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.exceptions import (
-    ActivityNotFoundError,
-    FriendshipNotFoundError,
-    NotificationNotFoundError,
-    UserNotFoundError,
-    ValidationError,
-)
+from app.core.exceptions import (ActivityNotFoundError,
+                                 FriendshipNotFoundError,
+                                 NotificationNotFoundError, UserNotFoundError,
+                                 ValidationError)
 from app.core.security import get_current_active_user
 from app.models.user import User
-from app.schemas.social import (
-    ActivityCommentResponse,
-    ActivityCreateRequest,
-    ActivityData,
-    ActivityFilters,
-    ActivityListResponse,
-    CommentCreateRequest,
-    FriendRequestRequest,
-    FriendRequestResponse,
-    FriendshipListResponse,
-    FriendshipResponse,
-    LeaderboardEntryResponse,
-    LeaderboardListResponse,
-    LeaderboardRequest,
-    NotificationCreateRequest,
-    NotificationFilters,
-    NotificationListResponse,
-    NotificationResponse,
-    ProfileUpdateRequest,
-    SocialDashboardResponse,
-    UserAchievementResponse,
-    UserActivityResponse,
-    UserProfileResponse,
-    UserSearchFilters,
-    UserSearchListResponse,
-    UserSearchRequest,
-    UserSearchResponse,
-    UserStatsResponse,
-)
+from app.schemas.social import (ActivityCommentResponse, ActivityCreateRequest,
+                                ActivityData, ActivityFilters,
+                                ActivityListResponse, CommentCreateRequest,
+                                FriendRequestRequest, FriendRequestResponse,
+                                FriendshipListResponse, FriendshipResponse,
+                                LeaderboardEntryResponse,
+                                LeaderboardListResponse, LeaderboardRequest,
+                                NotificationCreateRequest, NotificationFilters,
+                                NotificationListResponse, NotificationResponse,
+                                ProfileUpdateRequest, SocialDashboardResponse,
+                                UserAchievementResponse, UserActivityResponse,
+                                UserProfileResponse, UserSearchFilters,
+                                UserSearchListResponse, UserSearchRequest,
+                                UserSearchResponse, UserStatsResponse)
 from app.services.social_service import SocialService
 
 logger = structlog.get_logger(__name__)

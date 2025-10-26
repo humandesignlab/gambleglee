@@ -10,23 +10,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.dependencies import (
-    get_compliance_requirements,
-    get_payment_processor,
-    get_user_location,
-)
+from app.core.dependencies import (get_compliance_requirements,
+                                   get_payment_processor, get_user_location)
 from app.core.exceptions import SecurityError
 from app.core.security import get_current_active_user
 from app.core.security_audit import SecurityAudit
 from app.models.user import User
-from app.schemas.wallet import (
-    DepositRequest,
-    PaymentIntentResponse,
-    TransactionListResponse,
-    TransactionResponse,
-    WalletResponse,
-    WithdrawalRequest,
-)
+from app.schemas.wallet import (DepositRequest, PaymentIntentResponse,
+                                TransactionListResponse, TransactionResponse,
+                                WalletResponse, WithdrawalRequest)
 from app.services.secure_wallet_service import SecureWalletService
 
 router = APIRouter()

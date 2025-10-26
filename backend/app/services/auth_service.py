@@ -18,46 +18,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
-from app.core.exceptions import (
-    AccountLockedError,
-    AuthenticationError,
-    EmailNotVerifiedError,
-    SecurityError,
-    UserNotFoundError,
-    ValidationError,
-)
-from app.models.auth import (
-    AuthProvider,
-    EmailVerification,
-    LoginHistory,
-    PasswordReset,
-    TwoFactorBackup,
-    User,
-    UserDevice,
-    UserRole,
-    UserSession,
-    UserStatus,
-)
-from app.schemas.auth import (
-    ChangePasswordRequest,
-    EmailCheckRequest,
-    EmailVerificationRequest,
-    LoginAttempt,
-    LogoutRequest,
-    OAuthLoginRequest,
-    PasswordResetConfirmRequest,
-    PasswordResetRequest,
-    RefreshTokenRequest,
-    SecurityEvent,
-    SessionData,
-    TokenData,
-    TwoFactorDisableRequest,
-    TwoFactorSetupRequest,
-    TwoFactorVerifyRequest,
-    UserLoginRequest,
-    UsernameCheckRequest,
-    UserRegisterRequest,
-)
+from app.core.exceptions import (AccountLockedError, AuthenticationError,
+                                 EmailNotVerifiedError, SecurityError,
+                                 UserNotFoundError, ValidationError)
+from app.models.auth import (AuthProvider, EmailVerification, LoginHistory,
+                             PasswordReset, TwoFactorBackup, User, UserDevice,
+                             UserRole, UserSession, UserStatus)
+from app.schemas.auth import (ChangePasswordRequest, EmailCheckRequest,
+                              EmailVerificationRequest, LoginAttempt,
+                              LogoutRequest, OAuthLoginRequest,
+                              PasswordResetConfirmRequest,
+                              PasswordResetRequest, RefreshTokenRequest,
+                              SecurityEvent, SessionData, TokenData,
+                              TwoFactorDisableRequest, TwoFactorSetupRequest,
+                              TwoFactorVerifyRequest, UserLoginRequest,
+                              UsernameCheckRequest, UserRegisterRequest)
 from app.services.email_service import EmailService
 from app.services.security_service import SecurityService
 

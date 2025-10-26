@@ -13,22 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import InsufficientFundsError, ValidationError
-from app.models.rewards import (
-    Achievement,
-    CreatorProgram,
-    FriendBetReward,
-    PointsTransaction,
-    Reward,
-    RewardRedemption,
-    RewardStatus,
-    RewardType,
-    SeasonalReward,
-    TrickShooterReward,
-    UserAchievement,
-    UserSeasonalReward,
-    UserTier,
-    UserTierInfo,
-)
+from app.models.rewards import (Achievement, CreatorProgram, FriendBetReward,
+                                PointsTransaction, Reward, RewardRedemption,
+                                RewardStatus, RewardType, SeasonalReward,
+                                TrickShooterReward, UserAchievement,
+                                UserSeasonalReward, UserTier, UserTierInfo)
 from app.models.user import User
 
 logger = structlog.get_logger(__name__)

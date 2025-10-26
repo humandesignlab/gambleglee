@@ -11,7 +11,8 @@ from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import InsufficientFundsError, ValidationError
 from app.models.user import User
-from app.models.wallet import Transaction, TransactionStatus, TransactionType, Wallet
+from app.models.wallet import (Transaction, TransactionStatus, TransactionType,
+                               Wallet)
 from app.services.mercadopago_service import MercadoPagoService
 from app.services.stripe_service import StripeService
 

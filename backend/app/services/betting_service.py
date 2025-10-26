@@ -14,28 +14,17 @@ from sqlalchemy import and_, func, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.exceptions import (
-    BettingError,
-    BusinessLogicError,
-    InsufficientFundsError,
-    SecurityError,
-    ValidationError,
-)
-from app.models.betting import (
-    Bet,
-    BetAuditLog,
-    BetLimit,
-    BetOutcome,
-    BetParticipant,
-    BetParticipantRole,
-    BetResolution,
-    BetStatus,
-    BetTransaction,
-    BetType,
-)
+from app.core.exceptions import (BettingError, BusinessLogicError,
+                                 InsufficientFundsError, SecurityError,
+                                 ValidationError)
+from app.models.betting import (Bet, BetAuditLog, BetLimit, BetOutcome,
+                                BetParticipant, BetParticipantRole,
+                                BetResolution, BetStatus, BetTransaction,
+                                BetType)
 from app.models.user import User
 from app.models.wallet import Transaction, TransactionStatus, TransactionType
-from app.services.secure_wallet_service import WalletService as SecureWalletService
+from app.services.secure_wallet_service import \
+    WalletService as SecureWalletService
 
 logger = structlog.get_logger(__name__)
 
