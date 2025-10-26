@@ -59,6 +59,8 @@ api.interceptors.response.use(
               access_token,
               refresh_token,
               token_type: "bearer",
+              expires_in: 3600,
+              user: useAuthStore.getState().user!,
             });
 
           // Retry original request
