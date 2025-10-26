@@ -26,7 +26,7 @@ class TestAuthService:
         mock_db.execute.return_value.scalar.return_value = None  # No existing user
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
-        
+
         # Test data
         user_data = UserRegister(
             email="test@example.com",
@@ -36,7 +36,7 @@ class TestAuthService:
             last_name="User",
             date_of_birth="1990-01-01"
         )
-        
+
         # This test would need actual implementation
         # For now, just test that the method exists
         assert hasattr(auth_service, 'register_user')
