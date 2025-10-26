@@ -3,6 +3,7 @@ Comprehensive betting API endpoints for GambleGlee with extensive edge case hand
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, or_
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, validator
 from datetime import datetime, timedelta
@@ -11,7 +12,7 @@ from decimal import Decimal
 from app.core.database import get_db
 from app.core.security import get_current_active_user
 from app.models.user import User
-from app.models.betting import BetStatus, BetType, BetOutcome
+from app.models.betting import Bet, BetParticipant, BetStatus, BetType, BetOutcome
 from app.services.betting_service import BettingService
 from app.core.exceptions import ValidationError, InsufficientFundsError, BettingError
 from app.core.rate_limiter import rate_limiter, RateLimitException

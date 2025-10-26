@@ -4,9 +4,10 @@ Social endpoints for GambleGlee
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
+from datetime import datetime, timedelta
 from app.core.database import get_db
 from app.core.security import get_current_active_user
-from app.models.auth import User
+from app.models.user import User
 from app.schemas.social import (
     FriendRequestRequest, FriendRequestResponse, UserSearchRequest,
     ActivityCreateRequest, NotificationCreateRequest, ProfileUpdateRequest,

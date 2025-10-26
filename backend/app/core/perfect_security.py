@@ -14,10 +14,16 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-from fastapi import Request, HTTPException, status
+from fastapi import Request, HTTPException, status, Depends, APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 import redis.asyncio as redis
+from app.core.database import get_db
+from app.core.security import get_current_active_user
+from app.models.user import User
+
+# Create router for security endpoints
+router = APIRouter()
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
