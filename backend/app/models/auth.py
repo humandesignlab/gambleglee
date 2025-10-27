@@ -77,75 +77,75 @@ class User(Base):
     hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Nullable for OAuth users
 
     # Personal information
-    first_name = Column(String(100), nullable=True)
-    last_name = Column(String(100), nullable=True)
-    display_name = Column(String(100), nullable=True)
-    bio = Column(Text, nullable=True)
-    avatar_url = Column(String(500), nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    display_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Account status
-    is_active = Column(Boolean, default=False, nullable=False)
-    is_verified = Column(Boolean, default=False, nullable=False)
-    is_superuser = Column(Boolean, default=False, nullable=False)
-    role: Column[UserRole] = Column(
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    role: Mapped[UserRole] = mapped_column(
         Enum(UserRole), default=UserRole.USER, nullable=False
     )
-    status: Column[UserStatus] = Column(
+    status: Mapped[UserStatus] = mapped_column(
         Enum(UserStatus), default=UserStatus.PENDING, nullable=False
     )
 
     # Authentication providers
-    auth_provider: Column[AuthProvider] = Column(
+    auth_provider: Mapped[AuthProvider] = mapped_column(
         Enum(AuthProvider), default=AuthProvider.EMAIL, nullable=False
     )
-    external_id = Column(String(255), nullable=True)  # OAuth provider user ID
+    external_id: Mapped[str | None] = mapped_column(String(255), nullable=True)  # OAuth provider user ID
 
     # Security fields
-    two_factor_enabled = Column(Boolean, default=False, nullable=False)
-    two_factor_secret = Column(String(255), nullable=True)
-    backup_codes = Column(Text, nullable=True)  # JSON array of backup codes
+    two_factor_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    two_factor_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    backup_codes: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of backup codes
 
     # Account verification
-    email_verification_token = Column(String(255), nullable=True)
-    email_verification_expires = Column(DateTime(timezone=True), nullable=True)
-    password_reset_token = Column(String(255), nullable=True)
-    password_reset_expires = Column(DateTime(timezone=True), nullable=True)
+    email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    email_verification_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    password_reset_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Login tracking
-    last_login_at = Column(DateTime(timezone=True), nullable=True)
-    last_login_ip = Column(String(45), nullable=True)
-    login_count = Column(Integer, default=0, nullable=False)
-    failed_login_attempts = Column(Integer, default=0, nullable=False)
-    locked_until = Column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Privacy and preferences
-    privacy_level = Column(
+    privacy_level: Mapped[str] = mapped_column(
         String(20), default="public", nullable=False
     )  # public, friends, private
-    email_notifications = Column(Boolean, default=True, nullable=False)
-    push_notifications = Column(Boolean, default=True, nullable=False)
-    marketing_emails = Column(Boolean, default=False, nullable=False)
+    email_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    push_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    marketing_emails: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Timestamps
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
     )
-    verified_at = Column(DateTime(timezone=True), nullable=True)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Payment processor integrations
-    stripe_customer_id = Column(String(255), nullable=True)
-    mercadopago_customer_id = Column(String(255), nullable=True)
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mercadopago_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Geolocation
-    country = Column(String(2), nullable=True)  # ISO country code
-    state = Column(String(50), nullable=True)
-    ip_address = Column(String(45), nullable=True)  # IPv6 compatible
+    country: Mapped[str | None] = mapped_column(String(2), nullable=True)  # ISO country code
+    state: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)  # IPv6 compatible
 
     # Relationships
     sessions = relationship(

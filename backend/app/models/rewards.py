@@ -2,6 +2,7 @@
 Rewards system models for GambleGlee
 """
 
+from datetime import datetime
 from enum import Enum as PyEnum
 
 from sqlalchemy import (
@@ -15,7 +16,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -64,27 +65,27 @@ class Reward(Base):
 
     __tablename__ = "rewards"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    reward_type: Column[RewardType] = Column(Enum(RewardType), nullable=False)
-    points_earned = Column(Integer, nullable=False, default=0)
-    cash_earned = Column(Float, nullable=False, default=0.0)
-    description = Column(Text, nullable=True)
-    status: Column[RewardStatus] = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    reward_type: Mapped[RewardType] = mapped_column(Enum(RewardType), nullable=False)
+    points_earned: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    cash_earned: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[RewardStatus] = mapped_column(
         Enum(RewardStatus), default=RewardStatus.PENDING
     )
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    approved_at = Column(DateTime(timezone=True), nullable=True)
-    redeemed_at = Column(DateTime(timezone=True), nullable=True)
-    expires_at = Column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    redeemed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Foreign key relationships
     user = relationship("User", back_populates="rewards")
 
     # Additional metadata
-    metadata_json = Column(Text, nullable=True)  # JSON string for additional data
-    source_id = Column(Integer, nullable=True)  # ID of the source (event, bet, etc.)
-    source_type = Column(String(50), nullable=True)  # Type of source
+    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON string for additional data
+    source_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # ID of the source (event, bet, etc.)
+    source_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # Type of source
 
 
 class UserTierInfo(Base):
@@ -92,15 +93,15 @@ class UserTierInfo(Base):
 
     __tablename__ = "user_tier_info"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    current_tier: Column[UserTier] = Column(Enum(UserTier), default=UserTier.BRONZE)
-    total_points = Column(Integer, default=0)
-    tier_points = Column(Integer, default=0)  # Points in current tier
-    tier_progress = Column(Float, default=0.0)  # Progress to next tier (0-100)
-    bonus_rate = Column(Float, default=0.0)  # Bonus rate for current tier
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    current_tier: Mapped[UserTier] = mapped_column(Enum(UserTier), default=UserTier.BRONZE)
+    total_points: Mapped[int] = mapped_column(Integer, default=0)
+    tier_points: Mapped[int] = mapped_column(Integer, default=0)  # Points in current tier
+    tier_progress: Mapped[float] = mapped_column(Float, default=0.0)  # Progress to next tier (0-100)
+    bonus_rate: Mapped[float] = mapped_column(Float, default=0.0)  # Bonus rate for current tier
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
@@ -113,21 +114,21 @@ class TrickShooterReward(Base):
 
     __tablename__ = "trick_shooter_rewards"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    event_id = Column(Integer, nullable=False)  # ID of the trick shot event
-    event_creation_bonus = Column(Float, default=0.0)
-    viewer_bonus = Column(Float, default=0.0)
-    engagement_bonus = Column(Float, default=0.0)
-    completion_bonus = Column(Float, default=0.0)
-    rating_bonus = Column(Float, default=0.0)
-    recurring_bonus = Column(Float, default=0.0)
-    total_reward = Column(Float, default=0.0)
-    viewer_count = Column(Integer, default=0)
-    bet_count = Column(Integer, default=0)
-    completion_status = Column(Boolean, default=False)
-    community_rating = Column(Float, default=0.0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    event_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ID of the trick shot event
+    event_creation_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    viewer_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    engagement_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    completion_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    rating_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    recurring_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    total_reward: Mapped[float] = mapped_column(Float, default=0.0)
+    viewer_count: Mapped[int] = mapped_column(Integer, default=0)
+    bet_count: Mapped[int] = mapped_column(Integer, default=0)
+    completion_status: Mapped[bool] = mapped_column(Boolean, default=False)
+    community_rating: Mapped[float] = mapped_column(Float, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Foreign key relationships
     user = relationship("User", back_populates="trick_shooter_rewards")
@@ -138,20 +139,20 @@ class FriendBetReward(Base):
 
     __tablename__ = "friend_bet_rewards"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    bet_id = Column(Integer, nullable=False)  # ID of the friend bet
-    creation_bonus = Column(Float, default=0.0)
-    acceptance_bonus = Column(Float, default=0.0)
-    completion_bonus = Column(Float, default=0.0)
-    social_bonus = Column(Float, default=0.0)
-    community_bonus = Column(Float, default=0.0)
-    total_reward = Column(Float, default=0.0)
-    bet_amount = Column(Float, default=0.0)
-    acceptance_status = Column(Boolean, default=False)
-    completion_status = Column(Boolean, default=False)
-    social_interactions = Column(Integer, default=0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    bet_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ID of the friend bet
+    creation_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    acceptance_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    completion_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    social_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    community_bonus: Mapped[float] = mapped_column(Float, default=0.0)
+    total_reward: Mapped[float] = mapped_column(Float, default=0.0)
+    bet_amount: Mapped[float] = mapped_column(Float, default=0.0)
+    acceptance_status: Mapped[bool] = mapped_column(Boolean, default=False)
+    completion_status: Mapped[bool] = mapped_column(Boolean, default=False)
+    social_interactions: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Foreign key relationships
     user = relationship("User", back_populates="friend_bet_rewards")
