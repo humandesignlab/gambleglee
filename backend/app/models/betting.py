@@ -3,6 +3,7 @@ Enhanced betting models for GambleGlee with comprehensive edge case handling
 """
 
 import uuid
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum as PyEnum
 
@@ -19,7 +20,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -76,64 +77,64 @@ class Bet(Base):
     __tablename__ = "bets"
 
     # Primary identification
-    id = Column(Integer, primary_key=True, index=True)
-    uuid = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    uuid: Mapped[str] = mapped_column(
         String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4())
     )
 
     # Bet details
-    title = Column(String(255), nullable=False)
-    description = Column(Text, nullable=True)
-    bet_type: Column[BetType] = Column(Enum(BetType), nullable=False)
-    status: Column[BetStatus] = Column(
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    bet_type: Mapped[BetType] = mapped_column(Enum(BetType), nullable=False)
+    status: Mapped[BetStatus] = mapped_column(
         Enum(BetStatus), default=BetStatus.PENDING, nullable=False
     )
-    outcome: Column[BetOutcome] = Column(
+    outcome: Mapped[BetOutcome] = mapped_column(
         Enum(BetOutcome), default=BetOutcome.PENDING, nullable=False
     )
 
     # Financial details (using Decimal for precision)
-    amount = Column(Numeric(15, 2), nullable=False)  # Total bet amount
-    commission_rate = Column(
+    amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)  # Total bet amount
+    commission_rate: Mapped[Decimal] = mapped_column(
         Numeric(5, 4), nullable=False, default=0.05
     )  # 5% commission
-    commission_amount = Column(Numeric(15, 2), nullable=False, default=0)
-    total_pot = Column(Numeric(15, 2), nullable=False)  # Total pot including commission
-    winner_payout = Column(Numeric(15, 2), nullable=True)  # Amount winner receives
+    commission_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, default=0)
+    total_pot: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)  # Total pot including commission
+    winner_payout: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)  # Amount winner receives
 
     # Timing
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    accepted_at = Column(DateTime(timezone=True), nullable=True)
-    started_at = Column(DateTime(timezone=True), nullable=True)
-    completed_at = Column(DateTime(timezone=True), nullable=True)
-    resolved_at = Column(DateTime(timezone=True), nullable=True)
-    expires_at = Column(DateTime(timezone=True), nullable=True)  # Expiration time
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # Expiration time
 
     # Resolution details
-    resolution_method = Column(
+    resolution_method: Mapped[str | None] = mapped_column(
         String(50), nullable=True
     )  # 'automatic', 'manual', 'judge', 'community'
-    resolution_data = Column(Text, nullable=True)  # JSON data for resolution
-    dispute_reason = Column(Text, nullable=True)  # Reason for dispute
-    dispute_resolved_at = Column(DateTime(timezone=True), nullable=True)
+    resolution_data: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON data for resolution
+    dispute_reason: Mapped[str | None] = mapped_column(Text, nullable=True)  # Reason for dispute
+    dispute_resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Event association
-    event_id = Column(Integer, nullable=True)  # Associated event ID
-    event_type = Column(String(50), nullable=True)  # Type of associated event
+    event_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # Associated event ID
+    event_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # Type of associated event
 
     # Metadata
-    bet_metadata = Column(Text, nullable=True)  # JSON metadata
-    version = Column(
+    bet_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON metadata
+    version: Mapped[int] = mapped_column(
         Integer, default=1, nullable=False
     )  # Version for optimistic locking
 
     # Audit fields
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
-    updated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at_audit = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at_audit = Column(
+    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    updated_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at_audit: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at_audit: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
@@ -165,25 +166,25 @@ class BetParticipant(Base):
 
     __tablename__ = "bet_participants"
 
-    id = Column(Integer, primary_key=True, index=True)
-    bet_id = Column(Integer, ForeignKey("bets.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    role: Column[BetParticipantRole] = Column(Enum(BetParticipantRole), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    bet_id: Mapped[int] = mapped_column(Integer, ForeignKey("bets.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    role: Mapped[BetParticipantRole] = mapped_column(Enum(BetParticipantRole), nullable=False)
 
     # Financial details
-    stake_amount = Column(Numeric(15, 2), nullable=False)  # Amount user is betting
-    potential_winnings = Column(Numeric(15, 2), nullable=True)  # Potential winnings
-    actual_winnings = Column(Numeric(15, 2), nullable=True)  # Actual winnings received
+    stake_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)  # Amount user is betting
+    potential_winnings: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)  # Potential winnings
+    actual_winnings: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)  # Actual winnings received
 
     # Status tracking
-    is_active = Column(Boolean, default=True, nullable=False)
-    joined_at = Column(
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    left_at = Column(DateTime(timezone=True), nullable=True)
+    left_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Metadata
-    bet_metadata = Column(Text, nullable=True)  # JSON metadata
+    bet_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON metadata
 
     # Relationships
     bet = relationship("Bet", back_populates="participants")
@@ -202,35 +203,35 @@ class BetTransaction(Base):
 
     __tablename__ = "bet_transactions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    bet_id = Column(Integer, ForeignKey("bets.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    bet_id: Mapped[int] = mapped_column(Integer, ForeignKey("bets.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Transaction details
-    transaction_type = Column(
+    transaction_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # 'stake', 'payout', 'refund', 'commission'
-    amount = Column(Numeric(15, 2), nullable=False)
-    currency = Column(String(3), default="USD", nullable=False)
+    amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), default="USD", nullable=False)
 
     # Status
-    status = Column(
+    status: Mapped[str] = mapped_column(
         String(50), default="pending", nullable=False
     )  # 'pending', 'completed', 'failed', 'cancelled'
-    processed_at = Column(DateTime(timezone=True), nullable=True)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Reference information
-    wallet_transaction_id = Column(
+    wallet_transaction_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("transactions.id"), nullable=True
     )
-    external_reference = Column(String(255), nullable=True)  # External system reference
+    external_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)  # External system reference
 
     # Metadata
-    description = Column(Text, nullable=True)
-    bet_metadata = Column(Text, nullable=True)  # JSON metadata
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    bet_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON metadata
 
     # Audit
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
@@ -254,40 +255,40 @@ class BetResolution(Base):
 
     __tablename__ = "bet_resolutions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    bet_id = Column(Integer, ForeignKey("bets.id"), nullable=False, unique=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    bet_id: Mapped[int] = mapped_column(Integer, ForeignKey("bets.id"), nullable=False, unique=True)
 
     # Resolution details
-    resolution_type = Column(
+    resolution_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # 'automatic', 'manual', 'judge', 'community'
-    resolution_data = Column(Text, nullable=False)  # JSON resolution data
-    outcome: Column[BetOutcome] = Column(Enum(BetOutcome), nullable=False)
+    resolution_data: Mapped[str] = mapped_column(Text, nullable=False)  # JSON resolution data
+    outcome: Mapped[BetOutcome] = mapped_column(Enum(BetOutcome), nullable=False)
 
     # Resolution participants
-    resolved_by = Column(
+    resolved_by: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=True
     )  # User who resolved
-    judge_id = Column(
+    judge_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=True
     )  # Judge if applicable
 
     # Status
-    status = Column(
+    status: Mapped[str] = mapped_column(
         String(50), default="pending", nullable=False
     )  # 'pending', 'accepted', 'disputed', 'final'
-    disputed_by = Column(
+    disputed_by: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=True
     )  # User who disputed
-    dispute_reason = Column(Text, nullable=True)
+    dispute_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Timing
-    resolved_at = Column(
+    resolved_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    accepted_at = Column(DateTime(timezone=True), nullable=True)
-    disputed_at = Column(DateTime(timezone=True), nullable=True)
-    final_at = Column(DateTime(timezone=True), nullable=True)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    disputed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    final_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     bet = relationship("Bet")
@@ -309,25 +310,25 @@ class BetAuditLog(Base):
 
     __tablename__ = "bet_audit_logs"
 
-    id = Column(Integer, primary_key=True, index=True)
-    bet_id = Column(Integer, ForeignKey("bets.id"), nullable=False)
-    user_id = Column(
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    bet_id: Mapped[int] = mapped_column(Integer, ForeignKey("bets.id"), nullable=False)
+    user_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=True
     )  # User who performed action
 
     # Audit details
-    action = Column(String(100), nullable=False)  # Action performed
-    old_value = Column(Text, nullable=True)  # Previous value (JSON)
-    new_value = Column(Text, nullable=True)  # New value (JSON)
-    reason = Column(Text, nullable=True)  # Reason for change
+    action: Mapped[str] = mapped_column(String(100), nullable=False)  # Action performed
+    old_value: Mapped[str | None] = mapped_column(Text, nullable=True)  # Previous value (JSON)
+    new_value: Mapped[str | None] = mapped_column(Text, nullable=True)  # New value (JSON)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)  # Reason for change
 
     # Metadata
-    ip_address = Column(String(45), nullable=True)  # IP address
-    user_agent = Column(Text, nullable=True)  # User agent
-    resolution_metadata = Column(Text, nullable=True)  # Additional metadata (JSON)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)  # IP address
+    user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)  # User agent
+    resolution_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # Additional metadata (JSON)
 
     # Timing
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
