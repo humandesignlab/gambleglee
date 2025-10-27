@@ -3,6 +3,7 @@ Wallet and transaction models
 """
 
 import enum
+from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
@@ -15,7 +16,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -47,18 +48,18 @@ class Wallet(Base):
 
     __tablename__ = "wallets"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
-    balance = Column(Float, default=0.0, nullable=False)
-    locked_balance = Column(Float, default=0.0, nullable=False)  # Funds in escrow
-    total_deposited = Column(Float, default=0.0, nullable=False)
-    total_withdrawn = Column(Float, default=0.0, nullable=False)
-    total_wagered = Column(Float, default=0.0, nullable=False)
-    total_won = Column(Float, default=0.0, nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    balance: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    locked_balance: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)  # Funds in escrow
+    total_deposited: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    total_withdrawn: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    total_wagered: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    total_won: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
     user = relationship("User", back_populates="wallet")
@@ -70,32 +71,32 @@ class Transaction(Base):
 
     __tablename__ = "transactions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    wallet_id: Mapped[int] = mapped_column(Integer, ForeignKey("wallets.id"), nullable=False)
 
     # Transaction details
-    type: Column[TransactionType] = Column(Enum(TransactionType), nullable=False)
-    amount = Column(Float, nullable=False)
-    status: Column[TransactionStatus] = Column(
+    type: Mapped[TransactionType] = mapped_column(Enum(TransactionType), nullable=False)
+    amount: Mapped[float] = mapped_column(Float, nullable=False)
+    status: Mapped[TransactionStatus] = mapped_column(
         Enum(TransactionStatus), default=TransactionStatus.PENDING
     )
 
     # External references
-    stripe_payment_intent_id = Column(String(255), nullable=True)
-    stripe_transfer_id = Column(String(255), nullable=True)
+    stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    stripe_transfer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Related entities
-    bet_id = Column(Integer, ForeignKey("bets.id"), nullable=True)
+    bet_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("bets.id"), nullable=True)
 
     # Metadata
-    description = Column(Text, nullable=True)
-    transaction_metadata = Column(Text, nullable=True)  # JSON string for additional data
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    transaction_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON string for additional data
 
     # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    completed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="transactions")
