@@ -31,6 +31,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
+          # Ensure exact Black version to match local development
+          pip install black==23.11.0 --force-reinstall
 
       - name: Run linting
         run: |
