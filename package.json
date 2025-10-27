@@ -17,7 +17,9 @@
         "test:all": "npm run test:backend && npm run test:frontend",
         "pre-commit": "./scripts/pre-commit.sh",
         "local-ci": "./scripts/local-ci.sh",
-        "ci": "npm run local-ci"
+        "ci": "npm run local-ci",
+        "setup-dev": "./scripts/setup-dev.sh",
+        "format:ci": "npm run format:backend && npm run format:frontend && echo '✅ Code formatted to match CI expectations'"
     },
     "devDependencies": {},
     "keywords": [

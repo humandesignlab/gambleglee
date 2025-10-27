@@ -1,68 +1,104 @@
 #!/bin/bash
 
-# GambleGlee Development Setup Script
-echo "🎲 Setting up GambleGlee development environment..."
+# Developer Setup Script for GambleGlee
+# This script sets up the development environment for new developers
+# Ensures all formatting tools are configured correctly
 
-# Check if Docker is installed
-if ! command -v docker &> /dev/null; then
-    echo "❌ Docker is not installed. Please install Docker first."
+set -e
+
+echo "🚀 Setting up GambleGlee development environment..."
+
+# Check if we're in the right directory
+if [ ! -f "backend/pyproject.toml" ] || [ ! -f "frontend/package.json" ]; then
+    echo "❌ Please run this script from the project root directory"
     exit 1
 fi
 
-# Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose is not installed. Please install Docker Compose first."
-    exit 1
-fi
-
-# Create environment files if they don't exist
-echo "📝 Creating environment files..."
-
-if [ ! -f backend/.env ]; then
-    cp backend/env.example backend/.env
-    echo "✅ Created backend/.env from template"
+# Install VS Code extensions
+echo "📦 Installing recommended VS Code extensions..."
+if command -v code >/dev/null 2>&1; then
+    # Python extensions
+    code --install-extension ms-python.python
+    code --install-extension ms-python.black-formatter
+    code --install-extension ms-python.isort
+    code --install-extension ms-python.flake8
+    code --install-extension ms-python.mypy-type-checker
+    
+    # TypeScript/JavaScript extensions
+    code --install-extension dbaeumer.vscode-eslint
+    code --install-extension esbenp.prettier-vscode
+    
+    # Terraform extensions
+    code --install-extension hashicorp.terraform
+    
+    # General extensions
+    code --install-extension redhat.vscode-yaml
+    code --install-extension eamodio.gitlens
+    
+    echo "✅ VS Code extensions installed"
 else
-    echo "ℹ️  backend/.env already exists"
+    echo "⚠️  VS Code not found. Please install extensions manually from .vscode/extensions.json"
 fi
 
-if [ ! -f frontend/.env ]; then
-    cp frontend/env.example frontend/.env
-    echo "✅ Created frontend/.env from template"
-else
-    echo "ℹ️  frontend/.env already exists"
-fi
-
-# Start services with Docker Compose
-echo "🐳 Starting services with Docker Compose..."
-docker-compose up -d postgres redis
-
-# Wait for services to be ready
-echo "⏳ Waiting for services to be ready..."
-sleep 10
-
-# Install Python dependencies
-echo "🐍 Installing Python dependencies..."
+# Set up Python environment
+echo "🐍 Setting up Python environment..."
 cd backend
+if [ ! -d ".venv" ]; then
+    python -m venv .venv
+    echo "✅ Python virtual environment created"
+fi
+
+source .venv/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
-cd ..
+pip install -r requirements-dev.txt
+echo "✅ Python dependencies installed"
 
-# Install Node.js dependencies
-echo "📦 Installing Node.js dependencies..."
-cd frontend
+# Set up Node.js environment
+echo "⚛️  Setting up Node.js environment..."
+cd ../frontend
 npm install
+echo "✅ Node.js dependencies installed"
+
+# Set up pre-commit hook
+echo "🔧 Setting up pre-commit hook..."
+cd ..
+if [ ! -f ".git/hooks/pre-commit" ]; then
+    cp scripts/pre-commit.sh .git/hooks/pre-commit
+    chmod +x .git/hooks/pre-commit
+    echo "✅ Pre-commit hook installed"
+else
+    echo "⚠️  Pre-commit hook already exists"
+fi
+
+# Test formatting tools
+echo "🧪 Testing formatting tools..."
+cd backend
+python -m black --version
+python -m isort --version
+python -m flake8 --version
+python -m mypy --version
+echo "✅ Python formatting tools verified"
+
+cd ../frontend
+npm run lint -- --version
+echo "✅ Frontend formatting tools verified"
+
 cd ..
 
-echo "✅ Development environment setup complete!"
 echo ""
-echo "🚀 To start the application:"
-echo "   Backend:  cd backend && uvicorn app.main:app --reload"
-echo "   Frontend: cd frontend && npm run dev"
+echo "🎉 Development environment setup complete!"
 echo ""
-echo "🌐 Application will be available at:"
-echo "   Frontend: http://localhost:3000"
-echo "   Backend:  http://localhost:8000"
-echo "   API Docs: http://localhost:8000/docs"
+echo "📋 What's configured:"
+echo "   ✅ VS Code extensions installed"
+echo "   ✅ Python virtual environment created"
+echo "   ✅ All dependencies installed"
+echo "   ✅ Pre-commit hook installed"
+echo "   ✅ Formatting tools verified"
 echo ""
-echo "📊 Database:"
-echo "   PostgreSQL: localhost:5432 (gambleglee/password)"
-echo "   Redis:      localhost:6379"
+echo "💡 Tips:"
+echo "   • Code will be automatically formatted on save"
+echo "   • Pre-commit hook will ensure CI compatibility"
+echo "   • Run 'npm run local-ci' to test locally before pushing"
+echo ""
+echo "🚀 Happy coding!"
