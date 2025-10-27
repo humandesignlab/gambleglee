@@ -85,8 +85,12 @@ class Bet(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     bet_type: Column[BetType] = Column(Enum(BetType), nullable=False)
-    status: Column[BetStatus] = Column(Enum(BetStatus), default=BetStatus.PENDING, nullable=False)
-    outcome: Column[BetOutcome] = Column(Enum(BetOutcome), default=BetOutcome.PENDING, nullable=False)
+    status: Column[BetStatus] = Column(
+        Enum(BetStatus), default=BetStatus.PENDING, nullable=False
+    )
+    outcome: Column[BetOutcome] = Column(
+        Enum(BetOutcome), default=BetOutcome.PENDING, nullable=False
+    )
 
     # Financial details (using Decimal for precision)
     amount = Column(Numeric(15, 2), nullable=False)  # Total bet amount

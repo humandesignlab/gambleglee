@@ -300,7 +300,9 @@ class Notification(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Notification details
-    notification_type: Column[NotificationType] = Column(Enum(NotificationType), nullable=False)
+    notification_type: Column[NotificationType] = Column(
+        Enum(NotificationType), nullable=False
+    )
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
 

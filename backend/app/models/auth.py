@@ -87,8 +87,12 @@ class User(Base):
     is_active = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
-    role: Column[UserRole] = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
-    status: Column[UserStatus] = Column(Enum(UserStatus), default=UserStatus.PENDING, nullable=False)
+    role: Column[UserRole] = Column(
+        Enum(UserRole), default=UserRole.USER, nullable=False
+    )
+    status: Column[UserStatus] = Column(
+        Enum(UserStatus), default=UserStatus.PENDING, nullable=False
+    )
 
     # Authentication providers
     auth_provider: Column[AuthProvider] = Column(
@@ -194,7 +198,9 @@ class UserSession(Base):
     location = Column(String(100), nullable=True)
 
     # Session status
-    status: Column[SessionStatus] = Column(Enum(SessionStatus), default=SessionStatus.ACTIVE, nullable=False)
+    status: Column[SessionStatus] = Column(
+        Enum(SessionStatus), default=SessionStatus.ACTIVE, nullable=False
+    )
     is_current = Column(Boolean, default=True, nullable=False)
 
     # Timestamps

@@ -70,7 +70,9 @@ class Reward(Base):
     points_earned = Column(Integer, nullable=False, default=0)
     cash_earned = Column(Float, nullable=False, default=0.0)
     description = Column(Text, nullable=True)
-    status: Column[RewardStatus] = Column(Enum(RewardStatus), default=RewardStatus.PENDING)
+    status: Column[RewardStatus] = Column(
+        Enum(RewardStatus), default=RewardStatus.PENDING
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     approved_at = Column(DateTime(timezone=True), nullable=True)
     redeemed_at = Column(DateTime(timezone=True), nullable=True)
