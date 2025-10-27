@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.exceptions import AuthenticationError, SecurityError
-from app.models.user import User
+from app.models.auth import User
 
 logger = logging.getLogger(__name__)
 

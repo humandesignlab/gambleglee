@@ -14,7 +14,7 @@ from app.core.dependencies import (
     get_user_location,
 )
 from app.core.security import get_current_active_user
-from app.models.user import User
+from app.models.auth import User
 from app.schemas.wallet import (
     DepositRequest,
     PaymentIntentResponse,

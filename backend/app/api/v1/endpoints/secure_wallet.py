@@ -18,7 +18,7 @@ from app.core.dependencies import (
 from app.core.exceptions import SecurityError
 from app.core.security import get_current_active_user
 from app.core.security_audit import SecurityAudit
-from app.models.user import User
+from app.models.auth import User
 from app.schemas.wallet import (
     DepositRequest,
     PaymentIntentResponse,

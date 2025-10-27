@@ -17,7 +17,7 @@ from app.core.exceptions import BettingError, InsufficientFundsError, Validation
 from app.core.rate_limiter import RateLimitException, rate_limiter
 from app.core.security import get_current_active_user
 from app.models.betting import Bet, BetOutcome, BetParticipant, BetStatus, BetType
-from app.models.user import User
+from app.models.auth import User
 from app.services.betting_service import BettingService
 
 logger = structlog.get_logger(__name__)

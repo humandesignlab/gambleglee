@@ -18,7 +18,7 @@ from app.core.exceptions import (
     ValidationError,
 )
 from app.core.security import get_current_active_user
-from app.models.user import User
+from app.models.auth import User
 from app.schemas.social import (
     ActivityCommentResponse,
     ActivityCreateRequest,

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.exceptions import InsufficientFundsError, ValidationError
 from app.core.security import get_current_active_user
-from app.models.user import User
+from app.models.auth import User
 from app.services.rewards_service import RewardsService
 
 logger = structlog.get_logger(__name__)

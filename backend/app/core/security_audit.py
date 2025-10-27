@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User
+from app.models.auth import User
 from app.models.wallet import Transaction, TransactionStatus, TransactionType
 
 logger = logging.getLogger(__name__)

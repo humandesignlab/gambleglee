@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
-from app.models.user import User
+from app.models.auth import User
 
 # Create router for security endpoints
 router = APIRouter()
@@ -29,7 +29,7 @@ router = APIRouter()
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.exceptions import AuthenticationError, SecurityError
-from app.models.user import User
+from app.models.auth import User
 
 logger = logging.getLogger(__name__)
 
