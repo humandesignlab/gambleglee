@@ -5,6 +5,7 @@ Stripe payment processing service
 from typing import Any, Dict, Optional
 
 import stripe
+from StripeError import StripeError
 
 from app.core.config import settings
 from app.core.exceptions import GambleGleeException
@@ -28,7 +29,7 @@ class StripeService:
                 metadata={"user_id": str(user_id), "platform": "gambleglee"},
             )
             return customer.id
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Failed to create Stripe customer: {str(e)}")
 
     @staticmethod
@@ -57,7 +58,7 @@ class StripeService:
                 "client_secret": payment_intent.client_secret,
                 "status": payment_intent.status,
             }
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Failed to create payment intent: {str(e)}")
 
     @staticmethod
@@ -73,7 +74,7 @@ class StripeService:
                 "client_secret": setup_intent.client_secret,
                 "status": setup_intent.status,
             }
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Failed to create setup intent: {str(e)}")
 
     @staticmethod
@@ -94,10 +95,9 @@ class StripeService:
 
             return {
                 "id": transfer.id,
-                "status": transfer.status,
                 "amount": transfer.amount,
             }
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Failed to create transfer: {str(e)}")
 
     @staticmethod
@@ -112,7 +112,7 @@ class StripeService:
                 "currency": payment_intent.currency,
                 "customer": payment_intent.customer,
             }
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Failed to retrieve payment intent: {str(e)}")
 
     @staticmethod
@@ -128,9 +128,9 @@ class StripeService:
                 "data": event["data"]["object"],
                 "id": event["id"],
             }
-        except stripe.error.SignatureVerificationError:
+        except StripeError.SignatureVerificationError:
             raise GambleGleeException("Invalid webhook signature")
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Webhook processing failed: {str(e)}")
 
     @staticmethod
@@ -148,7 +148,7 @@ class StripeService:
                 metadata={"user_id": str(user_id), "platform": "gambleglee"},
             )
             return account.id
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Failed to create Connect account: {str(e)}")
 
     @staticmethod
@@ -164,5 +164,5 @@ class StripeService:
                 type="account_onboarding",
             )
             return account_link.url
-        except stripe.error.StripeError as e:
+        except StripeError.StripeError as e:
             raise GambleGleeException(f"Failed to create account link: {str(e)}")

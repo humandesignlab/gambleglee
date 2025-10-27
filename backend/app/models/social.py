@@ -194,7 +194,7 @@ class UserActivity(Base):
     description = Column(Text, nullable=True)
 
     # Activity metadata
-    metadata = Column(JSON, nullable=True)  # Store additional activity data
+    activity_metadata = Column(JSON, nullable=True)  # Store additional activity data
     is_public = Column(Boolean, default=True, nullable=False)
     is_featured = Column(Boolean, default=False, nullable=False)
 
@@ -310,7 +310,7 @@ class Notification(Base):
     is_read = Column(Boolean, default=False, nullable=False)
     is_important = Column(Boolean, default=False, nullable=False)
     action_url = Column(String(500), nullable=True)
-    metadata = Column(JSON, nullable=True)
+    notification_metadata = Column(JSON, nullable=True)
 
     # Timestamps
     created_at = Column(
@@ -414,7 +414,7 @@ class LeaderboardEntry(Base):
     # Entry details
     rank = Column(Integer, nullable=False)
     score = Column(Float, nullable=False)
-    metadata = Column(JSON, nullable=True)
+    leaderboard_metadata = Column(JSON, nullable=True)
 
     # Timestamps
     created_at = Column(

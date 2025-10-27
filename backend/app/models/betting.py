@@ -124,7 +124,7 @@ class Bet(Base):
     event_type = Column(String(50), nullable=True)  # Type of associated event
 
     # Metadata
-    metadata = Column(Text, nullable=True)  # JSON metadata
+    bet_metadata = Column(Text, nullable=True)  # JSON metadata
     version = Column(
         Integer, default=1, nullable=False
     )  # Version for optimistic locking
@@ -183,7 +183,7 @@ class BetParticipant(Base):
     left_at = Column(DateTime(timezone=True), nullable=True)
 
     # Metadata
-    metadata = Column(Text, nullable=True)  # JSON metadata
+    bet_metadata = Column(Text, nullable=True)  # JSON metadata
 
     # Relationships
     bet = relationship("Bet", back_populates="participants")
@@ -227,7 +227,7 @@ class BetTransaction(Base):
 
     # Metadata
     description = Column(Text, nullable=True)
-    metadata = Column(Text, nullable=True)  # JSON metadata
+    bet_metadata = Column(Text, nullable=True)  # JSON metadata
 
     # Audit
     created_at = Column(
@@ -324,7 +324,7 @@ class BetAuditLog(Base):
     # Metadata
     ip_address = Column(String(45), nullable=True)  # IP address
     user_agent = Column(Text, nullable=True)  # User agent
-    metadata = Column(Text, nullable=True)  # Additional metadata (JSON)
+    resolution_metadata = Column(Text, nullable=True)  # Additional metadata (JSON)
 
     # Timing
     created_at = Column(

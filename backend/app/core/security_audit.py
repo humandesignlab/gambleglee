@@ -76,7 +76,7 @@ class SecurityAudit:
 
         count = result.scalar()
         return (
-            count if count > 10 else 0
+            count if count and count > 10 else 0
         )  # Alert if more than 10 transactions in 5 minutes
 
     async def _check_unusual_amounts(self, user_id: int) -> bool:
@@ -90,7 +90,7 @@ class SecurityAudit:
             .limit(100)
         )
 
-        amounts = [Decimal(str(amount)) for amount in result.scalars()]
+        amounts = [float(amount) for amount in result.scalars()]
 
         if len(amounts) < 5:
             return False
@@ -127,7 +127,7 @@ class SecurityAudit:
         withdrawal_count = recent_withdrawals.scalar()
 
         # Alert if multiple deposits followed by withdrawals in short time
-        if deposit_count > 3 and withdrawal_count > 2:
+        if (deposit_count and deposit_count > 3) and (withdrawal_count and withdrawal_count > 2):
             return True
 
         # Pattern 2: Round number transactions (potential structuring)
@@ -138,7 +138,8 @@ class SecurityAudit:
             .where(Transaction.created_at >= datetime.utcnow() - timedelta(hours=24))
         )
 
-        if round_amounts.scalar() > 5:
+        round_count = round_amounts.scalar()
+        if round_count and round_count > 5:
             return True
 
         return False

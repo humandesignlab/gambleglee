@@ -90,7 +90,7 @@ class Transaction(Base):
 
     # Metadata
     description = Column(Text, nullable=True)
-    metadata = Column(Text, nullable=True)  # JSON string for additional data
+    transaction_metadata = Column(Text, nullable=True)  # JSON string for additional data
 
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

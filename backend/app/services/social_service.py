@@ -38,7 +38,7 @@ from app.schemas.social import (
     AchievementData,
     ActivityData,
     ActivityFilters,
-    FriendRequestData,
+    FriendRequestRequest,
     LeaderboardData,
     LeaderboardEntryData,
     NotificationData,

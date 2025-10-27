@@ -96,7 +96,6 @@ class Settings(BaseSettings):
 
     # Email Service Settings
     SMTP_USERNAME: str = ""
-    SMTP_PASSWORD: str = ""
     FROM_EMAIL: str = "noreply@gambleglee.com"
     FROM_NAME: str = "GambleGlee"
 

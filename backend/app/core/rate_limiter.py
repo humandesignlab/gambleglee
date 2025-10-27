@@ -155,4 +155,4 @@ def get_rate_limit_key(key: str, args, kwargs) -> str:
 
 
 # Rate limiter instance for use in services
-rate_limiter = rate_limiter_instance
+rate_limiter_instance = RateLimiter()
