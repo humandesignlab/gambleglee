@@ -94,46 +94,82 @@ class Bet(Base):
     )
 
     # Financial details (using Decimal for precision)
-    amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)  # Total bet amount
+    amount: Mapped[Decimal] = mapped_column(
+        Numeric(15, 2), nullable=False
+    )  # Total bet amount
     commission_rate: Mapped[Decimal] = mapped_column(
         Numeric(5, 4), nullable=False, default=0.05
     )  # 5% commission
-    commission_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, default=0)
-    total_pot: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)  # Total pot including commission
-    winner_payout: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)  # Amount winner receives
+    commission_amount: Mapped[Decimal] = mapped_column(
+        Numeric(15, 2), nullable=False, default=0
+    )
+    total_pot: Mapped[Decimal] = mapped_column(
+        Numeric(15, 2), nullable=False
+    )  # Total pot including commission
+    winner_payout: Mapped[Decimal | None] = mapped_column(
+        Numeric(15, 2), nullable=True
+    )  # Amount winner receives
 
     # Timing
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # Expiration time
+    accepted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )  # Expiration time
 
     # Resolution details
     resolution_method: Mapped[str | None] = mapped_column(
         String(50), nullable=True
     )  # 'automatic', 'manual', 'judge', 'community'
-    resolution_data: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON data for resolution
-    dispute_reason: Mapped[str | None] = mapped_column(Text, nullable=True)  # Reason for dispute
-    dispute_resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolution_data: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # JSON data for resolution
+    dispute_reason: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # Reason for dispute
+    dispute_resolved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Event association
-    event_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # Associated event ID
-    event_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # Type of associated event
+    event_id: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )  # Associated event ID
+    event_type: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )  # Type of associated event
 
     # Metadata
-    bet_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON metadata
+    bet_metadata: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # JSON metadata
     version: Mapped[int] = mapped_column(
         Integer, default=1, nullable=False
     )  # Version for optimistic locking
 
     # Audit fields
-    created_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    updated_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at_audit: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_by: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
+    updated_by: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=True
+    )
+    created_at_audit: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at_audit: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -168,23 +204,37 @@ class BetParticipant(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     bet_id: Mapped[int] = mapped_column(Integer, ForeignKey("bets.id"), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    role: Mapped[BetParticipantRole] = mapped_column(Enum(BetParticipantRole), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
+    role: Mapped[BetParticipantRole] = mapped_column(
+        Enum(BetParticipantRole), nullable=False
+    )
 
     # Financial details
-    stake_amount: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False)  # Amount user is betting
-    potential_winnings: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)  # Potential winnings
-    actual_winnings: Mapped[Decimal | None] = mapped_column(Numeric(15, 2), nullable=True)  # Actual winnings received
+    stake_amount: Mapped[Decimal] = mapped_column(
+        Numeric(15, 2), nullable=False
+    )  # Amount user is betting
+    potential_winnings: Mapped[Decimal | None] = mapped_column(
+        Numeric(15, 2), nullable=True
+    )  # Potential winnings
+    actual_winnings: Mapped[Decimal | None] = mapped_column(
+        Numeric(15, 2), nullable=True
+    )  # Actual winnings received
 
     # Status tracking
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     joined_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    left_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    left_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Metadata
-    bet_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON metadata
+    bet_metadata: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # JSON metadata
 
     # Relationships
     bet = relationship("Bet", back_populates="participants")
@@ -205,7 +255,9 @@ class BetTransaction(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     bet_id: Mapped[int] = mapped_column(Integer, ForeignKey("bets.id"), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
 
     # Transaction details
     transaction_type: Mapped[str] = mapped_column(
@@ -218,17 +270,23 @@ class BetTransaction(Base):
     status: Mapped[str] = mapped_column(
         String(50), default="pending", nullable=False
     )  # 'pending', 'completed', 'failed', 'cancelled'
-    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    processed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Reference information
     wallet_transaction_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("transactions.id"), nullable=True
     )
-    external_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)  # External system reference
+    external_reference: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )  # External system reference
 
     # Metadata
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    bet_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON metadata
+    bet_metadata: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # JSON metadata
 
     # Audit
     created_at: Mapped[datetime] = mapped_column(
@@ -256,13 +314,17 @@ class BetResolution(Base):
     __tablename__ = "bet_resolutions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    bet_id: Mapped[int] = mapped_column(Integer, ForeignKey("bets.id"), nullable=False, unique=True)
+    bet_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("bets.id"), nullable=False, unique=True
+    )
 
     # Resolution details
     resolution_type: Mapped[str] = mapped_column(
         String(50), nullable=False
     )  # 'automatic', 'manual', 'judge', 'community'
-    resolution_data: Mapped[str] = mapped_column(Text, nullable=False)  # JSON resolution data
+    resolution_data: Mapped[str] = mapped_column(
+        Text, nullable=False
+    )  # JSON resolution data
     outcome: Mapped[BetOutcome] = mapped_column(Enum(BetOutcome), nullable=False)
 
     # Resolution participants
@@ -286,9 +348,15 @@ class BetResolution(Base):
     resolved_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    disputed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    final_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    accepted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    disputed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    final_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Relationships
     bet = relationship("Bet")
@@ -318,14 +386,22 @@ class BetAuditLog(Base):
 
     # Audit details
     action: Mapped[str] = mapped_column(String(100), nullable=False)  # Action performed
-    old_value: Mapped[str | None] = mapped_column(Text, nullable=True)  # Previous value (JSON)
-    new_value: Mapped[str | None] = mapped_column(Text, nullable=True)  # New value (JSON)
+    old_value: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # Previous value (JSON)
+    new_value: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # New value (JSON)
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)  # Reason for change
 
     # Metadata
-    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)  # IP address
+    ip_address: Mapped[str | None] = mapped_column(
+        String(45), nullable=True
+    )  # IP address
     user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)  # User agent
-    resolution_metadata: Mapped[str | None] = mapped_column(Text, nullable=True)  # Additional metadata (JSON)
+    resolution_metadata: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # Additional metadata (JSON)
 
     # Timing
     created_at: Mapped[datetime] = mapped_column(

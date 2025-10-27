@@ -127,7 +127,9 @@ class SecurityAudit:
         withdrawal_count = recent_withdrawals.scalar()
 
         # Alert if multiple deposits followed by withdrawals in short time
-        if (deposit_count and deposit_count > 3) and (withdrawal_count and withdrawal_count > 2):
+        if (deposit_count and deposit_count > 3) and (
+            withdrawal_count and withdrawal_count > 2
+        ):
             return True
 
         # Pattern 2: Round number transactions (potential structuring)

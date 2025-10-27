@@ -72,9 +72,15 @@ class User(Base):
     )
 
     # Authentication fields
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
-    hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Nullable for OAuth users
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
+    )
+    username: Mapped[str] = mapped_column(
+        String(50), unique=True, nullable=False, index=True
+    )
+    hashed_password: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )  # Nullable for OAuth users
 
     # Personal information
     first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -98,33 +104,57 @@ class User(Base):
     auth_provider: Mapped[AuthProvider] = mapped_column(
         Enum(AuthProvider), default=AuthProvider.EMAIL, nullable=False
     )
-    external_id: Mapped[str | None] = mapped_column(String(255), nullable=True)  # OAuth provider user ID
+    external_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )  # OAuth provider user ID
 
     # Security fields
-    two_factor_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    two_factor_enabled: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
     two_factor_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    backup_codes: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of backup codes
+    backup_codes: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # JSON array of backup codes
 
     # Account verification
-    email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    email_verification_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    email_verification_token: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
+    email_verification_expires: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    password_reset_expires: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    password_reset_expires: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Login tracking
-    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     last_login_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
     login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    failed_login_attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    failed_login_attempts: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+    locked_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Privacy and preferences
     privacy_level: Mapped[str] = mapped_column(
         String(20), default="public", nullable=False
     )  # public, friends, private
-    email_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    push_notifications: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    marketing_emails: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    email_notifications: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
+    )
+    push_notifications: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
+    )
+    marketing_emails: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
@@ -136,16 +166,24 @@ class User(Base):
         onupdate=func.now(),
         nullable=False,
     )
-    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Payment processor integrations
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    mercadopago_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mercadopago_customer_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
 
     # Geolocation
-    country: Mapped[str | None] = mapped_column(String(2), nullable=True)  # ISO country code
+    country: Mapped[str | None] = mapped_column(
+        String(2), nullable=True
+    )  # ISO country code
     state: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)  # IPv6 compatible
+    ip_address: Mapped[str | None] = mapped_column(
+        String(45), nullable=True
+    )  # IPv6 compatible
 
     # Relationships
     sessions = relationship(

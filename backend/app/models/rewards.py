@@ -66,7 +66,9 @@ class Reward(Base):
     __tablename__ = "rewards"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
     reward_type: Mapped[RewardType] = mapped_column(Enum(RewardType), nullable=False)
     points_earned: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     cash_earned: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
@@ -74,18 +76,32 @@ class Reward(Base):
     status: Mapped[RewardStatus] = mapped_column(
         Enum(RewardStatus), default=RewardStatus.PENDING
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    redeemed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    approved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    redeemed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Foreign key relationships
     user = relationship("User", back_populates="rewards")
 
     # Additional metadata
-    metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON string for additional data
-    source_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # ID of the source (event, bet, etc.)
-    source_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # Type of source
+    metadata_json: Mapped[str | None] = mapped_column(
+        Text, nullable=True
+    )  # JSON string for additional data
+    source_id: Mapped[int | None] = mapped_column(
+        Integer, nullable=True
+    )  # ID of the source (event, bet, etc.)
+    source_type: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )  # Type of source
 
 
 class UserTierInfo(Base):
@@ -94,13 +110,25 @@ class UserTierInfo(Base):
     __tablename__ = "user_tier_info"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    current_tier: Mapped[UserTier] = mapped_column(Enum(UserTier), default=UserTier.BRONZE)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False, unique=True
+    )
+    current_tier: Mapped[UserTier] = mapped_column(
+        Enum(UserTier), default=UserTier.BRONZE
+    )
     total_points: Mapped[int] = mapped_column(Integer, default=0)
-    tier_points: Mapped[int] = mapped_column(Integer, default=0)  # Points in current tier
-    tier_progress: Mapped[float] = mapped_column(Float, default=0.0)  # Progress to next tier (0-100)
-    bonus_rate: Mapped[float] = mapped_column(Float, default=0.0)  # Bonus rate for current tier
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    tier_points: Mapped[int] = mapped_column(
+        Integer, default=0
+    )  # Points in current tier
+    tier_progress: Mapped[float] = mapped_column(
+        Float, default=0.0
+    )  # Progress to next tier (0-100)
+    bonus_rate: Mapped[float] = mapped_column(
+        Float, default=0.0
+    )  # Bonus rate for current tier
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -115,8 +143,12 @@ class TrickShooterReward(Base):
     __tablename__ = "trick_shooter_rewards"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    event_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ID of the trick shot event
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
+    event_id: Mapped[int] = mapped_column(
+        Integer, nullable=False
+    )  # ID of the trick shot event
     event_creation_bonus: Mapped[float] = mapped_column(Float, default=0.0)
     viewer_bonus: Mapped[float] = mapped_column(Float, default=0.0)
     engagement_bonus: Mapped[float] = mapped_column(Float, default=0.0)
@@ -128,7 +160,9 @@ class TrickShooterReward(Base):
     bet_count: Mapped[int] = mapped_column(Integer, default=0)
     completion_status: Mapped[bool] = mapped_column(Boolean, default=False)
     community_rating: Mapped[float] = mapped_column(Float, default=0.0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     # Foreign key relationships
     user = relationship("User", back_populates="trick_shooter_rewards")
@@ -140,7 +174,9 @@ class FriendBetReward(Base):
     __tablename__ = "friend_bet_rewards"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
     bet_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ID of the friend bet
     creation_bonus: Mapped[float] = mapped_column(Float, default=0.0)
     acceptance_bonus: Mapped[float] = mapped_column(Float, default=0.0)
@@ -152,7 +188,9 @@ class FriendBetReward(Base):
     acceptance_status: Mapped[bool] = mapped_column(Boolean, default=False)
     completion_status: Mapped[bool] = mapped_column(Boolean, default=False)
     social_interactions: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     # Foreign key relationships
     user = relationship("User", back_populates="friend_bet_rewards")
