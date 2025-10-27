@@ -36,6 +36,7 @@ jobs:
         run: |
           cd backend
           flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          echo "Black version: $(python -c 'import black; print(black.__version__)')"
           black --check app/ --diff
           isort --check-only app/ --diff
 
