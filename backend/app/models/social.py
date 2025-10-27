@@ -18,7 +18,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -139,31 +139,31 @@ class Friendship(Base):
 
     __tablename__ = "friendships"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    friend_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Friendship details
-    status: Column[FriendshipStatus] = Column(
+    status: Mapped[FriendshipStatus] = mapped_column(
         Enum(FriendshipStatus), default=FriendshipStatus.PENDING, nullable=False
     )
-    initiated_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    initiated_by: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Friendship metadata
-    is_favorite = Column(Boolean, default=False, nullable=False)
-    notes = Column(Text, nullable=True)
+    is_favorite: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Timestamps
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    updated_at = Column(
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
     )
-    accepted_at = Column(DateTime(timezone=True), nullable=True)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     user = relationship("User", foreign_keys=[user_id], back_populates="friendships")
@@ -296,28 +296,28 @@ class Notification(Base):
 
     __tablename__ = "notifications"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Notification details
-    notification_type: Column[NotificationType] = Column(
+    notification_type: Mapped[NotificationType] = mapped_column(
         Enum(NotificationType), nullable=False
     )
-    title = Column(String(255), nullable=False)
-    message = Column(Text, nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
 
     # Notification metadata
-    is_read = Column(Boolean, default=False, nullable=False)
-    is_important = Column(Boolean, default=False, nullable=False)
-    action_url = Column(String(500), nullable=True)
-    notification_metadata = Column(JSON, nullable=True)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_important: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    action_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    notification_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # Timestamps
-    created_at = Column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
-    read_at = Column(DateTime(timezone=True), nullable=True)
-    expires_at = Column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     user = relationship("User")

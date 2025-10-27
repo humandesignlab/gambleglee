@@ -106,7 +106,7 @@ class SocialService:
     ) -> Friendship:
         """Respond to a friend request"""
 
-        friendship = await self._get_friendship(
+        friendship: Friendship | None = await self._get_friendship(
             friend_id, user_id
         )  # Note: reversed order
         if not friendship:
@@ -224,7 +224,7 @@ class SocialService:
         )
 
         result = await self.db.execute(query)
-        friendships = result.scalars().all()
+        friendships = list(list(result.scalars().all()))
 
         return friendships, total
 
@@ -255,7 +255,7 @@ class SocialService:
         query = query.options(selectinload(Friendship.user))
 
         result = await self.db.execute(query)
-        friendships = result.scalars().all()
+        friendships = list(list(result.scalars().all()))
 
         return friendships, total
 
@@ -336,7 +336,7 @@ class SocialService:
         search_query = search_query.order_by(desc(UserProfile.last_active))
 
         result = await self.db.execute(search_query)
-        users = result.scalars().all()
+        users = list(list(result.scalars().all()))
 
         # Log search
         if user_id:
@@ -428,7 +428,7 @@ class SocialService:
         query = query.order_by(desc(UserActivity.created_at))
 
         result = await self.db.execute(query)
-        activities = result.scalars().all()
+        activities = list(result.scalars().all())
 
         return activities, total
 
@@ -445,7 +445,7 @@ class SocialService:
             )
         )
         friends_result = await self.db.execute(friends_query)
-        friendships = friends_result.scalars().all()
+        friendships = list(friends_result.scalars().all())
 
         # Extract friend IDs
         friend_ids = []
@@ -475,7 +475,7 @@ class SocialService:
         query = query.order_by(desc(UserActivity.created_at))
 
         result = await self.db.execute(query)
-        activities = result.scalars().all()
+        activities = list(result.scalars().all())
 
         return activities, total
 
@@ -573,7 +573,7 @@ class SocialService:
         query = query.order_by(desc(Notification.created_at))
 
         result = await self.db.execute(query)
-        notifications = result.scalars().all()
+        notifications = list(result.scalars().all())
 
         return notifications, total, unread_count
 
@@ -709,7 +709,7 @@ class SocialService:
         query = query.options(selectinload(LeaderboardEntry.user))
 
         result = await self.db.execute(query)
-        entries = result.scalars().all()
+        entries = list(result.scalars().all())
 
         return entries, total
 
