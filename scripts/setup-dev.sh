@@ -23,18 +23,18 @@ if command -v code >/dev/null 2>&1; then
     code --install-extension ms-python.isort
     code --install-extension ms-python.flake8
     code --install-extension ms-python.mypy-type-checker
-    
+
     # TypeScript/JavaScript extensions
     code --install-extension dbaeumer.vscode-eslint
     code --install-extension esbenp.prettier-vscode
-    
+
     # Terraform extensions
     code --install-extension hashicorp.terraform
-    
+
     # General extensions
     code --install-extension redhat.vscode-yaml
     code --install-extension eamodio.gitlens
-    
+
     echo "✅ VS Code extensions installed"
 else
     echo "⚠️  VS Code not found. Please install extensions manually from .vscode/extensions.json"

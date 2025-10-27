@@ -18,6 +18,18 @@ fi
 echo "🐍 Checking backend formatting..."
 cd backend
 
+# Activate virtual environment if it exists
+if [ -f ".venv/bin/activate" ]; then
+    echo "🔧 Activating virtual environment..."
+    source .venv/bin/activate
+else
+    echo "⚠️  No virtual environment found, using system Python"
+fi
+
+# Ensure we're using the exact same versions as CI
+echo "🔧 Ensuring CI-compatible tool versions..."
+pip install -q black==23.11.0 isort==5.12.0 flake8==6.1.0 mypy==1.7.1
+
 # Auto-fix Black formatting (always run to ensure CI compatibility)
 echo "🎨 Applying Black formatting..."
 python -m black app/
