@@ -52,3 +52,4 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             response.headers["Expires"] = "0"
 
         return response
+# CI formatting test
