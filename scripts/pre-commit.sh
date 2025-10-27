@@ -39,6 +39,14 @@ if ! python -m flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statis
     exit 1
 fi
 
+# Check mypy type checking
+echo "🔍 Running mypy type checking..."
+if ! python -m mypy app/ --ignore-missing-imports > /dev/null 2>&1; then
+    echo "❌ mypy type checking failed. Please fix the type issues above."
+    python -m mypy app/ --ignore-missing-imports
+    exit 1
+fi
+
 cd ..
 
 # Frontend checks
