@@ -66,11 +66,11 @@ class Reward(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    reward_type = Column(Enum(RewardType), nullable=False)
+    reward_type: Column[RewardType] = Column(Enum(RewardType), nullable=False)
     points_earned = Column(Integer, nullable=False, default=0)
     cash_earned = Column(Float, nullable=False, default=0.0)
     description = Column(Text, nullable=True)
-    status = Column(Enum(RewardStatus), default=RewardStatus.PENDING)
+    status: Column[RewardStatus] = Column(Enum(RewardStatus), default=RewardStatus.PENDING)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     approved_at = Column(DateTime(timezone=True), nullable=True)
     redeemed_at = Column(DateTime(timezone=True), nullable=True)
@@ -92,7 +92,7 @@ class UserTierInfo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    current_tier = Column(Enum(UserTier), default=UserTier.BRONZE)
+    current_tier: Column[UserTier] = Column(Enum(UserTier), default=UserTier.BRONZE)
     total_points = Column(Integer, default=0)
     tier_points = Column(Integer, default=0)  # Points in current tier
     tier_progress = Column(Float, default=0.0)  # Progress to next tier (0-100)

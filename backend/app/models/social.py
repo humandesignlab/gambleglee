@@ -89,7 +89,7 @@ class UserProfile(Base):
     gender = Column(String(20), nullable=True)
 
     # Social preferences
-    privacy_level = Column(
+    privacy_level: Column[PrivacyLevel] = Column(
         Enum(PrivacyLevel), default=PrivacyLevel.PUBLIC, nullable=False
     )
     show_online_status = Column(Boolean, default=True, nullable=False)
@@ -144,7 +144,7 @@ class Friendship(Base):
     friend_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Friendship details
-    status = Column(
+    status: Column[FriendshipStatus] = Column(
         Enum(FriendshipStatus), default=FriendshipStatus.PENDING, nullable=False
     )
     initiated_by = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -189,7 +189,7 @@ class UserActivity(Base):
     user_profile_id = Column(Integer, ForeignKey("user_profiles.id"), nullable=False)
 
     # Activity details
-    activity_type = Column(Enum(ActivityType), nullable=False)
+    activity_type: Column[ActivityType] = Column(Enum(ActivityType), nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
 
@@ -300,7 +300,7 @@ class Notification(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # Notification details
-    notification_type = Column(Enum(NotificationType), nullable=False)
+    notification_type: Column[NotificationType] = Column(Enum(NotificationType), nullable=False)
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
 

@@ -84,9 +84,9 @@ class Bet(Base):
     # Bet details
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    bet_type = Column(Enum(BetType), nullable=False)
-    status = Column(Enum(BetStatus), default=BetStatus.PENDING, nullable=False)
-    outcome = Column(Enum(BetOutcome), default=BetOutcome.PENDING, nullable=False)
+    bet_type: Column[BetType] = Column(Enum(BetType), nullable=False)
+    status: Column[BetStatus] = Column(Enum(BetStatus), default=BetStatus.PENDING, nullable=False)
+    outcome: Column[BetOutcome] = Column(Enum(BetOutcome), default=BetOutcome.PENDING, nullable=False)
 
     # Financial details (using Decimal for precision)
     amount = Column(Numeric(15, 2), nullable=False)  # Total bet amount
@@ -164,7 +164,7 @@ class BetParticipant(Base):
     id = Column(Integer, primary_key=True, index=True)
     bet_id = Column(Integer, ForeignKey("bets.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    role = Column(Enum(BetParticipantRole), nullable=False)
+    role: Column[BetParticipantRole] = Column(Enum(BetParticipantRole), nullable=False)
 
     # Financial details
     stake_amount = Column(Numeric(15, 2), nullable=False)  # Amount user is betting
@@ -258,7 +258,7 @@ class BetResolution(Base):
         String(50), nullable=False
     )  # 'automatic', 'manual', 'judge', 'community'
     resolution_data = Column(Text, nullable=False)  # JSON resolution data
-    outcome = Column(Enum(BetOutcome), nullable=False)
+    outcome: Column[BetOutcome] = Column(Enum(BetOutcome), nullable=False)
 
     # Resolution participants
     resolved_by = Column(

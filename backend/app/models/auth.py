@@ -87,11 +87,11 @@ class User(Base):
     is_active = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
-    status = Column(Enum(UserStatus), default=UserStatus.PENDING, nullable=False)
+    role: Column[UserRole] = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
+    status: Column[UserStatus] = Column(Enum(UserStatus), default=UserStatus.PENDING, nullable=False)
 
     # Authentication providers
-    auth_provider = Column(
+    auth_provider: Column[AuthProvider] = Column(
         Enum(AuthProvider), default=AuthProvider.EMAIL, nullable=False
     )
     external_id = Column(String(255), nullable=True)  # OAuth provider user ID
@@ -194,7 +194,7 @@ class UserSession(Base):
     location = Column(String(100), nullable=True)
 
     # Session status
-    status = Column(Enum(SessionStatus), default=SessionStatus.ACTIVE, nullable=False)
+    status: Column[SessionStatus] = Column(Enum(SessionStatus), default=SessionStatus.ACTIVE, nullable=False)
     is_current = Column(Boolean, default=True, nullable=False)
 
     # Timestamps
@@ -221,7 +221,7 @@ class LoginHistory(Base):
 
     # Login details
     login_type = Column(String(50), nullable=False)  # password, oauth, magic_link
-    auth_provider = Column(Enum(AuthProvider), nullable=True)
+    auth_provider: Column[AuthProvider] = Column(Enum(AuthProvider), nullable=True)
     success = Column(Boolean, nullable=False)
 
     # Device and location info

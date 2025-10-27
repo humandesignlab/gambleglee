@@ -75,9 +75,9 @@ class Transaction(Base):
     wallet_id = Column(Integer, ForeignKey("wallets.id"), nullable=False)
 
     # Transaction details
-    type = Column(Enum(TransactionType), nullable=False)
+    type: Column[TransactionType] = Column(Enum(TransactionType), nullable=False)
     amount = Column(Float, nullable=False)
-    status = Column(Enum(TransactionStatus), default=TransactionStatus.PENDING)
+    status: Column[TransactionStatus] = Column(Enum(TransactionStatus), default=TransactionStatus.PENDING)
 
     # External references
     stripe_payment_intent_id = Column(String(255), nullable=True)
